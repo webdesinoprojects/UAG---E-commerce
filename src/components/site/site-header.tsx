@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   Search,
@@ -89,32 +90,32 @@ const DroneSvg = () => (
 
 const categoryItems = [
   {
-    label: "Earbuds Or Airdopes ENC",
+    label: "Earbuds",
     href: "/categories/earbuds",
     icon: EarbudsSvg,
   },
   {
-    label: "Neckband with Magnetic Sensor or ENC",
+    label: "Neckbands",
     href: "/categories/neckbands",
     icon: NeckbandSvg,
   },
   {
-    label: "Portable & Party Speaker with Clear Bass",
+    label: "Speakers",
     href: "/categories/speakers",
     icon: SpeakerSvg,
   },
   {
-    label: "Data Cable & Charger High speed Deliver",
+    label: "Data Cables",
     href: "/categories/cables",
     icon: CableSvg,
   },
   {
-    label: "Power Bank Fast Charge Technology",
+    label: "Power Banks",
     href: "/categories/powerbanks",
     icon: BatterySvg,
   },
   {
-    label: "Smart Watch with Calling",
+    label: "Smart Watches",
     href: "/categories/smartwatches",
     icon: WatchSvg,
   },
@@ -148,7 +149,7 @@ export default function SiteHeader() {
   return (
     <>
       {/* Standard Header Stretched relative to top viewport */}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/85 backdrop-blur-md transition-shadow duration-300 hover:shadow-sm">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background transition-shadow duration-300 hover:shadow-sm">
         
         {/* 1. Desktop Navigation Bar Layout (768px+) */}
         <div className="hidden md:flex mx-auto h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -156,18 +157,19 @@ export default function SiteHeader() {
           {/* Left: Brand Logo & Links */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="flex flex-col font-display select-none">
-                <span className="text-2xl font-black text-foreground group-hover:text-primary transition-colors leading-none">
-                  UAG
-                </span>
-                <span className="text-[7px] font-bold tracking-[0.25em] text-muted-foreground uppercase leading-none mt-1">
-                  Urban Armour Gear
-                </span>
-              </div>
+              <Image
+                src="/images/logo/logo.png"
+                alt="UAG Logo"
+                width={120}
+                height={40}
+                className="h-10 w-auto object-contain mix-blend-multiply"
+                style={{ width: "auto" }}
+                priority
+              />
             </Link>
 
             {/* Desktop Nav links */}
-            <nav className="flex items-center gap-1 text-sm font-medium">
+            <nav className="flex items-center gap-1 text-[17px] font-serif tracking-wide">
               <Link
                 href="/"
                 className={cn(
@@ -283,13 +285,16 @@ export default function SiteHeader() {
 
           {/* Center: Brand Logo */}
           <div className="flex justify-center flex-1">
-            <Link href="/" className="flex flex-col items-center select-none">
-              <span className="text-2xl font-black text-foreground tracking-tighter leading-none">
-                UAG
-              </span>
-              <span className="text-[7px] font-black text-muted-foreground tracking-[0.3em] uppercase leading-none mt-1">
-                URBN ARMOUR GEAR
-              </span>
+            <Link href="/" className="flex items-center select-none">
+              <Image
+                src="/images/logo/logo.png"
+                alt="UAG Logo"
+                width={100}
+                height={32}
+                className="h-8 w-auto object-contain mix-blend-multiply"
+                style={{ width: "auto" }}
+                priority
+              />
             </Link>
           </div>
 
@@ -403,7 +408,7 @@ export default function SiteHeader() {
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                     <IconComponent />
                   </div>
-                  <span className="text-[11px] font-extrabold font-sans text-zinc-800 dark:text-zinc-300 uppercase tracking-wide group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
+                  <span className="text-[15px] font-serif text-zinc-800 dark:text-zinc-300 tracking-wide group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
                     {item.label}
                   </span>
                 </Link>
@@ -424,7 +429,7 @@ export default function SiteHeader() {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 )}
-                <span className="text-[11px] font-extrabold font-sans text-zinc-800 dark:text-zinc-300 uppercase tracking-wide group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
+                <span className="text-[15px] font-serif text-zinc-800 dark:text-zinc-300 tracking-wide group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
                   {item.label}
                 </span>
               </Link>
@@ -472,6 +477,24 @@ export default function SiteHeader() {
             </span>
           </div>
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Cart</span>
+        </Link>
+
+        {/* Track Order Tab */}
+        <Link 
+          href="/track-order" 
+          className={cn(
+            "flex flex-col items-center justify-center transition-colors py-1 flex-1 min-w-0",
+            pathname === "/track-order" ? "text-primary" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+          )}
+        >
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 17h4V5H2v12h3" />
+            <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5" />
+            <path d="M14 17h1" />
+            <circle cx="7.5" cy="17.5" r="2.5" />
+            <circle cx="17.5" cy="17.5" r="2.5" />
+          </svg>
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Track</span>
         </Link>
 
         {/* My Account Tab */}

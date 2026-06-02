@@ -34,7 +34,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
 
   return (
     <div className={cn(
-      "group relative flex flex-col overflow-hidden transition-all duration-300 ease-out",
+      "group relative flex flex-col overflow-hidden transition-all duration-300 ease-out cursor-pointer",
       variant === "default"
         ? "rounded-2xl border border-zinc-150 bg-white p-3 shadow-xs hover:shadow-md hover:border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800/80"
         : "rounded-2xl border-0 bg-transparent p-1.5 shadow-none"
@@ -46,7 +46,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
       </div>
 
       {/* 2. Product Image Container (Slightly wider, full bleed for transparent) */}
-      <div className={cn(
+      <Link href={`/products/${product.slug}`} className={cn(
         "relative w-full overflow-hidden rounded-2xl flex items-center justify-center border transition-all duration-300",
         variant === "default"
           ? "aspect-[6/5] bg-zinc-50/50 border-zinc-100 dark:bg-zinc-900/40 dark:border-zinc-850 p-3"
@@ -65,7 +65,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
           )}
           loading="lazy"
         />
-      </div>
+      </Link>
 
       {/* 3. Product Info Block */}
       <div className="flex-1 flex flex-col justify-between mt-2.5 text-center">

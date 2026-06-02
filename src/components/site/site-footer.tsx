@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUp } from "lucide-react";
 
 export default function SiteFooter() {
@@ -36,13 +37,16 @@ export default function SiteFooter() {
           
           {/* Left Column: Custom Styled Brand Logo */}
           <div className="flex justify-center md:justify-start">
-            <Link href="/" className="flex flex-col items-start select-none group">
-              <span className="text-3xl font-black text-white tracking-tighter leading-none group-hover:text-primary transition-colors">
-                UAG
-              </span>
-              <span className="text-[7px] font-black text-zinc-500 tracking-[0.3em] uppercase leading-none mt-1">
-                URBN ARMOUR GEAR
-              </span>
+            <Link href="/" className="flex items-start select-none group">
+              <Image
+                src="/images/logo/logo.png"
+                alt="UAG Logo"
+                width={120}
+                height={40}
+                className="h-10 w-auto object-contain invert mix-blend-screen"
+                style={{ width: "auto" }}
+                priority
+              />
             </Link>
           </div>
 

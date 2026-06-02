@@ -3,6 +3,7 @@ import {
   Geist,
   Geist_Mono,
   Instrument_Sans,
+  Instrument_Serif,
   Manrope,
   Plus_Jakarta_Sans,
   Sora,
@@ -19,6 +20,13 @@ const geistSans = Geist({
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  weight: "400",
   subsets: ["latin"],
   display: "swap",
 });
@@ -61,7 +69,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} ${manrope.variable} ${plusJakarta.variable} ${sora.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${manrope.variable} ${plusJakarta.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
         <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
