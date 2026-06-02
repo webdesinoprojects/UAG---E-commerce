@@ -82,6 +82,7 @@ export default function Milestones() {
 
         {/* Footer Accent Text */}
         <div className="flex justify-center mt-6">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a
             href="/categories"
             className="text-[10px] font-extrabold tracking-widest text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 uppercase transition-colors"

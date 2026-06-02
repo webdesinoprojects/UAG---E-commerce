@@ -125,6 +125,7 @@ export default function HeroCarousel() {
     document.addEventListener("visibilitychange", handleVisibility);
     
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReducedMotion(mediaQuery.matches);
     const motionListener = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
     mediaQuery.addEventListener("change", motionListener);

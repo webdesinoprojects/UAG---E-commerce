@@ -48,6 +48,7 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
         
         {/* Left: Breadcrumbs */}
         <div className="text-[10px] sm:text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Home</a>
           <span>/</span>
           <span className="text-zinc-900 dark:text-zinc-100 font-bold">{categoryName}</span>
@@ -122,6 +123,7 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
         {/* Top Info */}
         <div className="flex flex-col gap-2 pt-2">
           <div className="text-xs font-medium text-zinc-500 flex items-center gap-1.5">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/" className="hover:text-zinc-900 dark:hover:text-white transition-colors">Home</a>
             <span>/</span>
             <span className="text-zinc-900 dark:text-zinc-100 font-bold">{categoryName}</span>

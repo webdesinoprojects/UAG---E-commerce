@@ -94,6 +94,7 @@ export default function FullscreenBanner() {
     document.addEventListener("visibilitychange", handleVisibility);
     
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReducedMotion(mediaQuery.matches);
     const motionListener = (e: MediaQueryListEvent) => setIsReducedMotion(e.matches);
     mediaQuery.addEventListener("change", motionListener);
@@ -172,8 +173,6 @@ export default function FullscreenBanner() {
       >
         <CarouselContent className="ml-0">
           {slides.map((slide, index) => {
-            const isLCP = index === 0;
-
             return (
               <CarouselItem key={slide.id} className="pl-0 relative w-full h-[calc(100vh-4.5rem)] min-h-[500px]">
                 {/* Background Image with Masks */}

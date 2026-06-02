@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Percent, RefreshCw, ShieldCheck, Truck, MapPin, PackageCheck } from "lucide-react";
 import { getProductBySlug, getAllProducts } from "@/features/catalog/queries";
 import { ProductGallery } from "@/features/catalog/components/product-gallery";
 import { ProductInfo } from "@/features/catalog/components/product-info";
@@ -89,12 +89,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
               {product.promises.map((promise, idx) => {
                 // Dynamically select an icon based on string
                 const IconComponent = 
-                  promise.icon === "Percent" ? require("lucide-react").Percent :
-                  promise.icon === "RefreshCw" ? require("lucide-react").RefreshCw :
-                  promise.icon === "ShieldCheck" ? require("lucide-react").ShieldCheck :
-                  promise.icon === "Truck" ? require("lucide-react").Truck :
-                  promise.icon === "MapPin" ? require("lucide-react").MapPin :
-                  require("lucide-react").PackageCheck;
+                  promise.icon === "Percent" ? Percent :
+                  promise.icon === "RefreshCw" ? RefreshCw :
+                  promise.icon === "ShieldCheck" ? ShieldCheck :
+                  promise.icon === "Truck" ? Truck :
+                  promise.icon === "MapPin" ? MapPin :
+                  PackageCheck;
 
                 return (
                   <div key={idx} className="bg-[#f8f8f8] dark:bg-zinc-900 rounded-xl p-4 flex flex-col items-center justify-center text-center gap-2 aspect-[4/3]">

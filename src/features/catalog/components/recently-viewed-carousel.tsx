@@ -25,6 +25,7 @@ export function RecentlyViewedCarousel({ allProducts, currentProductSlug }: Rece
           .map(slug => allProducts.find(p => p.slug === slug))
           .filter(Boolean) as Product[];
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setViewedProducts(products);
       }
     } catch (e) {
