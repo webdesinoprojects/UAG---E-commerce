@@ -12,12 +12,14 @@ import WatchStories from "@/features/homepage/components/watch-stories";
 import {
   getHomepageAnnouncement,
   getHomepageHeroCarousel,
+  getHomepageCategoryCircles,
 } from "@/features/homepage/queries";
 
 export default async function StoreHomePage() {
-  const [announcement, heroCarousel] = await Promise.all([
+  const [announcement, heroCarousel, categoryCircles] = await Promise.all([
     getHomepageAnnouncement(),
     getHomepageHeroCarousel(),
+    getHomepageCategoryCircles(),
   ]);
 
   return (
@@ -26,7 +28,7 @@ export default async function StoreHomePage() {
       <MarqueeBanner announcement={announcement} />
 
       {/* 2. Top Category Circular Navigation */}
-      <CategoryCircles />
+      <CategoryCircles categoryCircles={categoryCircles} />
 
       {/* 3. High Impact Banner Carousel */}
       <HeroCarousel heroCarousel={heroCarousel} />

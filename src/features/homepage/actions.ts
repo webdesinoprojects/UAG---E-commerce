@@ -7,15 +7,18 @@ import {
   HOMEPAGE_CACHE_TAG,
   HOMEPAGE_HERO_CAROUSEL_CACHE_TAG,
   HOMEPAGE_TOP_MARQUEE_CACHE_TAG,
+  HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG,
 } from "@/features/homepage/queries";
 import { requireAdmin } from "@/server/auth/admin";
 import {
   writeHomepageAnnouncement,
   writeHomepageHeroCarousel,
+  writeHomepageCategoryCircles,
 } from "@/server/repositories/homepage-repository";
 import {
   parseHomepageAnnouncementForm,
   parseHomepageHeroCarouselForm,
+  parseHomepageCategoryCirclesForm,
 } from "@/server/validators/homepage";
 
 export interface HomepageAnnouncementActionState {
@@ -86,6 +89,39 @@ export async function updateHomepageHeroCarouselAction(
     return {
       status: "error",
       message: "Could not publish the hero carousel. Try again.",
+    };
+  }
+}
+
+export async function updateHomepageCategoryCirclesAction(
+  _previousState: HomepageAnnouncementActionState,
+  formData: FormData
+): Promise<HomepageAnnouncementActionState> {
+  const admin = await requireAdmin();
+  const parsed = parseHomepageCategoryCirclesForm(formData);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await writeHomepageCategoryCircles(parsed.data, admin.id);
+    updateTag(HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG);
+    updateTag(HOMEPAGE_CACHE_TAG);
+    revalidatePath("/admin/homepage/categories");
+
+    return {
+      status: "success",
+      message: "Category circles published.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not publish the category circles. Try again.",
     };
   }
 }

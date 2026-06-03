@@ -54,3 +54,25 @@ export interface HomepageHeroCarousel {
   autoplaySeconds: number;
   slides: HomepageHeroSlide[];
 }
+
+export interface HomepageCategoryCircle {
+  id: string;
+  name: string;
+  slug: string;
+  href: string;
+  productCount: number;
+  fallbackImagePath: string;
+  imageUrl: string;
+  imageAlt: string;
+  imageMediaAssetId: string | null;
+  hoverMediaUrl: string | null;
+  hoverMediaMimeType: string | null;
+  hoverMediaAssetId: string | null;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface HomepageCategoryCircles {
+  isEnabled: boolean;
+  items: HomepageCategoryCircle[];
+}

@@ -6,6 +6,8 @@ import type {
   HomepageAnnouncementItem,
   HomepageHeroCarousel,
   HomepageHeroSlide,
+  HomepageCategoryCircle,
+  HomepageCategoryCircles,
 } from "@/features/homepage/types";
 
 const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -407,5 +409,180 @@ export function toHomepageHeroCarousel(
     autoplaySeconds:
       autoplaySeconds ?? fallbackHomepageHeroCarousel.autoplaySeconds,
     slides,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage category circles                                                  */
+/* -------------------------------------------------------------------------- */
+
+const categoryImagePathSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(300)
+  .regex(
+    /^\/images\/categories\/[A-Za-z0-9/_-]+\.(png|jpe?g|webp|avif)$/i,
+    "Use a local /images/categories/... path"
+  )
+  .refine((value) => !value.includes(".."), "Invalid image path");
+
+const categoryHrefSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(300)
+  .regex(/^\/categories\/[A-Za-z0-9-]+$/, "Use a path like /categories/earbuds");
+
+export const categoryCircleInputSchema = z
+  .object({
+    id: z.string().trim().min(1).max(120),
+    name: z.string().trim().min(1).max(80),
+    slug: z.string().trim().min(1).max(80).regex(/^[a-z0-9-]+$/, "Slug must be URL safe"),
+    href: categoryHrefSchema,
+    productCount: z.coerce.number().int().min(0).max(999999),
+    image: z.string().trim().max(300),
+    imageMediaAssetId: z.string().uuid().nullable().optional(),
+    hoverMediaAssetId: z.string().uuid().nullable().optional(),
+    sortOrder: z.coerce.number().int().min(0).max(10_000),
+    isEnabled: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.image) {
+      const imagePath = categoryImagePathSchema.safeParse(value.image);
+
+      if (!imagePath.success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["image"],
+          message: imagePath.error.issues[0]?.message ?? "Invalid image path",
+        });
+      }
+
+      return;
+    }
+
+    if (!value.imageMediaAssetId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["image"],
+        message: "Select a media asset or add a fallback image path.",
+      });
+    }
+  });
+
+export const homepageCategoryCirclesInputSchema = z.object({
+  isEnabled: z.boolean(),
+  items: z.array(categoryCircleInputSchema).max(20),
+});
+
+export type HomepageCategoryCirclesInput = z.infer<typeof homepageCategoryCirclesInputSchema>;
+
+export function parseHomepageCategoryCirclesForm(formData: FormData) {
+  const rawCount = Number(formData.get("itemCount"));
+  const itemCount = Number.isFinite(rawCount) ? Math.min(Math.max(rawCount, 0), 20) : 0;
+
+  const items = Array.from({ length: itemCount }, (_, index) => {
+    const prefix = `item-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+    
+    return {
+      id: read("id") || `cat-${index + 1}`,
+      name: read("name") || "",
+      slug: read("slug") || "",
+      href: read("href") || "",
+      productCount: read("productCount"),
+      image: read("image") || "",
+      imageMediaAssetId: read("imageMediaAssetId") || null,
+      hoverMediaAssetId: read("hoverMediaAssetId") || null,
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  return homepageCategoryCirclesInputSchema.safeParse({
+    isEnabled: formData.get("isEnabled") === "true",
+    items,
+  });
+}
+
+export const fallbackHomepageCategoryCircles: HomepageCategoryCircles = {
+  isEnabled: true,
+  items: [
+    { id: "cat-1", name: "Earbuds", slug: "earbuds", href: "/categories/earbuds", productCount: 32, fallbackImagePath: "/images/categories/earbuds.png", imageUrl: "/images/categories/earbuds.png", imageAlt: "Earbuds Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 10, isEnabled: true },
+    { id: "cat-2", name: "Neckbands", slug: "neckbands", href: "/categories/neckbands", productCount: 25, fallbackImagePath: "/images/categories/neckbands.png", imageUrl: "/images/categories/neckbands.png", imageAlt: "Neckbands Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 20, isEnabled: true },
+    { id: "cat-3", name: "Smart Watch", slug: "smart-watches", href: "/categories/smart-watches", productCount: 1, fallbackImagePath: "/images/categories/watches.png", imageUrl: "/images/categories/watches.png", imageAlt: "Smart Watch Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 30, isEnabled: true },
+    { id: "cat-4", name: "Power Banks", slug: "power-banks", href: "/categories/power-banks", productCount: 1, fallbackImagePath: "/images/categories/powerbanks.png", imageUrl: "/images/categories/powerbanks.png", imageAlt: "Power Banks Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 40, isEnabled: true },
+    { id: "cat-5", name: "Bluetooth Speaker", slug: "bluetooth-speakers", href: "/categories/bluetooth-speakers", productCount: 1, fallbackImagePath: "/images/categories/speakers.png", imageUrl: "/images/categories/speakers.png", imageAlt: "Bluetooth Speaker Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 50, isEnabled: true },
+    { id: "cat-6", name: "Data Cable", slug: "data-cables", href: "/categories/data-cables", productCount: 34, fallbackImagePath: "/images/categories/cables.png", imageUrl: "/images/categories/cables.png", imageAlt: "Data Cable Category", imageMediaAssetId: null, hoverMediaUrl: null, hoverMediaMimeType: null, hoverMediaAssetId: null, sortOrder: 60, isEnabled: true },
+  ],
+};
+
+const categoryItemSettingsSchema = z.object({
+  slug: z.string().optional(),
+  productCount: z.number().int().optional(),
+  image: z.string().optional(),
+  hoverMediaAssetId: z.string().uuid().nullable().optional(),
+});
+
+export type CategoryCmsSectionItemRow = CmsSectionItemRow & {
+  media_asset_id?: string | null;
+  mediaUrl?: string | null;
+  mediaMimeType?: string | null;
+  hoverMediaUrl?: string | null;
+  hoverMediaMimeType?: string | null;
+};
+
+function parseCategoryCircle(item: CategoryCmsSectionItemRow): HomepageCategoryCircle | null {
+  const settings = categoryItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+
+  const parsed = categoryCircleInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    name: item.title,
+    slug: safeSettings.slug ?? "",
+    href: item.href ?? "",
+    productCount: safeSettings.productCount ?? 0,
+    image: safeSettings.image ?? "",
+    imageMediaAssetId: item.media_asset_id ?? null,
+    hoverMediaAssetId: safeSettings.hoverMediaAssetId ?? null,
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  return {
+    id: parsed.data.id,
+    name: parsed.data.name,
+    slug: parsed.data.slug,
+    href: parsed.data.href,
+    productCount: parsed.data.productCount,
+    fallbackImagePath: parsed.data.image,
+    imageUrl: item.mediaUrl ?? parsed.data.image,
+    imageAlt: `${parsed.data.name} Category`,
+    imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
+    hoverMediaUrl: item.hoverMediaUrl ?? null,
+    hoverMediaMimeType: item.hoverMediaMimeType ?? null,
+    hoverMediaAssetId: parsed.data.hoverMediaAssetId ?? null,
+    sortOrder: parsed.data.sortOrder,
+    isEnabled: parsed.data.isEnabled,
+  };
+}
+
+export function toHomepageCategoryCircles(
+  section: CmsSectionRow,
+  items: CategoryCmsSectionItemRow[]
+): HomepageCategoryCircles {
+  const validItems = items
+    .map(parseCategoryCircle)
+    .filter((circle): circle is HomepageCategoryCircle => Boolean(circle))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return {
+    isEnabled: section.is_enabled,
+    items: validItems,
   };
 }

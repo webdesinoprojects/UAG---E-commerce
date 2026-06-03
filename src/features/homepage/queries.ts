@@ -4,6 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import {
   readHomepageAnnouncement,
   readHomepageHeroCarousel,
+  readHomepageCategoryCircles,
 } from "@/server/repositories/homepage-repository";
 
 export const HOMEPAGE_CACHE_TAG = "homepage";
@@ -24,4 +25,14 @@ export async function getHomepageHeroCarousel() {
   cacheTag(HOMEPAGE_CACHE_TAG, HOMEPAGE_HERO_CAROUSEL_CACHE_TAG);
 
   return readHomepageHeroCarousel();
+}
+
+export const HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG = "homepage-category-circles";
+
+export async function getHomepageCategoryCircles() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(HOMEPAGE_CACHE_TAG, HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG);
+
+  return readHomepageCategoryCircles();
 }

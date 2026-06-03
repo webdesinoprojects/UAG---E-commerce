@@ -75,6 +75,11 @@ export async function signInAdminAction(
 
   const cookieStore = await cookies();
 
+  // Set the active session cookies at `path=/` so `/api/admin/*` receives them.
+  // Any older `path=/admin` cookies cannot be deleted in this same response (the
+  // cookie store is keyed by name and rewrites the whole Set-Cookie header, so a
+  // same-name delete+set collapses); the proxy expires legacy `/admin` cookies
+  // on the next admin request instead.
   cookieStore.set(
     ADMIN_ACCESS_TOKEN_COOKIE,
     data.session.access_token,
@@ -93,8 +98,10 @@ export async function signInAdminAction(
 export async function signOutAdminAction() {
   const cookieStore = await cookies();
 
-  // Cookies were set with `path=/admin`, so delete with the same path or the
-  // browser keeps the stale cookie and the admin appears logged in.
+  // Delete the active `path=/` session cookies. We can only reliably expire one
+  // path per cookie name in a single response (the store is name-keyed and
+  // rewrites the whole Set-Cookie header), so we clear the active path here; the
+  // proxy expires any leftover legacy `/admin` cookies on the next request.
   cookieStore.delete({
     name: ADMIN_ACCESS_TOKEN_COOKIE,
     path: ADMIN_AUTH_COOKIE_PATH,

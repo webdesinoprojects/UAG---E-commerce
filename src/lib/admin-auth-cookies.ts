@@ -1,7 +1,12 @@
 export const ADMIN_ACCESS_TOKEN_COOKIE = "uag_admin_access_token";
 export const ADMIN_REFRESH_TOKEN_COOKIE = "uag_admin_refresh_token";
 
-export const ADMIN_AUTH_COOKIE_PATH = "/admin";
+export const ADMIN_AUTH_COOKIE_PATH = "/";
+export const LEGACY_ADMIN_AUTH_COOKIE_PATH = "/admin";
+export const ADMIN_AUTH_COOKIE_DELETE_PATHS = [
+  ADMIN_AUTH_COOKIE_PATH,
+  LEGACY_ADMIN_AUTH_COOKIE_PATH,
+] as const;
 
 const DEFAULT_ACCESS_TOKEN_MAX_AGE = 60 * 60;
 const MIN_ACCESS_TOKEN_MAX_AGE = 60;
