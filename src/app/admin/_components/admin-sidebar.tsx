@@ -44,6 +44,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Image as MediaIcon } from "lucide-react";
 
 // Configuration for sidebar navigation routes
 const navigationData = {
@@ -52,6 +53,7 @@ const navigationData = {
       title: "Main Menu",
       items: [
         { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
+        { title: "Media Library", url: "/admin/media", icon: MediaIcon },
         { 
           title: "Storefront (CMS)", 
           url: "/admin/homepage", 
@@ -59,7 +61,7 @@ const navigationData = {
           defaultExpanded: false,
           subItems: [
             { title: "Top Marquee Banner", url: "/admin/homepage/top-banner" },
-            { title: "Hero Banner", url: "/admin/homepage/hero" },
+            { title: "Hero Carousel", url: "/admin/homepage/hero-carousel" },
             { title: "Categories Showcase", url: "/admin/homepage/categories" },
             { title: "Bento Gallery", url: "/admin/homepage/bento-gallery" },
             { title: "Merchandising", url: "/admin/homepage/merchandising" },

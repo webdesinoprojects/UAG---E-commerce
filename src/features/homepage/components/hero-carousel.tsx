@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { Sparkles, Cpu, ShieldCheck, Zap, Volume2, Bluetooth, Link2 } from "lucide-react";
+import Link from "next/link";
+import {
+  Sparkles,
+  Cpu,
+  ShieldCheck,
+  Zap,
+  Volume2,
+  Bluetooth,
+  Link2,
+  Check,
+} from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -10,107 +20,31 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import type {
+  HeroFeatureIcon,
+  HomepageHeroCarousel,
+} from "@/features/homepage/types";
 
-const slides = [
-  {
-    id: 1,
-    title: "EARBUDS 300 LITE",
-    subtitle: "Cybernetic Sound & Extra Bass",
-    description: "Engineered for maximum sound isolation and heavy tactical environments. Complete with integrated case display control.",
-    image: "/images/carousel/banner1.png",
-    accent: "text-amber-400 border-amber-400/20",
-    features: [
-      { text: "Active Noise Cancellation", icon: Volume2 },
-      { text: "Sound Extra Bass Boost", icon: Sparkles },
-    ],
-  },
-  {
-    id: 2,
-    title: "PORTABLE SPEAKERS",
-    subtitle: "Powerful Audio & Ambient Glow",
-    description: "Take the power of studio-grade acoustics anywhere. Rugged waterproof chassis with synchronized LED rings.",
-    image: "/images/carousel/banner2.png",
-    accent: "text-red-500 border-red-500/20",
-    features: [
-      { text: "Rich Stereo Sound Output", icon: Volume2 },
-      { text: "Ambient RGB Illumination", icon: Sparkles },
-    ],
-  },
-  {
-    id: 3,
-    title: "TACTICAL WATCH PRO",
-    subtitle: "Military Grade Smart Watch",
-    description: "Built to survive extreme conditions. Real-time biometric tracking, built-in GPS, and a robust battery life of 30 days.",
-    image: "/images/carousel/banner1.png",
-    accent: "text-emerald-400 border-emerald-400/20",
-    features: [
-      { text: "Advanced Biometric Sensors", icon: Cpu },
-      { text: "Impact-Resistant Bezel", icon: ShieldCheck },
-    ],
-  },
-  {
-    id: 4,
-    title: "POWER CORE SOLAR",
-    subtitle: "Heavy Duty Power Storage",
-    description: "High capacity cells wrapped in shockproof silicone. Dual solar panels keep you charged up far off the grid.",
-    image: "/images/carousel/banner2.png",
-    accent: "text-orange-500 border-orange-500/20",
-    features: [
-      { text: "Fast Charge Tech", icon: Zap },
-      { text: "Built-In LED Flashlight", icon: Sparkles },
-    ],
-  },
-  {
-    id: 5,
-    title: "ARMOUR SPEED CABLE",
-    subtitle: "Indestructible Braided USB-C",
-    description: "Reinforced with bulletproof fiber core. Supports up to 240W Power Delivery and high-speed data sync.",
-    image: "/images/carousel/banner1.png",
-    accent: "text-blue-400 border-blue-400/20",
-    features: [
-      { text: "240W Power Delivery", icon: Zap },
-      { text: "Kevlar Braided Shell", icon: Link2 },
-    ],
-  },
-  {
-    id: 6,
-    title: "AIRDOPES STUDIO ANC",
-    subtitle: "True Wireless Sound Shield",
-    description: "Escape the noise. Hybrid ANC technology blocks out 40dB of ambient noise while preserving pristine vocals.",
-    image: "/images/carousel/banner2.png",
-    accent: "text-purple-400 border-purple-400/20",
-    features: [
-      { text: "40dB Hybrid ANC", icon: Volume2 },
-      { text: "Low Latency Gaming Mode", icon: Cpu },
-    ],
-  },
-  {
-    id: 7,
-    title: "OMNI PARTY SPEAKER",
-    subtitle: "Ambient Audio Environment",
-    description: "Double subwoofers deliver rich, thumping bass. Perfect for large open areas, outdoor events, and home theaters.",
-    image: "/images/carousel/banner2.png",
-    accent: "text-pink-500 border-pink-500/20",
-    features: [
-      { text: "Wireless Stereo Pairing", icon: Bluetooth },
-      { text: "Rechargeable 24hr Battery", icon: Zap },
-    ],
-  },
-  {
-    id: 8,
-    title: "UAG ELITE ECOSYSTEM",
-    subtitle: "Complete Connected Gear",
-    description: "Elevate your tech setup with matching protective cases, durable charging bricks, and premium wireless sound.",
-    image: "/images/carousel/banner1.png",
-    accent: "text-amber-400 border-amber-400/20",
-    features: [
-      { text: "Device Protection Shield", icon: ShieldCheck },
-      { text: "Sleek Industrial Aesthetics", icon: Cpu },
-    ],
-  },
-];
+// Maps the validated icon name from the DTO to a Lucide icon. Falls back to a
+// neutral icon if an unknown name ever slips through.
+const featureIconMap = {
+  volume: Volume2,
+  sparkles: Sparkles,
+  cpu: Cpu,
+  shield: ShieldCheck,
+  zap: Zap,
+  bluetooth: Bluetooth,
+  link: Link2,
+  check: Check,
+} satisfies Record<HeroFeatureIcon, typeof Sparkles>;
 
-export default function HeroCarousel() {
+interface HeroCarouselProps {
+  heroCarousel: HomepageHeroCarousel;
+}
+
+export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
+  const slides = heroCarousel.slides.filter((slide) => slide.isEnabled);
+
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -123,7 +57,7 @@ export default function HeroCarousel() {
   useEffect(() => {
     const handleVisibility = () => setIsTabHidden(document.hidden);
     document.addEventListener("visibilitychange", handleVisibility);
-    
+
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReducedMotion(mediaQuery.matches);
@@ -164,7 +98,7 @@ export default function HeroCarousel() {
     if (isReducedMotion || !api) return;
 
     const intervalTime = 30; // 30ms steps for 33fps smoothness
-    const duration = 5000; // 5 seconds slide time
+    const duration = heroCarousel.autoplaySeconds * 1000; // admin-controlled slide time
     const step = (intervalTime / duration) * 100;
 
     const timer = setInterval(() => {
@@ -180,12 +114,18 @@ export default function HeroCarousel() {
     }, intervalTime);
 
     return () => clearInterval(timer);
-  }, [api, isPaused, isDragging, isTabHidden, isReducedMotion]);
+  }, [api, isPaused, isDragging, isTabHidden, isReducedMotion, heroCarousel.autoplaySeconds]);
 
   const handleMouseEnter = useCallback(() => setIsPaused(true), []);
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);
   const handleFocus = useCallback(() => setIsPaused(true), []);
   const handleBlur = useCallback(() => setIsPaused(false), []);
+
+  if (!heroCarousel.isEnabled || slides.length === 0) {
+    return null;
+  }
+
+  const activeAccent = slides[selectedIndex]?.accentColor ?? "#fbbf24";
 
   return (
     <section className="relative w-full bg-zinc-950 overflow-hidden font-sans border-b border-zinc-900">
@@ -228,14 +168,20 @@ export default function HeroCarousel() {
                 {/* Content Overlay */}
                 <div className="absolute inset-0 z-20 flex items-center pointer-events-none">
                   <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-start gap-4 md:gap-6 pointer-events-auto">
-                    
+
                     {/* Badge Category */}
-                    <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${slide.accent}`}>
+                    <div
+                      className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider"
+                      style={{
+                        color: slide.accentColor,
+                        borderColor: `${slide.accentColor}33`,
+                      }}
+                    >
                       <span className="relative flex h-1.5 w-1.5">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-current"></span>
                       </span>
-                      <span>Product Launch</span>
+                      <span>{slide.badgeText}</span>
                     </div>
 
                     {/* Titles */}
@@ -256,7 +202,7 @@ export default function HeroCarousel() {
                     {/* Features list */}
                     <div className="hidden sm:flex flex-wrap items-center gap-6 mt-2">
                       {slide.features.map((feat, fidx) => {
-                        const Icon = feat.icon;
+                        const Icon = featureIconMap[feat.icon] ?? Sparkles;
                         return (
                           <div key={fidx} className="flex items-center gap-2 text-xs font-semibold tracking-wider text-zinc-300 uppercase">
                             <Icon className="h-4.5 w-4.5 text-zinc-500" />
@@ -268,11 +214,11 @@ export default function HeroCarousel() {
 
                     {/* Action buttons */}
                     <div className="flex items-center gap-3.5 mt-4">
-                      <Button className="font-semibold px-6 h-11 bg-white hover:bg-zinc-100 text-zinc-950 rounded-xl transition-all shadow-md active:scale-95">
-                        Explore Now
+                      <Button asChild className="font-semibold px-6 h-11 bg-white hover:bg-zinc-100 text-zinc-950 rounded-xl transition-all shadow-md active:scale-95">
+                        <Link href={slide.primaryCtaHref}>{slide.primaryCtaLabel}</Link>
                       </Button>
-                      <Button variant="outline" className="font-semibold px-6 h-11 border-zinc-800 hover:border-zinc-700 bg-zinc-900/50 hover:bg-zinc-900 text-white rounded-xl transition-all active:scale-95">
-                        View Details
+                      <Button asChild variant="outline" className="font-semibold px-6 h-11 border-zinc-800 hover:border-zinc-700 bg-zinc-900/50 hover:bg-zinc-900 text-white rounded-xl transition-all active:scale-95">
+                        <Link href={slide.secondaryCtaHref}>{slide.secondaryCtaLabel}</Link>
                       </Button>
                     </div>
 
@@ -292,9 +238,10 @@ export default function HeroCarousel() {
         {!isReducedMotion && (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-zinc-900 z-30">
             <div
-              className="h-full bg-amber-400 transition-all duration-300 ease-out"
+              className="h-full transition-all duration-300 ease-out"
               style={{
                 width: `${progress}%`,
+                backgroundColor: activeAccent,
                 transitionProperty: progress === 0 ? "none" : "width",
               }}
             />

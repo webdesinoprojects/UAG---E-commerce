@@ -154,7 +154,11 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
               </SheetHeader>
               <div className="h-[calc(100vh-65px)] overflow-y-auto p-5 pb-20">
                 {filterOptions && topRatedProducts ? (
-                  <ClpSidebar filterOptions={filterOptions} topRatedProducts={topRatedProducts} />
+                  <ClpSidebar
+                    filterOptions={filterOptions}
+                    topRatedProducts={topRatedProducts}
+                    mode="sheet"
+                  />
                 ) : null}
               </div>
             </SheetContent>

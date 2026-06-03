@@ -1,53 +1,94 @@
-"use client";
+import Link from "next/link";
+import { Sparkles, Star, Truck } from "lucide-react";
+import type {
+  AnnouncementIcon,
+  HomepageAnnouncement,
+  HomepageAnnouncementItem,
+} from "@/features/homepage/types";
 
-import React, { useEffect, useState } from "react";
-import { Truck, Sparkles } from "lucide-react";
+const iconMap = {
+  sparkles: Sparkles,
+  star: Star,
+  truck: Truck,
+} satisfies Record<AnnouncementIcon, typeof Sparkles>;
 
-export default function MarqueeBanner() {
-  const [isReducedMotion, setIsReducedMotion] = useState(false);
+interface MarqueeBannerProps {
+  announcement: HomepageAnnouncement;
+}
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setIsReducedMotion(mediaQuery.matches);
+function MarqueeItem({
+  accentColor,
+  item,
+}: {
+  accentColor: string;
+  item: HomepageAnnouncementItem;
+}) {
+  const Icon = iconMap[item.icon];
+  const className =
+    "flex items-center gap-4 mx-6 text-xs sm:text-sm font-extrabold tracking-wider text-current uppercase";
+  const content = (
+    <>
+      <Icon
+        className="h-4.5 w-4.5 shrink-0"
+        style={{ color: accentColor }}
+        aria-hidden="true"
+      />
+      <span>{item.text}</span>
+      <span className="ml-4 font-normal opacity-30" aria-hidden="true">
+        |
+      </span>
+    </>
+  );
 
-    const listener = (e: MediaQueryListEvent) => {
-      setIsReducedMotion(e.matches);
-    };
-    mediaQuery.addEventListener("change", listener);
-    return () => mediaQuery.removeEventListener("change", listener);
-  }, []);
+  if (!item.href) {
+    return <div className={className}>{content}</div>;
+  }
 
-  const items = [
-    { text: "FAST & FREE DELIVERY ON EVERY ORDER", type: "delivery" },
-    { text: "GET 5% EXTRA DISCOUNT ON PREPAID ORDERS", type: "discount" },
-  ];
-
-  // Repeat items to fill screen width
-  const repeatedItems = [...items, ...items, ...items, ...items, ...items, ...items];
+  if (item.href.startsWith("/")) {
+    return (
+      <Link href={item.href} className={className}>
+        {content}
+      </Link>
+    );
+  }
 
   return (
-    <div className="mt-[25px] w-full bg-zinc-950 text-white border-y border-zinc-850 py-3 overflow-hidden select-none font-heading relative">
+    <a href={item.href} className={className} rel="noreferrer noopener">
+      {content}
+    </a>
+  );
+}
 
+export default function MarqueeBanner({ announcement }: MarqueeBannerProps) {
+  if (!announcement.isEnabled || announcement.items.length === 0) {
+    return null;
+  }
 
+  const repeatedItems = Array.from(
+    { length: 6 },
+    () => announcement.items
+  ).flat();
+
+  return (
+    <div
+      className="mt-[25px] w-full overflow-hidden border-y border-white/10 py-3 font-heading select-none relative"
+      style={{
+        backgroundColor: announcement.backgroundColor,
+        color: announcement.textColor,
+      }}
+    >
       <div
-        className={`marquee-container ${!isReducedMotion ? "marquee-animation" : ""}`}
+        className="marquee-container marquee-animation"
+        style={{ animationDuration: `${announcement.speedSeconds}s` }}
         tabIndex={0}
         aria-label="Promotional Announcement Banner"
       >
         {repeatedItems.map((item, idx) => (
-          <div
-            key={idx}
-            className="flex items-center gap-4 mx-6 text-xs sm:text-sm font-extrabold tracking-wider text-zinc-100 uppercase"
-          >
-            {item.type === "delivery" ? (
-              <Truck className="h-4.5 w-4.5 text-amber-400 shrink-0" />
-            ) : (
-              <Sparkles className="h-4.5 w-4.5 text-amber-400 shrink-0" />
-            )}
-            <span>{item.text}</span>
-            <span className="text-zinc-700 ml-4 font-normal">|</span>
-          </div>
+          <MarqueeItem
+            key={`${item.id}-${idx}`}
+            item={item}
+            accentColor={announcement.accentColor}
+          />
         ))}
       </div>
     </div>

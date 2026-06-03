@@ -1,8 +1,33 @@
 import type { NextConfig } from "next";
 
+function parseImagekitRemotePattern() {
+  const urlEndpoint = process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.IMAGE_KIT_URL;
+
+  if (!urlEndpoint) return null;
+
+  try {
+    const url = new URL(urlEndpoint);
+    const hostname = url.hostname;
+    const pathname = url.pathname ? `${url.pathname.replace(/\/$/, "")}/**` : "/**";
+
+    return {
+      protocol: "https" as const,
+      hostname,
+      pathname,
+    };
+  } catch {
+    return null;
+  }
+}
+
+const imagekitPattern = parseImagekitRemotePattern();
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   reactCompiler: true,
+  turbopack: {
+    root: process.cwd(),
+  },
 
   images: {
     formats: ["image/avif", "image/webp"],
@@ -13,6 +38,9 @@ const nextConfig: NextConfig = {
         search: "",
       },
     ],
+    ...(imagekitPattern && {
+      remotePatterns: [imagekitPattern],
+    }),
     dangerouslyAllowLocalIP: false,
     maximumRedirects: 0,
   },

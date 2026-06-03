@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -140,7 +139,7 @@
 
 /* Custom Animations for Marquee and Stories */
 .elegant-serif {
-  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-family: var(--font-instrument-serif), Georgia, serif !important;
 }
 
 @keyframes marquee {
@@ -220,4 +219,3 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
-

@@ -1,20 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import { FilterOptions } from "../types";
 import { Product } from "../components/product-card";
 
 interface ClpSidebarProps {
   filterOptions: FilterOptions;
   topRatedProducts: Product[];
+  mode?: "desktop" | "sheet";
 }
 
-export function ClpSidebar({ filterOptions, topRatedProducts }: ClpSidebarProps) {
+export function ClpSidebar({ filterOptions, topRatedProducts, mode = "desktop" }: ClpSidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,7 +69,12 @@ export function ClpSidebar({ filterOptions, topRatedProducts }: ClpSidebarProps)
   const currentStock = searchParams.get("stockStatus");
 
   return (
-    <aside className="hidden md:block w-full md:w-64 shrink-0 font-sans md:sticky md:top-24 h-fit">
+    <aside
+      className={cn(
+        "w-full shrink-0 font-sans h-fit",
+        mode === "desktop" && "hidden md:block md:w-64 md:sticky md:top-24"
+      )}
+    >
       <div className="flex flex-col gap-10 md:max-h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {/* FILTER BY PRICE */}
       <div className="flex flex-col gap-5">

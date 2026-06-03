@@ -9,18 +9,27 @@ import NewArrivals from "@/features/homepage/components/new-arrivals";
 import MostPopular from "@/features/homepage/components/most-popular";
 import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
+import {
+  getHomepageAnnouncement,
+  getHomepageHeroCarousel,
+} from "@/features/homepage/queries";
 
-export default function StoreHomePage() {
+export default async function StoreHomePage() {
+  const [announcement, heroCarousel] = await Promise.all([
+    getHomepageAnnouncement(),
+    getHomepageHeroCarousel(),
+  ]);
+
   return (
     <div className="flex flex-col w-full min-h-screen bg-background">
       {/* 1. Infinite Scrolling Top Ribbon Banner */}
-      <MarqueeBanner />
+      <MarqueeBanner announcement={announcement} />
 
       {/* 2. Top Category Circular Navigation */}
       <CategoryCircles />
 
       {/* 3. High Impact Banner Carousel */}
-      <HeroCarousel />
+      <HeroCarousel heroCarousel={heroCarousel} />
 
       {/* 4. Secondary Detailed Product Category Grid */}
       <ProductCategoryGrid />
