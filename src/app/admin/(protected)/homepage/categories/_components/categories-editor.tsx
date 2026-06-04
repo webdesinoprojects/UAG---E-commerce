@@ -4,7 +4,6 @@ import React, { useActionState, useState } from "react";
 import Image from "next/image";
 import { updateHomepageCategoryCirclesAction } from "@/features/homepage/actions";
 import type { HomepageCategoryCircles, HomepageCategoryCircle } from "@/features/homepage/types";
-import type { MediaAssetDto } from "@/features/media/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -16,12 +15,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface CategoriesEditorProps {
   initialData: HomepageCategoryCircles;
-  mediaAssets: MediaAssetDto[];
 }
 
 export default function CategoriesEditor({
   initialData,
-  mediaAssets,
 }: CategoriesEditorProps) {
   const [state, action, isPending] = useActionState(updateHomepageCategoryCirclesAction, {
     status: "idle",
@@ -196,7 +193,6 @@ export default function CategoriesEditor({
                         <Label>Normal Image</Label>
                         <div className="flex flex-col items-start gap-2">
                           <MediaPickerModal
-                            mediaAssets={mediaAssets}
                             allowedTypes="image"
                             selectedAssetId={item.imageMediaAssetId}
                             onSelect={(asset) => updateItem(index, { 
@@ -238,7 +234,6 @@ export default function CategoriesEditor({
                         <Label>Hover Media (Optional)</Label>
                         <div className="flex flex-col items-start gap-2">
                           <MediaPickerModal
-                            mediaAssets={mediaAssets}
                             allowedTypes="all"
                             selectedAssetId={item.hoverMediaAssetId}
                             onSelect={(asset) => updateItem(index, { 

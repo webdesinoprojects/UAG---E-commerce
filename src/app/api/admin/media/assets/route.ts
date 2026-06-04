@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 import { getCurrentAdmin } from "@/server/auth/admin";
-import { createMediaAsset } from "@/server/repositories/media-repository";
-import { createMediaAssetSchema } from "@/server/validators/media";
+import {
+  createMediaAsset,
+  searchMediaAssetsForAdmin,
+} from "@/server/repositories/media-repository";
+import {
+  createMediaAssetSchema,
+  mediaSearchParamsSchema,
+} from "@/server/validators/media";
 import {
   getFileSizeLimit,
   isMimeTypeAllowed,
@@ -12,6 +18,10 @@ import {
   isImagekitAssetUrl,
   isSafeImagekitStorageKey,
 } from "@/server/media/imagekit";
+
+const ADMIN_MEDIA_GET_HEADERS = {
+  "Cache-Control": "no-store",
+};
 
 export async function POST(request: Request) {
   try {
@@ -100,18 +110,40 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const admin = await getCurrentAdmin();
 
   if (!admin) {
     return NextResponse.json(
       { error: "Unauthorized" },
-      { status: 401 }
+      { status: 401, headers: ADMIN_MEDIA_GET_HEADERS }
     );
   }
 
-  return NextResponse.json(
-    { error: "Use /admin/media page to list assets" },
-    { status: 405 }
-  );
+  const { searchParams } = new URL(request.url);
+
+  const parsed = mediaSearchParamsSchema.safeParse({
+    query: searchParams.get("query") ?? "",
+    folder: searchParams.get("folder") ?? "",
+    type: searchParams.get("type") ?? "all",
+    page: searchParams.get("page") ?? "1",
+    pageSize: searchParams.get("pageSize") ?? "24",
+  });
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid parameters" },
+      { status: 400, headers: ADMIN_MEDIA_GET_HEADERS }
+    );
+  }
+
+  try {
+    const result = await searchMediaAssetsForAdmin(parsed.data);
+    return NextResponse.json(result, { headers: ADMIN_MEDIA_GET_HEADERS });
+  } catch {
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500, headers: ADMIN_MEDIA_GET_HEADERS }
+    );
+  }
 }

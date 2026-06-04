@@ -22,6 +22,32 @@ export const createMediaAssetSchema = z.object({
 
 export type CreateMediaAssetInput = z.infer<typeof createMediaAssetSchema>;
 
+// Keep only characters that are safe in a PostgREST ILIKE filter value.
+// Strips everything except alphanumerics, space, and common filename chars.
+// Collapses repeated whitespace and trims the result.
+const sanitizeSearchQuery = (s: string) =>
+  s
+    .replace(/[^a-zA-Z0-9 /_.@-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+export const mediaSearchParamsSchema = z.object({
+  query: z
+    .string()
+    .max(200)
+    .transform(sanitizeSearchQuery)
+    .default(""),
+  folder: z
+    .union([z.string().max(100), z.literal(""), z.null(), z.undefined()])
+    .transform((v): string => (v && typeof v === "string" ? v : ""))
+    .default(""),
+  type: z.enum(["all", "image", "gif", "video"]).default("all"),
+  page: z.coerce.number().int().min(1).max(10_000).default(1),
+  pageSize: z.coerce.number().int().min(1).max(48).default(24),
+});
+
+export type MediaSearchInput = z.infer<typeof mediaSearchParamsSchema>;
+
 export type MediaAssetDto = import("@/features/media/types").MediaAssetDto;
 
 export function mapDbRowToMediaAssetDto(row: {

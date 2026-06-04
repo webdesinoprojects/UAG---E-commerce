@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/server/auth/admin";
 import { readAdminCatalogCategories } from "@/server/repositories/catalog-repository";
-import { getMediaAssets } from "@/server/repositories/media-repository";
 import ProductCreateForm from "./_components/product-create-form";
 
 export const metadata = {
@@ -10,10 +9,7 @@ export const metadata = {
 export default async function AdminProductNewPage() {
   await requireAdmin();
 
-  const [categories, mediaAssets] = await Promise.all([
-    readAdminCatalogCategories(),
-    getMediaAssets(),
-  ]);
+  const categories = await readAdminCatalogCategories();
 
   const categoryOptions = categories.map((c) => ({
     id: c.id,
@@ -23,7 +19,7 @@ export default async function AdminProductNewPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
-      <ProductCreateForm categoryOptions={categoryOptions} mediaAssets={mediaAssets} />
+      <ProductCreateForm categoryOptions={categoryOptions} />
     </div>
   );
 }

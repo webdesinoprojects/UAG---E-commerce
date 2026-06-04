@@ -10,7 +10,6 @@ import type {
   HomepageMerchandisingBanners,
   HomepageMerchandisingSlide,
 } from "@/features/homepage/types";
-import type { MediaAssetDto } from "@/features/media/types";
 import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface MerchandisingEditorProps {
   initialData: HomepageMerchandisingBanners;
-  mediaAssets: MediaAssetDto[];
 }
 
 const featureIcons: HeroFeatureIcon[] = [
@@ -51,7 +49,6 @@ function nextSortOrder(slides: HomepageMerchandisingSlide[]) {
 
 export default function MerchandisingEditor({
   initialData,
-  mediaAssets,
 }: MerchandisingEditorProps) {
   const [state, action, isPending] = useActionState(
     updateHomepageMerchandisingBannersAction,
@@ -477,7 +474,6 @@ export default function MerchandisingEditor({
                   <div className="space-y-2">
                     <Label>Media</Label>
                     <MediaPickerModal
-                      mediaAssets={mediaAssets}
                       allowedTypes="image"
                       selectedAssetId={selectedSlide.imageMediaAssetId}
                       onSelect={(asset) =>

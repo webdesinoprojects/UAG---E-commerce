@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/server/auth/admin";
 import { readAdminHomepageCategoryCircles } from "@/server/repositories/homepage-repository";
-import { getMediaAssets } from "@/server/repositories/media-repository";
 import CategoriesEditor from "./_components/categories-editor";
 
 export const metadata = {
@@ -10,10 +9,7 @@ export const metadata = {
 export default async function CategoriesPage() {
   await requireAdmin();
 
-  const [categoryCircles, mediaAssets] = await Promise.all([
-    readAdminHomepageCategoryCircles(),
-    getMediaAssets(),
-  ]);
+  const categoryCircles = await readAdminHomepageCategoryCircles();
 
   return (
     <div className="flex-1 w-full flex flex-col p-6 overflow-hidden max-w-7xl mx-auto">
@@ -26,10 +22,7 @@ export default async function CategoriesPage() {
         </p>
       </div>
 
-      <CategoriesEditor
-        initialData={categoryCircles}
-        mediaAssets={mediaAssets}
-      />
+      <CategoriesEditor initialData={categoryCircles} />
     </div>
   );
 }

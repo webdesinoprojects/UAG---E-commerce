@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { createCatalogProductAction } from "@/features/catalog/actions";
 import type { AdminProductFormCategoryOption } from "@/features/catalog/types";
-import type { MediaAssetDto } from "@/features/media/types";
 import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +34,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface ProductCreateFormProps {
   categoryOptions: AdminProductFormCategoryOption[];
-  mediaAssets: MediaAssetDto[];
 }
 
 interface FormState {
@@ -109,7 +107,6 @@ const INITIAL_STATE: FormState = {
 
 export default function ProductCreateForm({
   categoryOptions,
-  mediaAssets,
 }: ProductCreateFormProps) {
   const [state, action, isPending] = useActionState(createCatalogProductAction, {
     status: "idle",
@@ -117,11 +114,6 @@ export default function ProductCreateForm({
   });
 
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
-
-  const imageAssets = useMemo(
-    () => mediaAssets.filter((a) => a.mimeType?.startsWith("image/")),
-    [mediaAssets]
-  );
 
   const selectedCategory = categoryOptions.find((c) => c.id === form.categoryId);
 
@@ -489,7 +481,6 @@ export default function ProductCreateForm({
                 </div>
                 <div className="flex flex-col gap-2">
                   <MediaPickerModal
-                    mediaAssets={imageAssets}
                     allowedTypes="image"
                     selectedAssetId={form.primaryMediaAssetId || null}
                     onSelect={(asset) =>

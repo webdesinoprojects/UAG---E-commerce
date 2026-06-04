@@ -11,7 +11,6 @@ import type {
   HomepageBentoGallery,
   HomepageBentoItem,
 } from "@/features/homepage/types";
-import type { MediaAssetDto } from "@/features/media/types";
 import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -30,7 +29,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface BentoGalleryEditorProps {
   initialData: HomepageBentoGallery;
-  mediaAssets: MediaAssetDto[];
 }
 
 const tileTypes: BentoTileType[] = ["product", "banner", "story", "category"];
@@ -42,7 +40,6 @@ function nextSortOrder(items: HomepageBentoItem[]) {
 
 export default function BentoGalleryEditor({
   initialData,
-  mediaAssets,
 }: BentoGalleryEditorProps) {
   const [state, action, isPending] = useActionState(updateHomepageBentoGalleryAction, {
     status: "idle",
@@ -383,7 +380,6 @@ export default function BentoGalleryEditor({
                   <div className="space-y-2">
                     <Label>Media</Label>
                     <MediaPickerModal
-                      mediaAssets={mediaAssets}
                       allowedTypes="image"
                       selectedAssetId={selectedItem.imageMediaAssetId}
                       onSelect={(asset) =>

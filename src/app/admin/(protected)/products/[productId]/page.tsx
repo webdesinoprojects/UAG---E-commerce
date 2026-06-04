@@ -4,7 +4,6 @@ import {
   readAdminProductById,
   readAdminCatalogCategories,
 } from "@/server/repositories/catalog-repository";
-import { getMediaAssets } from "@/server/repositories/media-repository";
 import ProductEditForm from "./_components/product-edit-form";
 
 export const metadata = {
@@ -20,10 +19,9 @@ export default async function AdminProductEditPage({
 
   const { productId } = await params;
 
-  const [product, categories, mediaAssets] = await Promise.all([
+  const [product, categories] = await Promise.all([
     readAdminProductById(productId),
     readAdminCatalogCategories(),
-    getMediaAssets(),
   ]);
 
   if (!product) notFound();
@@ -39,7 +37,6 @@ export default async function AdminProductEditPage({
       <ProductEditForm
         product={product}
         categoryOptions={categoryOptions}
-        mediaAssets={mediaAssets}
       />
     </div>
   );

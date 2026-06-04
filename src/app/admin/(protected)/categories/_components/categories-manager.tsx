@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { upsertCatalogCategoryAction } from "@/features/catalog/actions";
 import type { CatalogCategoryDto } from "@/features/catalog/types";
-import type { MediaAssetDto } from "@/features/media/types";
 import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +33,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface CategoriesManagerProps {
   categories: CatalogCategoryDto[];
-  mediaAssets: MediaAssetDto[];
 }
 
 function slugify(value: string) {
@@ -78,7 +76,6 @@ function FieldError({ message }: { message?: string }) {
 
 export default function CategoriesManager({
   categories,
-  mediaAssets,
 }: CategoriesManagerProps) {
   const [state, action, isPending] = useActionState(upsertCatalogCategoryAction, {
     status: "idle",
@@ -88,10 +85,6 @@ export default function CategoriesManager({
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const selectedCategory = items[selectedIndex] ?? null;
-  const imageAssets = useMemo(
-    () => mediaAssets.filter((asset) => asset.mimeType?.startsWith("image/")),
-    [mediaAssets]
-  );
 
   const updateSelected = (updates: Partial<CatalogCategoryDto>) => {
     setItems((current) =>
@@ -337,7 +330,6 @@ export default function CategoriesManager({
                   <div className="space-y-2">
                     <Label>Category Image</Label>
                     <MediaPickerModal
-                      mediaAssets={imageAssets}
                       allowedTypes="image"
                       selectedAssetId={selectedCategory.mediaAssetId}
                       onSelect={(asset) =>
@@ -351,7 +343,6 @@ export default function CategoriesManager({
                   <div className="space-y-2">
                     <Label>Banner Image</Label>
                     <MediaPickerModal
-                      mediaAssets={imageAssets}
                       allowedTypes="image"
                       selectedAssetId={selectedCategory.bannerMediaAssetId}
                       onSelect={(asset) =>
