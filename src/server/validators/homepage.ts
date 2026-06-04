@@ -8,6 +8,14 @@ import type {
   HomepageHeroSlide,
   HomepageCategoryCircle,
   HomepageCategoryCircles,
+  HomepageBentoGallery,
+  HomepageBentoItem,
+  HomepageMerchandisingBanners,
+  HomepageMerchandisingSlide,
+  SiteFooterContent,
+  SiteFooterLink,
+  SiteFooterSocialLink,
+  HeroSlideFeature,
 } from "@/features/homepage/types";
 
 const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -554,6 +562,11 @@ function parseCategoryCircle(item: CategoryCmsSectionItemRow): HomepageCategoryC
     return null;
   }
 
+  const imageUrl = item.mediaUrl ?? parsed.data.image;
+  if (!imageUrl) {
+    return null;
+  }
+
   return {
     id: parsed.data.id,
     name: parsed.data.name,
@@ -561,7 +574,7 @@ function parseCategoryCircle(item: CategoryCmsSectionItemRow): HomepageCategoryC
     href: parsed.data.href,
     productCount: parsed.data.productCount,
     fallbackImagePath: parsed.data.image,
-    imageUrl: item.mediaUrl ?? parsed.data.image,
+    imageUrl,
     imageAlt: `${parsed.data.name} Category`,
     imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
     hoverMediaUrl: item.hoverMediaUrl ?? null,
@@ -584,5 +597,863 @@ export function toHomepageCategoryCircles(
   return {
     isEnabled: section.is_enabled,
     items: validItems,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Shared homepage media/href helpers                                         */
+/* -------------------------------------------------------------------------- */
+
+// Local image assets under public/images, with a known image extension.
+const homepageLocalImageSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(300)
+  .regex(
+    /^\/images\/[A-Za-z0-9/_-]+\.(png|jpe?g|webp|avif)$/i,
+    "Use a local /images/... path"
+  )
+  .refine((value) => !value.includes(".."), "Invalid image path");
+
+// Internal hrefs that may be empty (optional CTA). Non-empty values must be a
+// single-slash internal path so external/protocol-relative URLs cannot pass.
+const optionalInternalHrefSchema = z
+  .string()
+  .trim()
+  .max(300)
+  .refine(
+    (value) => value === "" || /^\/(?!\/)\S*$/.test(value),
+    "Use an internal path starting with /."
+  );
+
+/* -------------------------------------------------------------------------- */
+/* Homepage bento gallery                                                     */
+/* -------------------------------------------------------------------------- */
+
+const bentoTileTypeSchema = z
+  .enum(["product", "banner", "story", "category"])
+  .catch("product");
+const bentoLayoutSchema = z
+  .enum(["large", "wide", "tall", "standard"])
+  .catch("standard");
+
+export const bentoItemInputSchema = z
+  .object({
+    id: z.string().trim().min(1).max(120),
+    title: z.string().trim().min(1).max(80),
+    subtitle: z.string().trim().max(120),
+    body: z.string().trim().max(280),
+    href: safeInternalHrefSchema,
+    tileType: bentoTileTypeSchema,
+    layout: bentoLayoutSchema,
+    badgeText: z.string().trim().max(40),
+    accentColor: hexColorSchema,
+    ctaLabel: z.string().trim().max(40),
+    image: z.string().trim().max(300),
+    imageMediaAssetId: z.string().uuid().nullable().optional(),
+    sortOrder: z.coerce.number().int().min(0).max(10_000),
+    isEnabled: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.image) {
+      const imagePath = homepageLocalImageSchema.safeParse(value.image);
+      if (!imagePath.success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["image"],
+          message: imagePath.error.issues[0]?.message ?? "Invalid image path",
+        });
+      }
+      return;
+    }
+
+    if (!value.imageMediaAssetId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["image"],
+        message: "Select a media asset or add a fallback image path.",
+      });
+    }
+  });
+
+export const homepageBentoGalleryInputSchema = z.object({
+  isEnabled: z.boolean(),
+  eyebrow: z.string().trim().max(60),
+  heading: z.string().trim().max(80),
+  description: z.string().trim().max(200),
+  items: z.array(bentoItemInputSchema).max(12),
+});
+
+export type HomepageBentoGalleryInput = z.infer<
+  typeof homepageBentoGalleryInputSchema
+>;
+
+export function parseHomepageBentoGalleryForm(formData: FormData) {
+  const rawCount = Number(formData.get("itemCount"));
+  const itemCount = Number.isFinite(rawCount)
+    ? Math.min(Math.max(rawCount, 0), 12)
+    : 0;
+
+  const items = Array.from({ length: itemCount }, (_, index) => {
+    const prefix = `item-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+
+    return {
+      id: read("id") || `bento-${index + 1}`,
+      title: read("title") || "",
+      subtitle: read("subtitle") || "",
+      body: read("body") || "",
+      href: read("href") || "",
+      tileType: read("tileType") || "product",
+      layout: read("layout") || "standard",
+      badgeText: read("badgeText") || "",
+      accentColor: read("accentColor") || "#f97316",
+      ctaLabel: read("ctaLabel") || "",
+      image: read("image") || "",
+      imageMediaAssetId: read("imageMediaAssetId") || null,
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  return homepageBentoGalleryInputSchema.safeParse({
+    isEnabled: formData.get("isEnabled") === "true",
+    eyebrow: formData.get("eyebrow") ?? "",
+    heading: formData.get("heading") ?? "",
+    description: formData.get("description") ?? "",
+    items,
+  });
+}
+
+export const fallbackHomepageBentoGallery: HomepageBentoGallery = {
+  isEnabled: true,
+  eyebrow: "GALLERY SHOWCASE",
+  heading: "Engineered Ecosystem",
+  description: "",
+  items: [
+    {
+      id: "bento-1",
+      title: "AeroStrike HD",
+      subtitle: "Commercial Quadcopter",
+      body: "Equipped with dual GPS tracking, 4K camera gimbal, and 40-minute flight cells.",
+      href: "/products/uag-aerostrike-hd-camera-drone",
+      tileType: "product",
+      layout: "tall",
+      badgeText: "Air-Tech",
+      accentColor: "#f97316",
+      ctaLabel: "View Product",
+      fallbackImagePath: "/images/products/drone.png",
+      imageUrl: "/images/products/drone.png",
+      imageAlt: "AeroStrike HD",
+      imageMediaAssetId: null,
+      sortOrder: 10,
+      isEnabled: true,
+    },
+    {
+      id: "bento-2",
+      title: "CYBER AUDIO LABS",
+      subtitle: "Tactical Pro Gaming Essentials",
+      body: "Engineered for immersive low-latency gameplay and crystal clear team communication.",
+      href: "/products/uag-crystal-gaming-anc",
+      tileType: "banner",
+      layout: "wide",
+      badgeText: "Studio Pro",
+      accentColor: "#f59e0b",
+      ctaLabel: "Shop Audio",
+      fallbackImagePath: "/images/carousel/banner1.png",
+      imageUrl: "/images/carousel/banner1.png",
+      imageAlt: "CYBER AUDIO LABS",
+      imageMediaAssetId: null,
+      sortOrder: 20,
+      isEnabled: true,
+    },
+    {
+      id: "bento-3",
+      title: "Vital Smartwatch",
+      subtitle: "Rugged Health Trackers",
+      body: "Built-in GPS, 24/7 heart rate and SpO2 monitoring in a mil-grade IP68 chassis.",
+      href: "/products/uag-elite-gps-sports-smartwatch",
+      tileType: "product",
+      layout: "standard",
+      badgeText: "GPS Call",
+      accentColor: "#10b981",
+      ctaLabel: "View Product",
+      fallbackImagePath: "/images/categories/watches.png",
+      imageUrl: "/images/categories/watches.png",
+      imageAlt: "Vital Smartwatch",
+      imageMediaAssetId: null,
+      sortOrder: 30,
+      isEnabled: true,
+    },
+    {
+      id: "bento-5",
+      title: "OMNI SOUNDSTAGE",
+      subtitle: "Ambient Audio Projection",
+      body: "Heavy subwoofers with sync LED lights, optimized for wide outdoor acoustics.",
+      href: "/products/uag-omnisound-portable-speaker",
+      tileType: "banner",
+      layout: "wide",
+      badgeText: "IPX7 Sound",
+      accentColor: "#ef4444",
+      ctaLabel: "Shop Speakers",
+      fallbackImagePath: "/images/carousel/banner2.png",
+      imageUrl: "/images/carousel/banner2.png",
+      imageAlt: "OMNI SOUNDSTAGE",
+      imageMediaAssetId: null,
+      sortOrder: 50,
+      isEnabled: true,
+    },
+  ],
+};
+
+const bentoSectionSettingsSchema = z.object({
+  eyebrow: z.string().optional(),
+  heading: z.string().optional(),
+  description: z.string().optional(),
+});
+
+const bentoItemSettingsSchema = z.object({
+  localImagePath: z.string().optional(),
+  tileType: bentoTileTypeSchema.optional(),
+  layout: bentoLayoutSchema.optional(),
+  badgeText: z.string().optional(),
+  accentColor: hexColorSchema.optional(),
+  ctaLabel: z.string().optional(),
+});
+
+export type BentoCmsSectionItemRow = CmsSectionItemRow & {
+  subtitle?: string | null;
+  body?: string | null;
+  media_asset_id?: string | null;
+  mediaUrl?: string | null;
+};
+
+function parseBentoItem(item: BentoCmsSectionItemRow): HomepageBentoItem | null {
+  const settings = bentoItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+
+  const parsed = bentoItemInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    title: item.title,
+    subtitle: item.subtitle ?? "",
+    body: item.body ?? "",
+    href: item.href ?? "",
+    tileType: safeSettings.tileType ?? "product",
+    layout: safeSettings.layout ?? "standard",
+    badgeText: safeSettings.badgeText ?? "",
+    accentColor: safeSettings.accentColor ?? "#f97316",
+    ctaLabel: safeSettings.ctaLabel ?? "",
+    image: safeSettings.localImagePath ?? "",
+    imageMediaAssetId: item.media_asset_id ?? null,
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  const imageUrl = item.mediaUrl ?? parsed.data.image;
+  if (!imageUrl) {
+    return null;
+  }
+
+  return {
+    id: parsed.data.id,
+    title: parsed.data.title,
+    subtitle: parsed.data.subtitle,
+    body: parsed.data.body,
+    href: parsed.data.href,
+    tileType: parsed.data.tileType,
+    layout: parsed.data.layout,
+    badgeText: parsed.data.badgeText,
+    accentColor: parsed.data.accentColor,
+    ctaLabel: parsed.data.ctaLabel,
+    fallbackImagePath: parsed.data.image,
+    imageUrl,
+    imageAlt: parsed.data.title,
+    imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
+    sortOrder: parsed.data.sortOrder,
+    isEnabled: parsed.data.isEnabled,
+  };
+}
+
+export function toHomepageBentoGallery(
+  section: CmsSectionRow,
+  items: BentoCmsSectionItemRow[]
+): HomepageBentoGallery {
+  const sectionSettings = bentoSectionSettingsSchema.safeParse(section.settings);
+  const safe = sectionSettings.success ? sectionSettings.data : {};
+
+  const validItems = items
+    .map(parseBentoItem)
+    .filter((tile): tile is HomepageBentoItem => Boolean(tile))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return {
+    isEnabled: section.is_enabled,
+    eyebrow: safe.eyebrow ?? fallbackHomepageBentoGallery.eyebrow,
+    heading: safe.heading ?? fallbackHomepageBentoGallery.heading,
+    description: safe.description ?? fallbackHomepageBentoGallery.description,
+    items: validItems,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage merchandising banners                                             */
+/* -------------------------------------------------------------------------- */
+
+export const merchandisingSlideInputSchema = z
+  .object({
+    id: z.string().trim().min(1).max(120),
+    title: z.string().trim().min(1).max(80),
+    subtitle: z.string().trim().max(120),
+    body: z.string().trim().max(280),
+    badgeText: z.string().trim().max(40),
+    accentColor: hexColorSchema,
+    primaryCtaLabel: z.string().trim().min(1).max(40),
+    primaryCtaHref: safeInternalHrefSchema,
+    secondaryCtaLabel: z.string().trim().max(40),
+    secondaryCtaHref: optionalInternalHrefSchema,
+    features: z.array(heroFeatureInputSchema).max(4),
+    image: z.string().trim().max(300),
+    imageMediaAssetId: z.string().uuid().nullable().optional(),
+    sortOrder: z.coerce.number().int().min(0).max(10_000),
+    isEnabled: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.image) {
+      const imagePath = homepageLocalImageSchema.safeParse(value.image);
+      if (!imagePath.success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["image"],
+          message: imagePath.error.issues[0]?.message ?? "Invalid image path",
+        });
+      }
+      return;
+    }
+
+    if (!value.imageMediaAssetId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["image"],
+        message: "Select a media asset or add a fallback image path.",
+      });
+    }
+  });
+
+export const homepageMerchandisingBannersInputSchema = z.object({
+  isEnabled: z.boolean(),
+  eyebrow: z.string().trim().max(60),
+  autoplaySeconds: z.coerce.number().int().min(3).max(30),
+  slides: z.array(merchandisingSlideInputSchema).max(8),
+});
+
+export type HomepageMerchandisingBannersInput = z.infer<
+  typeof homepageMerchandisingBannersInputSchema
+>;
+
+export function parseHomepageMerchandisingBannersForm(formData: FormData) {
+  const rawCount = Number(formData.get("itemCount"));
+  const slideCount = Number.isFinite(rawCount)
+    ? Math.min(Math.max(rawCount, 0), 8)
+    : 0;
+
+  const slides = Array.from({ length: slideCount }, (_, index) => {
+    const prefix = `item-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+
+    const features = [
+      { text: read("feature1"), icon: read("feature1Icon") },
+      { text: read("feature2"), icon: read("feature2Icon") },
+    ]
+      .filter((feature) => typeof feature.text === "string" && feature.text.trim())
+      .map((feature) => ({ text: feature.text, icon: feature.icon }));
+
+    return {
+      id: read("id") || `slide-${index + 1}`,
+      title: read("title") || "",
+      subtitle: read("subtitle") || "",
+      body: read("body") || "",
+      badgeText: read("badgeText") || "",
+      accentColor: read("accentColor") || "#f59e0b",
+      primaryCtaLabel: read("primaryCtaLabel") || "",
+      primaryCtaHref: read("primaryCtaHref") || "",
+      secondaryCtaLabel: read("secondaryCtaLabel") || "",
+      secondaryCtaHref: read("secondaryCtaHref") || "",
+      features,
+      image: read("image") || "",
+      imageMediaAssetId: read("imageMediaAssetId") || null,
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  return homepageMerchandisingBannersInputSchema.safeParse({
+    isEnabled: formData.get("isEnabled") === "true",
+    eyebrow: formData.get("eyebrow") ?? "",
+    autoplaySeconds: formData.get("autoplaySeconds"),
+    slides,
+  });
+}
+
+export const fallbackHomepageMerchandisingBanners: HomepageMerchandisingBanners = {
+  isEnabled: true,
+  eyebrow: "EXCLUSIVE LAUNCH",
+  autoplaySeconds: 7,
+  slides: [
+    {
+      id: "slide-1",
+      title: "EARBUDS 300 PRO",
+      subtitle: "Cybernetic Sound & Hybrid ANC",
+      body: "Premium active noise cancellation and thumping dual bass drivers in a rugged tactical chassis with LED charge display.",
+      badgeText: "EXCLUSIVE LAUNCH",
+      accentColor: "#fbbf24",
+      primaryCtaLabel: "Buy Now",
+      primaryCtaHref: "/categories/earbuds",
+      secondaryCtaLabel: "Specifications",
+      secondaryCtaHref: "/categories/earbuds",
+      features: [
+        { text: "40dB Hybrid ANC", icon: "volume" },
+        { text: "BassBoost Driver", icon: "sparkles" },
+      ],
+      fallbackImagePath: "/images/carousel/banner1.png",
+      imageUrl: "/images/carousel/banner1.png",
+      imageAlt: "EARBUDS 300 PRO",
+      imageMediaAssetId: null,
+      sortOrder: 10,
+      isEnabled: true,
+    },
+    {
+      id: "slide-2",
+      title: "OMNI SPEAKER BEAT",
+      subtitle: "High Definition Audio & Light Sync",
+      body: "Double subwoofers deliver cinematic, room-filling sound. IPX7 chassis with customizable dual LED ring visualizers.",
+      badgeText: "EXCLUSIVE LAUNCH",
+      accentColor: "#ef4444",
+      primaryCtaLabel: "Buy Now",
+      primaryCtaHref: "/categories/bluetooth-speakers",
+      secondaryCtaLabel: "Specifications",
+      secondaryCtaHref: "/categories/bluetooth-speakers",
+      features: [
+        { text: "Rich Stereo System", icon: "volume" },
+        { text: "Reactive Ambient Glow", icon: "sparkles" },
+      ],
+      fallbackImagePath: "/images/carousel/banner2.png",
+      imageUrl: "/images/carousel/banner2.png",
+      imageAlt: "OMNI SPEAKER BEAT",
+      imageMediaAssetId: null,
+      sortOrder: 20,
+      isEnabled: true,
+    },
+    {
+      id: "slide-3",
+      title: "TACTICAL WATCH V2",
+      subtitle: "Military Spec Biometric Watch",
+      body: "Real-time heart rate, body temperature scanning, GPS tracker, and a 30-day battery cell built for extreme conditions.",
+      badgeText: "EXCLUSIVE LAUNCH",
+      accentColor: "#34d399",
+      primaryCtaLabel: "Buy Now",
+      primaryCtaHref: "/categories/smart-watches",
+      secondaryCtaLabel: "Specifications",
+      secondaryCtaHref: "/categories/smart-watches",
+      features: [
+        { text: "Biometric Tracking", icon: "cpu" },
+        { text: "Mil-Spec Durability", icon: "shield" },
+      ],
+      fallbackImagePath: "/images/carousel/banner1.png",
+      imageUrl: "/images/carousel/banner1.png",
+      imageAlt: "TACTICAL WATCH V2",
+      imageMediaAssetId: null,
+      sortOrder: 30,
+      isEnabled: true,
+    },
+  ],
+};
+
+const merchSectionSettingsSchema = z.object({
+  autoplaySeconds: z.coerce.number().int().min(3).max(30).optional(),
+  eyebrow: z.string().optional(),
+});
+
+const merchItemSettingsSchema = z.object({
+  localImagePath: z.string().optional(),
+  badgeText: z.string().optional(),
+  accentColor: hexColorSchema.optional(),
+  primaryCtaLabel: z.string().optional(),
+  secondaryCtaLabel: z.string().optional(),
+  secondaryCtaHref: z.string().optional(),
+  features: z.array(heroFeatureInputSchema).max(4).optional(),
+});
+
+export type MerchCmsSectionItemRow = CmsSectionItemRow & {
+  subtitle?: string | null;
+  body?: string | null;
+  media_asset_id?: string | null;
+  mediaUrl?: string | null;
+};
+
+function parseMerchandisingSlide(
+  item: MerchCmsSectionItemRow
+): HomepageMerchandisingSlide | null {
+  const settings = merchItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+  const primaryHref = item.href ?? "/";
+
+  const parsed = merchandisingSlideInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    title: item.title,
+    subtitle: item.subtitle ?? "",
+    body: item.body ?? "",
+    badgeText: safeSettings.badgeText ?? "",
+    accentColor: safeSettings.accentColor ?? "#f59e0b",
+    primaryCtaLabel: safeSettings.primaryCtaLabel ?? "Shop Now",
+    primaryCtaHref: primaryHref,
+    secondaryCtaLabel: safeSettings.secondaryCtaLabel ?? "",
+    secondaryCtaHref: safeSettings.secondaryCtaHref ?? "",
+    features: safeSettings.features ?? [],
+    image: safeSettings.localImagePath ?? "",
+    imageMediaAssetId: item.media_asset_id ?? null,
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  return {
+    id: parsed.data.id,
+    title: parsed.data.title,
+    subtitle: parsed.data.subtitle,
+    body: parsed.data.body,
+    badgeText: parsed.data.badgeText,
+    accentColor: parsed.data.accentColor,
+    primaryCtaLabel: parsed.data.primaryCtaLabel,
+    primaryCtaHref: parsed.data.primaryCtaHref,
+    secondaryCtaLabel: parsed.data.secondaryCtaLabel,
+    secondaryCtaHref: parsed.data.secondaryCtaHref,
+    features: parsed.data.features as HeroSlideFeature[],
+    fallbackImagePath: parsed.data.image,
+    imageUrl: item.mediaUrl ?? parsed.data.image,
+    imageAlt: parsed.data.title,
+    imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
+    sortOrder: parsed.data.sortOrder,
+    isEnabled: parsed.data.isEnabled,
+  };
+}
+
+export function toHomepageMerchandisingBanners(
+  section: CmsSectionRow,
+  items: MerchCmsSectionItemRow[]
+): HomepageMerchandisingBanners {
+  const sectionSettings = merchSectionSettingsSchema.safeParse(section.settings);
+  const safe = sectionSettings.success ? sectionSettings.data : {};
+
+  const validSlides = items
+    .map(parseMerchandisingSlide)
+    .filter((slide): slide is HomepageMerchandisingSlide => Boolean(slide))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return {
+    isEnabled: section.is_enabled,
+    eyebrow: safe.eyebrow ?? fallbackHomepageMerchandisingBanners.eyebrow,
+    autoplaySeconds:
+      safe.autoplaySeconds ?? fallbackHomepageMerchandisingBanners.autoplaySeconds,
+    slides: validSlides,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Site footer                                                                */
+/* -------------------------------------------------------------------------- */
+
+const footerHrefSchema = z.union([
+  safeInternalHrefSchema,
+  z
+    .string()
+    .trim()
+    .min(1)
+    .max(300)
+    .url()
+    .regex(/^https?:\/\//, "Use http or https links only."),
+]);
+
+const footerLinkGroupSchema = z
+  .enum(["primary", "secondary"])
+  .catch("primary");
+
+const footerSocialPlatformSchema = z
+  .enum(["facebook", "instagram", "youtube", "x", "linkedin", "custom"])
+  .catch("custom");
+
+export const siteFooterLinkInputSchema = z.object({
+  id: z.string().trim().min(1).max(120),
+  label: z.string().trim().min(1).max(60),
+  href: footerHrefSchema,
+  group: footerLinkGroupSchema,
+  sortOrder: z.coerce.number().int().min(0).max(10_000),
+  isEnabled: z.boolean(),
+});
+
+export const siteFooterSocialLinkInputSchema = z.object({
+  id: z.string().trim().min(1).max(120),
+  label: z.string().trim().min(1).max(40),
+  href: footerHrefSchema,
+  platform: footerSocialPlatformSchema,
+  backgroundColor: hexColorSchema,
+  sortOrder: z.coerce.number().int().min(0).max(10_000),
+  isEnabled: z.boolean(),
+});
+
+export const siteFooterInputSchema = z.object({
+  isEnabled: z.boolean(),
+  logoPath: homepageLocalImageSchema,
+  logoAlt: z.string().trim().min(1).max(80),
+  copyrightText: z.string().trim().min(1).max(140),
+  links: z.array(siteFooterLinkInputSchema).max(12),
+  socialLinks: z.array(siteFooterSocialLinkInputSchema).max(8),
+});
+
+export type SiteFooterInput = z.infer<typeof siteFooterInputSchema>;
+
+export function parseSiteFooterForm(formData: FormData) {
+  const rawLinkCount = Number(formData.get("linkCount"));
+  const linkCount = Number.isFinite(rawLinkCount)
+    ? Math.min(Math.max(rawLinkCount, 0), 12)
+    : 0;
+
+  const rawSocialCount = Number(formData.get("socialCount"));
+  const socialCount = Number.isFinite(rawSocialCount)
+    ? Math.min(Math.max(rawSocialCount, 0), 8)
+    : 0;
+
+  const links = Array.from({ length: linkCount }, (_, index) => {
+    const prefix = `link-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+
+    return {
+      id: read("id") || `footer-link-${index + 1}`,
+      label: read("label") || "",
+      href: read("href") || "",
+      group: read("group") || "primary",
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  const socialLinks = Array.from({ length: socialCount }, (_, index) => {
+    const prefix = `social-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+
+    return {
+      id: read("id") || `footer-social-${index + 1}`,
+      label: read("label") || "",
+      href: read("href") || "",
+      platform: read("platform") || "custom",
+      backgroundColor: read("backgroundColor") || "#18181b",
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  return siteFooterInputSchema.safeParse({
+    isEnabled: formData.get("isEnabled") === "true",
+    logoPath: formData.get("logoPath"),
+    logoAlt: formData.get("logoAlt"),
+    copyrightText: formData.get("copyrightText"),
+    links,
+    socialLinks,
+  });
+}
+
+export const fallbackSiteFooter: SiteFooterContent = {
+  isEnabled: true,
+  logoPath: "/images/logo/logo.png",
+  logoAlt: "UAG Logo",
+  copyrightText: "UAG URBN ARMOUR GEAR Copyright 2026",
+  links: [
+    {
+      id: "about-us",
+      label: "ABOUT US",
+      href: "/about-us",
+      group: "primary",
+      sortOrder: 10,
+      isEnabled: true,
+    },
+    {
+      id: "contact-us",
+      label: "CONTACT US",
+      href: "/contact-us",
+      group: "primary",
+      sortOrder: 20,
+      isEnabled: true,
+    },
+    {
+      id: "privacy-policy",
+      label: "PRIVACY POLICY",
+      href: "/privacy-policy",
+      group: "primary",
+      sortOrder: 30,
+      isEnabled: true,
+    },
+    {
+      id: "return-policy",
+      label: "RETURN OR REFUND POLICY",
+      href: "/return-policy",
+      group: "primary",
+      sortOrder: 40,
+      isEnabled: true,
+    },
+    {
+      id: "shipping-policy",
+      label: "SHIPPING POLICY",
+      href: "/shipping-policy",
+      group: "primary",
+      sortOrder: 50,
+      isEnabled: true,
+    },
+    {
+      id: "terms-conditions",
+      label: "TERMS & CONDITIONS",
+      href: "/terms-conditions",
+      group: "primary",
+      sortOrder: 60,
+      isEnabled: true,
+    },
+    {
+      id: "blogs",
+      label: "BLOGS",
+      href: "/blogs",
+      group: "secondary",
+      sortOrder: 70,
+      isEnabled: true,
+    },
+    {
+      id: "faqs",
+      label: "FAQ",
+      href: "/faqs",
+      group: "secondary",
+      sortOrder: 80,
+      isEnabled: true,
+    },
+  ],
+  socialLinks: [
+    {
+      id: "facebook",
+      label: "Facebook",
+      href: "https://facebook.com",
+      platform: "facebook",
+      backgroundColor: "#3b5998",
+      sortOrder: 10,
+      isEnabled: true,
+    },
+    {
+      id: "instagram",
+      label: "Instagram",
+      href: "https://instagram.com",
+      platform: "instagram",
+      backgroundColor: "#d946ef",
+      sortOrder: 20,
+      isEnabled: true,
+    },
+    {
+      id: "youtube",
+      label: "YouTube",
+      href: "https://youtube.com",
+      platform: "youtube",
+      backgroundColor: "#c4302b",
+      sortOrder: 30,
+      isEnabled: true,
+    },
+  ],
+};
+
+const footerSectionSettingsSchema = z.object({
+  logoPath: z.string().optional(),
+  logoAlt: z.string().optional(),
+  copyrightText: z.string().optional(),
+});
+
+const footerItemSettingsSchema = z.object({
+  kind: z.enum(["link", "social"]).optional(),
+  group: footerLinkGroupSchema.optional(),
+  platform: footerSocialPlatformSchema.optional(),
+  backgroundColor: hexColorSchema.optional(),
+});
+
+export type SiteFooterCmsSectionItemRow = CmsSectionItemRow;
+
+function parseSiteFooterLink(item: SiteFooterCmsSectionItemRow): SiteFooterLink | null {
+  const settings = footerItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+
+  if (safeSettings.kind !== "link") {
+    return null;
+  }
+
+  const parsed = siteFooterLinkInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    label: item.title,
+    href: item.href ?? "",
+    group: safeSettings.group ?? "primary",
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  return parsed.success ? parsed.data : null;
+}
+
+function parseSiteFooterSocialLink(
+  item: SiteFooterCmsSectionItemRow
+): SiteFooterSocialLink | null {
+  const settings = footerItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+
+  if (safeSettings.kind !== "social") {
+    return null;
+  }
+
+  const parsed = siteFooterSocialLinkInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    label: item.title,
+    href: item.href ?? "",
+    platform: safeSettings.platform ?? "custom",
+    backgroundColor: safeSettings.backgroundColor ?? "#18181b",
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  return parsed.success ? parsed.data : null;
+}
+
+export function toSiteFooter(
+  section: CmsSectionRow,
+  items: SiteFooterCmsSectionItemRow[]
+): SiteFooterContent {
+  const settings = footerSectionSettingsSchema.safeParse(section.settings);
+  const safeSettings = settings.success ? settings.data : {};
+  const logoPath = homepageLocalImageSchema.safeParse(safeSettings.logoPath);
+
+  const links = items
+    .map(parseSiteFooterLink)
+    .filter((link): link is SiteFooterLink => Boolean(link))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const socialLinks = items
+    .map(parseSiteFooterSocialLink)
+    .filter((link): link is SiteFooterSocialLink => Boolean(link))
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  return {
+    isEnabled: section.is_enabled,
+    logoPath: logoPath.success ? logoPath.data : fallbackSiteFooter.logoPath,
+    logoAlt: safeSettings.logoAlt ?? fallbackSiteFooter.logoAlt,
+    copyrightText:
+      safeSettings.copyrightText ?? fallbackSiteFooter.copyrightText,
+    links,
+    socialLinks,
   };
 }

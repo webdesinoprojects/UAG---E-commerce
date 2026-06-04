@@ -11,15 +11,25 @@ import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
 import {
   getHomepageAnnouncement,
+  getHomepageBentoGallery,
   getHomepageHeroCarousel,
+  getHomepageMerchandisingBanners,
   getHomepageCategoryCircles,
 } from "@/features/homepage/queries";
 
 export default async function StoreHomePage() {
-  const [announcement, heroCarousel, categoryCircles] = await Promise.all([
+  const [
+    announcement,
+    heroCarousel,
+    categoryCircles,
+    merchandisingBanners,
+    bentoGallery,
+  ] = await Promise.all([
     getHomepageAnnouncement(),
     getHomepageHeroCarousel(),
     getHomepageCategoryCircles(),
+    getHomepageMerchandisingBanners(),
+    getHomepageBentoGallery(),
   ]);
 
   return (
@@ -40,7 +50,7 @@ export default async function StoreHomePage() {
       <Milestones />
 
       {/* 6. Premium Fullscreen Banner Carousel */}
-      <FullscreenBanner />
+      <FullscreenBanner merchandisingBanners={merchandisingBanners} />
 
       {/* 7. New Arrivals Filter Grid */}
       <NewArrivals />
@@ -49,7 +59,7 @@ export default async function StoreHomePage() {
       <MostPopular />
 
       {/* 9. Bento Grid Showcase */}
-      <BentoGrid />
+      <BentoGrid bentoGallery={bentoGallery} />
 
       {/* 10. Watch Our Stories Video Carousel */}
       <WatchStories />

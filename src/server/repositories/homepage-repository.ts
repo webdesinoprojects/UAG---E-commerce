@@ -13,12 +13,62 @@ import {
   toHomepageCategoryCircles,
   type CategoryCmsSectionItemRow,
   type HomepageCategoryCirclesInput,
+  fallbackHomepageBentoGallery,
+  toHomepageBentoGallery,
+  type BentoCmsSectionItemRow,
+  type HomepageBentoGalleryInput,
+  fallbackHomepageMerchandisingBanners,
+  toHomepageMerchandisingBanners,
+  type MerchCmsSectionItemRow,
+  type HomepageMerchandisingBannersInput,
+  fallbackSiteFooter,
+  toSiteFooter,
+  type SiteFooterCmsSectionItemRow,
+  type SiteFooterInput,
 } from "@/server/validators/homepage";
 import type {
   HomepageAnnouncement,
   HomepageHeroCarousel,
   HomepageCategoryCircles,
+  HomepageBentoGallery,
+  HomepageMerchandisingBanners,
+  SiteFooterContent,
 } from "@/features/homepage/types";
+
+type ServerSupabaseClient = NonNullable<
+  ReturnType<typeof createSupabaseAnonServerClient>
+>;
+
+// Batch-resolve media asset ids to { url, mime_type }. `publicOnly` restricts to
+// RLS-public rows for unauthenticated storefront reads; admin reads pass false.
+async function fetchMediaMap(
+  supabase: ServerSupabaseClient,
+  ids: string[],
+  publicOnly: boolean
+): Promise<Map<string, { url: string; mime_type: string | null }>> {
+  const map = new Map<string, { url: string; mime_type: string | null }>();
+
+  if (ids.length === 0) {
+    return map;
+  }
+
+  let query = supabase
+    .from("media_assets")
+    .select("id, url, mime_type")
+    .in("id", ids);
+
+  if (publicOnly) {
+    query = query.eq("is_public", true);
+  }
+
+  const { data } = await query;
+
+  if (data) {
+    data.forEach((asset) => map.set(asset.id, asset));
+  }
+
+  return map;
+}
 
 
 const TOP_MARQUEE_SECTION_KEY = "homepage.top_marquee";
@@ -605,5 +655,566 @@ export async function writeHomepageCategoryCircles(
 
   if (insertError) {
     throw new Error("Failed to save category circles items.");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage bento gallery                                                     */
+/* -------------------------------------------------------------------------- */
+
+const BENTO_GALLERY_SECTION_KEY = "homepage.bento_gallery";
+const BENTO_ITEM_COLUMNS =
+  "id,item_key,title,subtitle,body,href,settings,sort_order,is_enabled,media_asset_id";
+
+function collectMediaIds(
+  items: { media_asset_id?: string | null }[]
+): string[] {
+  const ids = new Set<string>();
+  items.forEach((item) => {
+    if (item.media_asset_id) ids.add(item.media_asset_id);
+  });
+  return Array.from(ids);
+}
+
+export async function readHomepageBentoGallery(): Promise<HomepageBentoGallery> {
+  const supabase = createSupabaseAnonServerClient();
+
+  if (!supabase) {
+    return fallbackHomepageBentoGallery;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", BENTO_GALLERY_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackHomepageBentoGallery;
+    }
+
+    if (!section.is_enabled) {
+      return toHomepageBentoGallery(section, []);
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(BENTO_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .eq("is_enabled", true)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackHomepageBentoGallery;
+    }
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), true);
+
+    const enriched: BentoCmsSectionItemRow[] = items.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageBentoGallery(section, enriched);
+  } catch {
+    return fallbackHomepageBentoGallery;
+  }
+}
+
+export async function readAdminHomepageBentoGallery(): Promise<HomepageBentoGallery> {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    return fallbackHomepageBentoGallery;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", BENTO_GALLERY_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackHomepageBentoGallery;
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(BENTO_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackHomepageBentoGallery;
+    }
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), false);
+
+    const enriched: BentoCmsSectionItemRow[] = items.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageBentoGallery(section, enriched);
+  } catch {
+    return fallbackHomepageBentoGallery;
+  }
+}
+
+async function assertMediaAssetsAreImages(
+  supabase: ServerSupabaseClient,
+  ids: string[]
+) {
+  if (ids.length === 0) return;
+
+  const { data: assets, error } = await supabase
+    .from("media_assets")
+    .select("id, mime_type")
+    .in("id", ids);
+
+  if (error || !assets || assets.length !== ids.length) {
+    throw new Error("Invalid media asset selected.");
+  }
+
+  for (const asset of assets) {
+    if (!asset.mime_type?.startsWith("image/")) {
+      throw new Error("Normal media must be an image.");
+    }
+  }
+}
+
+export async function writeHomepageBentoGallery(
+  input: HomepageBentoGalleryInput,
+  adminId: string
+) {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    throw new Error("Supabase service client is not configured.");
+  }
+
+  const mediaIds = Array.from(
+    new Set(
+      input.items
+        .map((item) => item.imageMediaAssetId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  await assertMediaAssetsAreImages(supabase, mediaIds);
+
+  const { data: section, error: sectionError } = await supabase
+    .from("cms_sections")
+    .upsert(
+      {
+        section_key: BENTO_GALLERY_SECTION_KEY,
+        section_type: "bento_gallery",
+        name: "Homepage Bento Gallery",
+        is_enabled: input.isEnabled,
+        settings: {
+          eyebrow: input.eyebrow,
+          heading: input.heading,
+          description: input.description,
+        },
+        updated_by: adminId,
+      },
+      { onConflict: "section_key" }
+    )
+    .select("id")
+    .single();
+
+  if (sectionError || !section) {
+    throw new Error("Failed to save bento gallery section.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("cms_section_items")
+    .delete()
+    .eq("section_id", section.id);
+
+  if (deleteError) {
+    throw new Error("Failed to replace bento gallery items.");
+  }
+
+  const rows = input.items.map((item, index) => ({
+    section_id: section.id,
+    item_key: `bento-${index + 1}`,
+    title: item.title,
+    subtitle: item.subtitle,
+    body: item.body,
+    href: item.href,
+    media_asset_id: item.imageMediaAssetId ?? null,
+    settings: {
+      localImagePath: item.image,
+      tileType: item.tileType,
+      layout: item.layout,
+      badgeText: item.badgeText,
+      accentColor: item.accentColor,
+      ctaLabel: item.ctaLabel,
+    },
+    sort_order: item.sortOrder,
+    is_enabled: item.isEnabled,
+    updated_by: adminId,
+  }));
+
+  if (rows.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("cms_section_items")
+    .insert(rows);
+
+  if (insertError) {
+    throw new Error("Failed to save bento gallery items.");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage merchandising banners                                             */
+/* -------------------------------------------------------------------------- */
+
+const MERCHANDISING_SECTION_KEY = "homepage.merchandising_banners";
+const MERCH_ITEM_COLUMNS =
+  "id,item_key,title,subtitle,body,href,settings,sort_order,is_enabled,media_asset_id";
+
+export async function readHomepageMerchandisingBanners(): Promise<HomepageMerchandisingBanners> {
+  const supabase = createSupabaseAnonServerClient();
+
+  if (!supabase) {
+    return fallbackHomepageMerchandisingBanners;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", MERCHANDISING_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackHomepageMerchandisingBanners;
+    }
+
+    if (!section.is_enabled) {
+      return toHomepageMerchandisingBanners(section, []);
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(MERCH_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .eq("is_enabled", true)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackHomepageMerchandisingBanners;
+    }
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), true);
+
+    const enriched: MerchCmsSectionItemRow[] = items.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageMerchandisingBanners(section, enriched);
+  } catch {
+    return fallbackHomepageMerchandisingBanners;
+  }
+}
+
+export async function readAdminHomepageMerchandisingBanners(): Promise<HomepageMerchandisingBanners> {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    return fallbackHomepageMerchandisingBanners;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", MERCHANDISING_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackHomepageMerchandisingBanners;
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(MERCH_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackHomepageMerchandisingBanners;
+    }
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), false);
+
+    const enriched: MerchCmsSectionItemRow[] = items.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageMerchandisingBanners(section, enriched);
+  } catch {
+    return fallbackHomepageMerchandisingBanners;
+  }
+}
+
+export async function writeHomepageMerchandisingBanners(
+  input: HomepageMerchandisingBannersInput,
+  adminId: string
+) {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    throw new Error("Supabase service client is not configured.");
+  }
+
+  const mediaIds = Array.from(
+    new Set(
+      input.slides
+        .map((slide) => slide.imageMediaAssetId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  await assertMediaAssetsAreImages(supabase, mediaIds);
+
+  const { data: section, error: sectionError } = await supabase
+    .from("cms_sections")
+    .upsert(
+      {
+        section_key: MERCHANDISING_SECTION_KEY,
+        section_type: "merchandising_banners",
+        name: "Homepage Merchandising Banners",
+        is_enabled: input.isEnabled,
+        settings: {
+          autoplaySeconds: input.autoplaySeconds,
+          eyebrow: input.eyebrow,
+        },
+        updated_by: adminId,
+      },
+      { onConflict: "section_key" }
+    )
+    .select("id")
+    .single();
+
+  if (sectionError || !section) {
+    throw new Error("Failed to save merchandising banners section.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("cms_section_items")
+    .delete()
+    .eq("section_id", section.id);
+
+  if (deleteError) {
+    throw new Error("Failed to replace merchandising banners.");
+  }
+
+  const rows = input.slides.map((slide, index) => ({
+    section_id: section.id,
+    item_key: `slide-${index + 1}`,
+    title: slide.title,
+    subtitle: slide.subtitle,
+    body: slide.body,
+    href: slide.primaryCtaHref,
+    media_asset_id: slide.imageMediaAssetId ?? null,
+    settings: {
+      localImagePath: slide.image,
+      badgeText: slide.badgeText,
+      accentColor: slide.accentColor,
+      primaryCtaLabel: slide.primaryCtaLabel,
+      secondaryCtaLabel: slide.secondaryCtaLabel,
+      secondaryCtaHref: slide.secondaryCtaHref,
+      features: slide.features,
+    },
+    sort_order: slide.sortOrder,
+    is_enabled: slide.isEnabled,
+    updated_by: adminId,
+  }));
+
+  if (rows.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("cms_section_items")
+    .insert(rows);
+
+  if (insertError) {
+    throw new Error("Failed to save merchandising banners.");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Site footer                                                                */
+/* -------------------------------------------------------------------------- */
+
+const SITE_FOOTER_SECTION_KEY = "homepage.footer";
+const SITE_FOOTER_ITEM_COLUMNS =
+  "id,item_key,title,href,settings,sort_order,is_enabled";
+
+export async function readSiteFooter(): Promise<SiteFooterContent> {
+  const supabase = createSupabaseAnonServerClient();
+
+  if (!supabase) {
+    return fallbackSiteFooter;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", SITE_FOOTER_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackSiteFooter;
+    }
+
+    if (!section.is_enabled) {
+      return toSiteFooter(section, []);
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(SITE_FOOTER_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .eq("is_enabled", true)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackSiteFooter;
+    }
+
+    return toSiteFooter(section, items as SiteFooterCmsSectionItemRow[]);
+  } catch {
+    return fallbackSiteFooter;
+  }
+}
+
+export async function readAdminSiteFooter(): Promise<SiteFooterContent> {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    return fallbackSiteFooter;
+  }
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", SITE_FOOTER_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) {
+      return fallbackSiteFooter;
+    }
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(SITE_FOOTER_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .order("sort_order", { ascending: true });
+
+    if (itemsError || !items) {
+      return fallbackSiteFooter;
+    }
+
+    return toSiteFooter(section, items as SiteFooterCmsSectionItemRow[]);
+  } catch {
+    return fallbackSiteFooter;
+  }
+}
+
+export async function writeSiteFooter(input: SiteFooterInput, adminId: string) {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    throw new Error("Supabase service client is not configured.");
+  }
+
+  const { data: section, error: sectionError } = await supabase
+    .from("cms_sections")
+    .upsert(
+      {
+        section_key: SITE_FOOTER_SECTION_KEY,
+        section_type: "site_footer",
+        name: "Site Footer",
+        is_enabled: input.isEnabled,
+        settings: {
+          logoPath: input.logoPath,
+          logoAlt: input.logoAlt,
+          copyrightText: input.copyrightText,
+        },
+        updated_by: adminId,
+      },
+      { onConflict: "section_key" }
+    )
+    .select("id")
+    .single();
+
+  if (sectionError || !section) {
+    throw new Error("Failed to save footer section.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("cms_section_items")
+    .delete()
+    .eq("section_id", section.id);
+
+  if (deleteError) {
+    throw new Error("Failed to replace footer content.");
+  }
+
+  const linkRows = input.links.map((link, index) => ({
+    section_id: section.id,
+    item_key: `footer-link-${index + 1}`,
+    title: link.label,
+    href: link.href,
+    settings: {
+      kind: "link",
+      group: link.group,
+    },
+    sort_order: link.sortOrder,
+    is_enabled: link.isEnabled,
+    updated_by: adminId,
+  }));
+
+  const socialRows = input.socialLinks.map((socialLink, index) => ({
+    section_id: section.id,
+    item_key: `footer-social-${index + 1}`,
+    title: socialLink.label,
+    href: socialLink.href,
+    settings: {
+      kind: "social",
+      platform: socialLink.platform,
+      backgroundColor: socialLink.backgroundColor,
+    },
+    sort_order: socialLink.sortOrder,
+    is_enabled: socialLink.isEnabled,
+    updated_by: adminId,
+  }));
+
+  const rows = [...linkRows, ...socialRows];
+
+  if (rows.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("cms_section_items")
+    .insert(rows);
+
+  if (insertError) {
+    throw new Error("Failed to save footer content.");
   }
 }

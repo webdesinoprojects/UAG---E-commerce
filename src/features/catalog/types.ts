@@ -17,6 +17,32 @@ export interface Category {
   description?: string;
 }
 
+export interface CatalogCategoryDto {
+  id: string;
+  parentId: string | null;
+  name: string;
+  slug: string;
+  description: string;
+  mediaAssetId: string | null;
+  mediaUrl: string | null;
+  bannerMediaAssetId: string | null;
+  bannerMediaUrl: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  isFeatured: boolean;
+  seoTitle: string;
+  seoDescription: string;
+  productCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CatalogCategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
 export interface FilterOptions {
   priceRange: { min: number; max: number };
   brands: { name: string; count: number }[];

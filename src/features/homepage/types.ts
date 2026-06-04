@@ -76,3 +76,97 @@ export interface HomepageCategoryCircles {
   isEnabled: boolean;
   items: HomepageCategoryCircle[];
 }
+
+export type BentoTileType = "product" | "banner" | "story" | "category";
+export type BentoTileLayout = "large" | "wide" | "tall" | "standard";
+
+export interface HomepageBentoItem {
+  id: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  href: string;
+  tileType: BentoTileType;
+  layout: BentoTileLayout;
+  badgeText: string;
+  accentColor: string;
+  ctaLabel: string;
+  fallbackImagePath: string;
+  imageUrl: string;
+  imageAlt: string;
+  imageMediaAssetId: string | null;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface HomepageBentoGallery {
+  isEnabled: boolean;
+  eyebrow: string;
+  heading: string;
+  description: string;
+  items: HomepageBentoItem[];
+}
+
+export interface HomepageMerchandisingSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  body: string;
+  badgeText: string;
+  accentColor: string;
+  primaryCtaLabel: string;
+  primaryCtaHref: string;
+  secondaryCtaLabel: string;
+  secondaryCtaHref: string;
+  features: HeroSlideFeature[];
+  fallbackImagePath: string;
+  imageUrl: string;
+  imageAlt: string;
+  imageMediaAssetId: string | null;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface HomepageMerchandisingBanners {
+  isEnabled: boolean;
+  eyebrow: string;
+  autoplaySeconds: number;
+  slides: HomepageMerchandisingSlide[];
+}
+
+export type SiteFooterLinkGroup = "primary" | "secondary";
+export type SiteFooterSocialPlatform =
+  | "facebook"
+  | "instagram"
+  | "youtube"
+  | "x"
+  | "linkedin"
+  | "custom";
+
+export interface SiteFooterLink {
+  id: string;
+  label: string;
+  href: string;
+  group: SiteFooterLinkGroup;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface SiteFooterSocialLink {
+  id: string;
+  label: string;
+  href: string;
+  platform: SiteFooterSocialPlatform;
+  backgroundColor: string;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface SiteFooterContent {
+  isEnabled: boolean;
+  logoPath: string;
+  logoAlt: string;
+  copyrightText: string;
+  links: SiteFooterLink[];
+  socialLinks: SiteFooterSocialLink[];
+}

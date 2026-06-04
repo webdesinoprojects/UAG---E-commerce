@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cacheLife, cacheTag } from "next/cache";
+import { readPublicCatalogCategories } from "@/server/repositories/catalog-repository";
 import { GetProductsParams, PaginatedProducts, FilterOptions } from "./types";
 import { Product } from "./components/product-card";
 
@@ -89,7 +91,16 @@ const MOCK_PRODUCTS: Product[] = [
 
 // Helper to generate missing image paths as placeholders if needed, though they should ideally exist in public/images/products.
 
-import { cacheLife, cacheTag } from "next/cache";
+export const CATALOG_CATEGORIES_CACHE_TAG = "catalog-categories";
+export const CATALOG_PRODUCTS_CACHE_TAG = "catalog-products";
+
+export async function getCatalogCategories() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_CATEGORIES_CACHE_TAG);
+
+  return readPublicCatalogCategories();
+}
 
 /**
  * Mock query function to fetch and filter products.
@@ -98,7 +109,7 @@ import { cacheLife, cacheTag } from "next/cache";
 export async function getProducts(params: GetProductsParams): Promise<PaginatedProducts> {
   "use cache";
   cacheLife("hours");
-  cacheTag("products", `category-${params.categorySlug}`);
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, `category-${params.categorySlug}`);
   
   // Simulate network latency (backend friendly)
   await new Promise(resolve => setTimeout(resolve, 600));
@@ -168,7 +179,7 @@ export async function getProducts(params: GetProductsParams): Promise<PaginatedP
 export async function getFilterOptions(categorySlug?: string): Promise<FilterOptions> {
   "use cache";
   cacheLife("hours");
-  cacheTag("categories");
+  cacheTag(CATALOG_CATEGORIES_CACHE_TAG);
 
   await new Promise(resolve => setTimeout(resolve, 300));
   
@@ -191,7 +202,7 @@ export async function getFilterOptions(categorySlug?: string): Promise<FilterOpt
 export async function getTopRatedProducts(): Promise<Product[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("products", "top-rated");
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "top-rated");
 
   await new Promise(resolve => setTimeout(resolve, 400));
   return MOCK_PRODUCTS.slice(3, 6); // Grab a few products for the top rated section
@@ -203,7 +214,7 @@ export async function getTopRatedProducts(): Promise<Product[]> {
 export async function getProductBySlug(slug: string): Promise<import("./types").ProductDetail | null> {
   "use cache";
   cacheLife("hours");
-  cacheTag("products", `product-${slug}`);
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, `product-${slug}`);
 
   await new Promise(resolve => setTimeout(resolve, 300));
   
@@ -297,6 +308,6 @@ export async function getProductBySlug(slug: string): Promise<import("./types").
 export async function getAllProducts(): Promise<import("./components/product-card").Product[]> {
   "use cache";
   cacheLife("hours");
-  cacheTag("products", "all");
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "all");
   return MOCK_PRODUCTS;
 }

@@ -5,20 +5,29 @@ import "server-only";
 import { revalidatePath, updateTag } from "next/cache";
 import {
   HOMEPAGE_CACHE_TAG,
+  HOMEPAGE_BENTO_GALLERY_CACHE_TAG,
   HOMEPAGE_HERO_CAROUSEL_CACHE_TAG,
+  HOMEPAGE_MERCHANDISING_BANNERS_CACHE_TAG,
   HOMEPAGE_TOP_MARQUEE_CACHE_TAG,
   HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG,
+  SITE_FOOTER_CACHE_TAG,
 } from "@/features/homepage/queries";
 import { requireAdmin } from "@/server/auth/admin";
 import {
   writeHomepageAnnouncement,
+  writeHomepageBentoGallery,
   writeHomepageHeroCarousel,
+  writeHomepageMerchandisingBanners,
   writeHomepageCategoryCircles,
+  writeSiteFooter,
 } from "@/server/repositories/homepage-repository";
 import {
   parseHomepageAnnouncementForm,
+  parseHomepageBentoGalleryForm,
   parseHomepageHeroCarouselForm,
+  parseHomepageMerchandisingBannersForm,
   parseHomepageCategoryCirclesForm,
+  parseSiteFooterForm,
 } from "@/server/validators/homepage";
 
 export interface HomepageAnnouncementActionState {
@@ -122,6 +131,105 @@ export async function updateHomepageCategoryCirclesAction(
     return {
       status: "error",
       message: "Could not publish the category circles. Try again.",
+    };
+  }
+}
+
+export async function updateHomepageBentoGalleryAction(
+  _previousState: HomepageAnnouncementActionState,
+  formData: FormData
+): Promise<HomepageAnnouncementActionState> {
+  const admin = await requireAdmin();
+  const parsed = parseHomepageBentoGalleryForm(formData);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await writeHomepageBentoGallery(parsed.data, admin.id);
+    updateTag(HOMEPAGE_BENTO_GALLERY_CACHE_TAG);
+    updateTag(HOMEPAGE_CACHE_TAG);
+    revalidatePath("/admin/homepage/bento-gallery");
+
+    return {
+      status: "success",
+      message: "Bento gallery published.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not publish the bento gallery. Try again.",
+    };
+  }
+}
+
+export async function updateHomepageMerchandisingBannersAction(
+  _previousState: HomepageAnnouncementActionState,
+  formData: FormData
+): Promise<HomepageAnnouncementActionState> {
+  const admin = await requireAdmin();
+  const parsed = parseHomepageMerchandisingBannersForm(formData);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await writeHomepageMerchandisingBanners(parsed.data, admin.id);
+    updateTag(HOMEPAGE_MERCHANDISING_BANNERS_CACHE_TAG);
+    updateTag(HOMEPAGE_CACHE_TAG);
+    revalidatePath("/admin/homepage/merchandising");
+
+    return {
+      status: "success",
+      message: "Merchandising banners published.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not publish the merchandising banners. Try again.",
+    };
+  }
+}
+
+export async function updateSiteFooterAction(
+  _previousState: HomepageAnnouncementActionState,
+  formData: FormData
+): Promise<HomepageAnnouncementActionState> {
+  const admin = await requireAdmin();
+  const parsed = parseSiteFooterForm(formData);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the highlighted fields and try again.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await writeSiteFooter(parsed.data, admin.id);
+    updateTag(SITE_FOOTER_CACHE_TAG);
+    updateTag(HOMEPAGE_CACHE_TAG);
+    revalidatePath("/admin/homepage/footer");
+
+    return {
+      status: "success",
+      message: "Footer settings published.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not publish the footer settings. Try again.",
     };
   }
 }

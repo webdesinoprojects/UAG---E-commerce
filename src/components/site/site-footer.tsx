@@ -1,11 +1,72 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowUp } from "lucide-react";
+import type {
+  SiteFooterContent,
+  SiteFooterSocialPlatform,
+} from "@/features/homepage/types";
 
-export default function SiteFooter() {
+interface SiteFooterProps {
+  footer: SiteFooterContent;
+}
+
+function SocialPlatformIcon({
+  platform,
+}: {
+  platform: SiteFooterSocialPlatform;
+}) {
+  if (platform === "instagram") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4.5 w-4.5"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="2"
+        aria-hidden="true"
+      >
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+      </svg>
+    );
+  }
+
+  if (platform === "youtube") {
+    return (
+      <svg
+        viewBox="0 0 24 24"
+        className="h-4.5 w-4.5 fill-current"
+        stroke="none"
+        aria-hidden="true"
+      >
+        <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z" />
+      </svg>
+    );
+  }
+
+  const labelMap: Record<SiteFooterSocialPlatform, string> = {
+    facebook: "f",
+    instagram: "ig",
+    youtube: "yt",
+    x: "x",
+    linkedin: "in",
+    custom: "*",
+  };
+
+  return (
+    <span className="text-sm font-black uppercase leading-none" aria-hidden="true">
+      {labelMap[platform]}
+    </span>
+  );
+}
+
+export default function SiteFooter({ footer }: SiteFooterProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -22,6 +83,14 @@ export default function SiteFooter() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const groupedLinks = useMemo(
+    () => ({
+      primary: footer.links.filter((link) => link.group === "primary"),
+      secondary: footer.links.filter((link) => link.group === "secondary"),
+    }),
+    [footer.links]
+  );
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -29,18 +98,19 @@ export default function SiteFooter() {
     });
   };
 
+  if (!footer.isEnabled) {
+    return null;
+  }
+
   return (
-    <footer className="w-full bg-[#080808] border-t border-zinc-950 text-white py-12 px-4 sm:px-6 lg:px-8 font-sans animate-fade-in">
+    <footer className="w-full border-t border-zinc-950 bg-[#080808] px-4 py-12 font-sans text-white animate-fade-in sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        {/* Main Grid: Logo (left), Links (center), Copyright (right) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-8 md:gap-4 pb-8">
-          
-          {/* Left Column: Custom Styled Brand Logo */}
+        <div className="grid grid-cols-1 items-center justify-between gap-8 pb-8 md:grid-cols-3 md:gap-4">
           <div className="flex justify-center md:justify-start">
-            <Link href="/" className="flex items-start select-none group">
+            <Link href="/" className="flex items-start select-none">
               <Image
-                src="/images/logo/logo.png"
-                alt="UAG Logo"
+                src={footer.logoPath}
+                alt={footer.logoAlt}
                 width={120}
                 height={40}
                 className="h-10 w-auto object-contain invert mix-blend-screen"
@@ -50,86 +120,70 @@ export default function SiteFooter() {
             </Link>
           </div>
 
-          {/* Center Column: Links and Social Icons */}
-          <div className="flex flex-col items-center text-center gap-6">
-            
-            {/* Links Block */}
-            <div className="flex flex-col gap-2.5 max-w-md">
-              {/* Row 1 Links */}
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-zinc-400">
-                <Link href="/about-us" className="hover:text-white transition-colors">ABOUT US</Link>
-                <Link href="/contact-us" className="hover:text-white transition-colors">CONTACT US</Link>
-                <Link href="/privacy-policy" className="hover:text-white transition-colors">PRIVACY POLICY</Link>
-                <Link href="/return-policy" className="hover:text-white transition-colors">RETURN OR REFUND POLICY</Link>
-                <Link href="/shipping-policy" className="hover:text-white transition-colors">SHIPPING POLICY</Link>
-                <Link href="/terms-conditions" className="hover:text-white transition-colors">TERMS & CONDITIONS.</Link>
+          <div className="flex flex-col items-center gap-6 text-center">
+            <div className="flex max-w-md flex-col gap-2.5">
+              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 sm:text-[10px]">
+                {groupedLinks.primary.map((link) => (
+                  <Link
+                    key={link.id}
+                    href={link.href}
+                    className="transition-colors hover:text-white"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
-              
-              {/* Row 2 Links */}
-              <div className="flex justify-center gap-4 text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-zinc-400">
-                <Link href="/blogs" className="hover:text-white transition-colors">BLOGS</Link>
-                <Link href="/faqs" className="hover:text-white transition-colors">FAQ</Link>
-              </div>
+
+              {groupedLinks.secondary.length > 0 && (
+                <div className="flex justify-center gap-4 text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 sm:text-[10px]">
+                  {groupedLinks.secondary.map((link) => (
+                    <Link
+                      key={link.id}
+                      href={link.href}
+                      className="transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Social Media Rounded Buttons (Custom SVGs to avoid package version mismatches) */}
-            <div className="flex items-center gap-3">
-              <a
-                href="https://facebook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="h-8 w-8 flex items-center justify-center bg-[#3b5998] hover:bg-[#3b5998]/90 text-white rounded-lg transition-transform duration-200 active:scale-90"
-              >
-                <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-current" stroke="none">
-                  <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.8c4.56-.93 8-4.96 8-9.8z" />
-                </svg>
-              </a>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="h-8 w-8 flex items-center justify-center bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] hover:brightness-110 text-white rounded-lg transition-transform duration-200 active:scale-90"
-              >
-                <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                </svg>
-              </a>
-              <a
-                href="https://youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="h-8 w-8 flex items-center justify-center bg-[#c4302b] hover:bg-[#c4302b]/90 text-white rounded-lg transition-transform duration-200 active:scale-90"
-              >
-                <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 fill-current" stroke="none">
-                  <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.107C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.511a3.003 3.003 0 0 0-2.11 2.107C0 8.053 0 12 0 12s0 3.947.502 5.837a3.003 3.003 0 0 0 2.11 2.107C4.495 20.455 12 20.455 12 20.455s7.505 0 9.388-.511a3.003 3.003 0 0 0 2.11-2.107C24 15.947 24 12 24 12s0-3.947-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                </svg>
-              </a>
-            </div>
-
+            {footer.socialLinks.length > 0 && (
+              <div className="flex items-center gap-3">
+                {footer.socialLinks.map((socialLink) => (
+                  <a
+                    key={socialLink.id}
+                    href={socialLink.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={socialLink.label}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-white transition-transform duration-200 hover:brightness-110 active:scale-90"
+                    style={{ backgroundColor: socialLink.backgroundColor }}
+                  >
+                    <SocialPlatformIcon platform={socialLink.platform} />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Right Column: Copyright */}
-          <div className="flex justify-center md:justify-end text-center md:text-right">
-            <p className="text-[9px] sm:text-[10px] font-bold text-zinc-500 uppercase tracking-widest leading-relaxed">
-              UAG URBN ARMOUR GEAR Copyright ©<br />2026
+          <div className="flex justify-center text-center md:justify-end md:text-right">
+            <p className="text-[9px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500 sm:text-[10px]">
+              {footer.copyrightText}
             </p>
           </div>
-
         </div>
       </div>
 
-      {/* Floating Scroll-to-Top Button */}
       <button
         onClick={scrollToTop}
         type="button"
         aria-label="Scroll to top"
-        className={`fixed bottom-20 md:bottom-6 right-6 z-50 h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-white border border-zinc-200 text-zinc-950 flex items-center justify-center shadow-lg transition-all duration-300 hover:bg-zinc-100 hover:scale-105 active:scale-95 ${
-          isVisible ? "opacity-100 translate-y-0 scale-100 pointer-events-auto" : "opacity-0 translate-y-4 scale-90 pointer-events-none"
+        className={`fixed right-6 bottom-20 z-50 flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-950 shadow-lg transition-all duration-300 hover:scale-105 hover:bg-zinc-100 active:scale-95 sm:h-12 sm:w-12 md:bottom-6 ${
+          isVisible
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none translate-y-4 scale-90 opacity-0"
         }`}
       >
         <ArrowUp className="h-5 w-5 stroke-[2.5]" />
