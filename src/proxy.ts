@@ -8,7 +8,7 @@ import {
   getAccessTokenMaxAge,
   getAdminAuthCookieOptions,
 } from "@/lib/admin-auth-cookies";
-import { isJwtExpiredOrNearExpiry } from "@/lib/jwt";
+import { getJwtExpiryMs, isJwtExpiredOrNearExpiry } from "@/lib/jwt";
 import { refreshAdminSession } from "@/lib/admin-session-refresh";
 
 // Skew before the access token's `exp` where the proxy proactively
@@ -17,6 +17,51 @@ const NEAR_EXPIRY_SKEW_SECONDS = 60;
 
 function isAdminLoginPath(pathname: string) {
   return pathname === "/admin/login" || pathname.startsWith("/admin/login/");
+}
+
+function getUniqueCookieValues(request: NextRequest, name: string) {
+  const seen = new Set<string>();
+  const values: string[] = [];
+
+  for (const cookie of request.cookies.getAll(name)) {
+    const value = cookie.value;
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    values.push(value);
+  }
+
+  return values;
+}
+
+function getRemainingAccessTokenMaxAge(token: string) {
+  const expiresAt = getJwtExpiryMs(token);
+
+  if (!expiresAt) {
+    return undefined;
+  }
+
+  const seconds = Math.floor((expiresAt - Date.now()) / 1000);
+  return seconds > 0 ? getAccessTokenMaxAge(seconds) : undefined;
+}
+
+async function refreshWithAnyToken(input: {
+  supabaseUrl: string;
+  anonKey: string;
+  refreshTokens: string[];
+}) {
+  for (const refreshToken of input.refreshTokens) {
+    const refreshed = await refreshAdminSession({
+      supabaseUrl: input.supabaseUrl,
+      anonKey: input.anonKey,
+      refreshToken,
+    });
+
+    if (refreshed) {
+      return refreshed;
+    }
+  }
+
+  return null;
 }
 
 // Raw Set-Cookie expiry. Next's response cookie store is keyed by cookie NAME
@@ -88,23 +133,46 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const accessToken = request.cookies.get(ADMIN_ACCESS_TOKEN_COOKIE)?.value;
-  const refreshToken = request.cookies.get(ADMIN_REFRESH_TOKEN_COOKIE)?.value;
+  const accessTokens = getUniqueCookieValues(request, ADMIN_ACCESS_TOKEN_COOKIE);
+  const refreshTokens = getUniqueCookieValues(
+    request,
+    ADMIN_REFRESH_TOKEN_COOKIE
+  );
+  const freshAccessToken = accessTokens.find(
+    (token) => !isJwtExpiredOrNearExpiry(token, NEAR_EXPIRY_SKEW_SECONDS)
+  );
 
-  // Hot path: token present and not near expiry. No network call. The active
-  // cookie already lives in the browser, so we only purge any legacy `/admin`
-  // cookie that might be shadowing it.
-  if (
-    accessToken &&
-    !isJwtExpiredOrNearExpiry(accessToken, NEAR_EXPIRY_SKEW_SECONDS)
-  ) {
-    const response = NextResponse.next();
+  // Hot path: at least one access token is present and not near expiry. There
+  // can temporarily be duplicate same-name cookies (`path=/admin` legacy plus
+  // active `path=/`). Pick the fresh token for this request instead of trusting
+  // whichever value the browser sent first.
+  if (freshAccessToken) {
+    request.cookies.set(ADMIN_ACCESS_TOKEN_COOKIE, freshAccessToken);
+
+    const response = NextResponse.next({ request });
+    response.cookies.set(
+      ADMIN_ACCESS_TOKEN_COOKIE,
+      freshAccessToken,
+      getAdminAuthCookieOptions(getRemainingAccessTokenMaxAge(freshAccessToken))
+    );
+
+    // If this is an old login that only has one legacy refresh token, migrate it
+    // to the active root path before expiring the legacy cookie. When multiple
+    // values exist, keep the current active refresh token untouched.
+    if (refreshTokens.length === 1) {
+      response.cookies.set(
+        ADMIN_REFRESH_TOKEN_COOKIE,
+        refreshTokens[0],
+        getAdminAuthCookieOptions(ADMIN_REFRESH_TOKEN_MAX_AGE)
+      );
+    }
+
     expireLegacyAdminCookies(response);
     return response;
   }
 
   // Nothing to refresh from. Reject and drop every admin cookie.
-  if (!refreshToken) {
+  if (refreshTokens.length === 0) {
     return isAdminApi
       ? unauthorizedApiAndClearCookies()
       : redirectToLoginAndClearCookies(request);
@@ -120,10 +188,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const refreshed = await refreshAdminSession({
+  const refreshed = await refreshWithAnyToken({
     supabaseUrl,
     anonKey: supabaseAnonKey,
-    refreshToken,
+    refreshTokens,
   });
 
   if (!refreshed) {

@@ -73,17 +73,45 @@ export async function getAdminFromAccessToken(
   return toAdminSession(profile);
 }
 
+function getUniqueCookieValues(
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
+  name: string
+) {
+  const seen = new Set<string>();
+  const values: string[] = [];
+
+  for (const cookie of cookieStore.getAll(name)) {
+    const value = cookie.value;
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    values.push(value);
+  }
+
+  return values;
+}
+
 export const getCurrentAdmin = cache(async () => {
   await connection();
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get(ADMIN_ACCESS_TOKEN_COOKIE)?.value;
+  const accessTokens = getUniqueCookieValues(
+    cookieStore,
+    ADMIN_ACCESS_TOKEN_COOKIE
+  );
 
-  if (!accessToken) {
+  if (accessTokens.length === 0) {
     return null;
   }
 
-  return getAdminFromAccessToken(accessToken);
+  for (const accessToken of accessTokens) {
+    const admin = await getAdminFromAccessToken(accessToken);
+
+    if (admin) {
+      return admin;
+    }
+  }
+
+  return null;
 });
 
 export async function requireAdmin() {

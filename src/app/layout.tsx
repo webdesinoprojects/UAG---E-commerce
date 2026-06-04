@@ -73,7 +73,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background font-sans text-foreground">
         <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
-        <Toaster richColors closeButton />
+        <Toaster richColors closeButton position="bottom-right" />
       </body>
     </html>
   );

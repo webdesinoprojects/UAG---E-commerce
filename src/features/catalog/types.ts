@@ -1,5 +1,43 @@
 import { Product } from "./components/product-card";
 
+export type ProductStatus = "draft" | "active" | "archived";
+
+export interface AdminProductListItemDto {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  brand: string;
+  status: ProductStatus;
+  priceCents: number;
+  compareAtPriceCents: number | null;
+  currency: string;
+  stockQuantity: number;
+  lowStockThreshold: number;
+  isFeatured: boolean;
+  isNewArrival: boolean;
+  isPopular: boolean;
+  primaryImageUrl: string | null;
+  primaryMediaAssetId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminProductFormCategoryOption {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface AdminProductDetailDto extends AdminProductListItemDto {
+  shortDescription: string;
+  description: string;
+  seoTitle: string;
+  seoDescription: string;
+}
+
 export interface GetProductsParams {
   categorySlug?: string;
   page?: number;
