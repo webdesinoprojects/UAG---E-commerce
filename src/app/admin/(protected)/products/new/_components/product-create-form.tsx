@@ -2,11 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   ArrowLeft,
-  ImageIcon,
   Package,
   Save,
   Tag,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 import { createCatalogProductAction } from "@/features/catalog/actions";
 import type { AdminProductFormCategoryOption } from "@/features/catalog/types";
-import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
+import { ProductMediaFields } from "../../[productId]/_components/product-media-manager";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -114,6 +113,7 @@ export default function ProductCreateForm({
   });
 
   const [form, setForm] = useState<FormState>(INITIAL_STATE);
+  const [mediaSaveBlocked, setMediaSaveBlocked] = useState(false);
 
   const selectedCategory = categoryOptions.find((c) => c.id === form.categoryId);
 
@@ -131,10 +131,35 @@ export default function ProductCreateForm({
     update({ slug: slugify(value), slugAutoGenerate: false });
   };
 
+  const handlePrimaryThumbnailChange = useCallback(
+    (asset: { id: string; url: string; altText: string | null } | null) => {
+      setForm((prev) => ({
+        ...prev,
+        primaryMediaAssetId: asset?.id ?? "",
+        primaryImageUrl: asset?.url ?? null,
+      }));
+    },
+    []
+  );
+
+  const handleMediaSaveBlockedChange = useCallback((blocked: boolean) => {
+    setMediaSaveBlocked(blocked);
+  }, []);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as
+      | HTMLElement
+      | null;
+
+    if (submitter?.dataset.productSaveSubmit !== "true") {
+      event.preventDefault();
+    }
+  }
+
   const fe = state.fieldErrors ?? {};
 
   return (
-    <form action={action} className="flex flex-col gap-6 pb-20">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-6 pb-20">
       {/* Hidden inputs for non-native form elements */}
       <input type="hidden" name="status" value={form.status} />
       <input type="hidden" name="categoryId" value={form.categoryId} />
@@ -163,7 +188,8 @@ export default function ProductCreateForm({
         </div>
         <Button
           type="submit"
-          disabled={isPending}
+          data-product-save-submit="true"
+          disabled={isPending || mediaSaveBlocked}
           className="lg:w-auto"
         >
           <Save className="h-4 w-4" />
@@ -456,63 +482,15 @@ export default function ProductCreateForm({
             </CardContent>
           </Card>
 
-          {/* Primary Image */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Primary Image</CardTitle>
-              <CardDescription>
-                Used as the product thumbnail in lists and cards.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-start gap-4">
-                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted">
-                  {form.primaryImageUrl ? (
-                    <Image
-                      src={form.primaryImageUrl}
-                      alt="Primary product image"
-                      fill
-                      className="object-cover"
-                      sizes="96px"
-                    />
-                  ) : (
-                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex flex-col gap-2">
-                  <MediaPickerModal
-                    allowedTypes="image"
-                    selectedAssetId={form.primaryMediaAssetId || null}
-                    onSelect={(asset) =>
-                      update({
-                        primaryMediaAssetId: asset?.id ?? "",
-                        primaryImageUrl: asset?.url ?? null,
-                      })
-                    }
-                    trigger={
-                      <Button type="button" variant="outline" size="sm">
-                        {form.primaryMediaAssetId ? "Change Image" : "Select Image"}
-                      </Button>
-                    }
-                  />
-                  {form.primaryMediaAssetId && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-foreground"
-                      onClick={() =>
-                        update({ primaryMediaAssetId: "", primaryImageUrl: null })
-                      }
-                    >
-                      <X className="mr-1 h-3 w-3" />
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <ProductMediaFields
+            initialMedia={[]}
+            isPending={isPending}
+            state={state}
+            showSaveButton={false}
+            showStatusAlerts={false}
+            onPrimaryThumbnailChange={handlePrimaryThumbnailChange}
+            onSaveBlockedChange={handleMediaSaveBlockedChange}
+          />
 
           {/* SEO */}
           <Card>
@@ -645,7 +623,11 @@ export default function ProductCreateForm({
           <Button type="button" variant="outline" asChild>
             <Link href="/admin/products">Cancel</Link>
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button
+            type="submit"
+            data-product-save-submit="true"
+            disabled={isPending || mediaSaveBlocked}
+          >
             <Save className="h-4 w-4" />
             {isPending ? "Saving…" : "Save Product"}
           </Button>

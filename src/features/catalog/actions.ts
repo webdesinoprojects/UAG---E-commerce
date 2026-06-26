@@ -16,10 +16,13 @@ import {
   updateCatalogProduct,
   updateCatalogProductStatus,
   deleteDraftCatalogProduct,
+  updateCatalogProductMedia,
 } from "@/server/repositories/catalog-repository";
 import {
   parseCatalogCategoryForm,
   parseCatalogProductCreateForm,
+  parseCatalogProductDraftMediaForm,
+  parseCatalogProductMediaForm,
 } from "@/server/validators/catalog";
 
 // UUID regex for runtime validation of caller-supplied IDs.
@@ -60,6 +63,7 @@ export async function upsertCatalogCategoryAction(
     updateTag(CATALOG_CATEGORIES_CACHE_TAG);
     revalidatePath("/admin/categories");
     revalidatePath("/categories");
+    revalidatePath("/");
 
     return {
       status: "success",
@@ -79,6 +83,7 @@ export async function createCatalogProductAction(
 ): Promise<CatalogActionState> {
   const admin = await requireAdmin();
   const parsed = parseCatalogProductCreateForm(formData);
+  const parsedMedia = parseCatalogProductDraftMediaForm(formData);
 
   if (!parsed.success) {
     return {
@@ -88,8 +93,16 @@ export async function createCatalogProductAction(
     };
   }
 
+  if (!parsedMedia.success) {
+    const firstMessage = parsedMedia.error.issues[0]?.message;
+    return {
+      status: "error",
+      message: firstMessage ?? "Check the media items and try again.",
+    };
+  }
+
   try {
-    await createCatalogProduct(parsed.data, admin.id);
+    await createCatalogProduct(parsed.data, admin.id, parsedMedia.data.items);
   } catch {
     return {
       status: "error",
@@ -100,7 +113,7 @@ export async function createCatalogProductAction(
   updateTag(CATALOG_PRODUCTS_CACHE_TAG);
   revalidatePath("/admin/products");
   // Server-side redirect keeps the RSC for /admin/products/new in an idle/empty
-  // state in the router cache — prevents the cached success state from looping
+  // state in the router cache; prevents the cached success state from looping
   // when the user opens the new-product form a second time.
   redirect("/admin/products?created=1");
 }
@@ -151,7 +164,7 @@ export async function updateCatalogProductStatusAction(
     return { success: false, error: "Invalid product ID." };
   }
 
-  // Runtime validation — TypeScript types are stripped at runtime.
+  // Runtime validation because TypeScript types are stripped at runtime.
   const statusResult = productStatusSchema.safeParse(status);
   if (!statusResult.success) {
     return { success: false, error: "Invalid product status." };
@@ -191,4 +204,41 @@ export async function deleteDraftCatalogProductAction(
   revalidatePath("/admin/products");
 
   return { success: true };
+}
+
+export async function updateCatalogProductMediaAction(
+  _previousState: CatalogActionState,
+  formData: FormData
+): Promise<CatalogActionState> {
+  const admin = await requireAdmin();
+
+  const parsed = parseCatalogProductMediaForm(formData);
+
+  if (!parsed.success) {
+    const firstMessage = parsed.error.issues[0]?.message;
+    return {
+      status: "error",
+      message: firstMessage ?? "Check the media items and try again.",
+    };
+  }
+
+  const productId = parsed.data.productId;
+
+  try {
+    await updateCatalogProductMedia(productId, parsed.data, admin.id);
+  } catch {
+    return {
+      status: "error",
+      message: "Could not update product media. Check media selection and types.",
+    };
+  }
+
+  updateTag(CATALOG_PRODUCTS_CACHE_TAG);
+  revalidatePath("/admin/products");
+  revalidatePath(`/admin/products/${productId}`);
+
+  return {
+    status: "success",
+    message: "Media saved.",
+  };
 }

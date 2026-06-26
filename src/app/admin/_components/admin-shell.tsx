@@ -20,10 +20,10 @@ interface AdminShellProps {
 export function AdminShell({ children, adminEmail }: AdminShellProps) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-zinc-50/30 dark:bg-zinc-950">
+      <div className="flex h-dvh w-full overflow-hidden bg-zinc-50/30 dark:bg-zinc-950">
         <AdminSidebar />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center justify-between border-b border-zinc-200 bg-white px-6 dark:border-zinc-800 dark:bg-zinc-950">
             <div className="flex flex-1 items-center gap-4">
               <SidebarTrigger className="md:hidden" />
@@ -57,7 +57,12 @@ export function AdminShell({ children, adminEmail }: AdminShellProps) {
                   <Moon className="h-5 w-5" aria-hidden="true" />
                 </Button>
                 <form action={signOutAdminAction}>
-                  <Button variant="ghost" size="icon" aria-label="Sign out">
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Sign out"
+                  >
                     <LogOut className="h-5 w-5" aria-hidden="true" />
                   </Button>
                 </form>
@@ -65,7 +70,9 @@ export function AdminShell({ children, adminEmail }: AdminShellProps) {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto p-6 md:p-8">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto p-6 md:p-8">
+            {children}
+          </main>
         </div>
       </div>
     </SidebarProvider>

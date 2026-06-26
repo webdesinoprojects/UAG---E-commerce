@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useState, type FormEvent } from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -135,8 +135,18 @@ export default function ProductEditForm({
 
   const fe = state.fieldErrors ?? {};
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as
+      | HTMLElement
+      | null;
+
+    if (submitter?.dataset.productSaveSubmit !== "true") {
+      event.preventDefault();
+    }
+  }
+
   return (
-    <form action={action} className="flex flex-col gap-6 pb-20">
+    <form action={action} onSubmit={handleSubmit} className="flex flex-col gap-6 pb-20">
       {/* Hidden inputs */}
       <input type="hidden" name="productId" value={product.id} />
       <input type="hidden" name="status" value={form.status} />
@@ -164,7 +174,12 @@ export default function ProductEditForm({
             </p>
           </div>
         </div>
-        <Button type="submit" disabled={isPending} className="lg:w-auto">
+        <Button
+          type="submit"
+          data-product-save-submit="true"
+          disabled={isPending}
+          className="lg:w-auto"
+        >
           <Save className="h-4 w-4" />
           {isPending ? "Saving…" : "Save Changes"}
         </Button>
@@ -617,7 +632,11 @@ export default function ProductEditForm({
           <Button type="button" variant="outline" asChild>
             <Link href="/admin/products">Back to Products</Link>
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button
+            type="submit"
+            data-product-save-submit="true"
+            disabled={isPending}
+          >
             <Save className="h-4 w-4" />
             {isPending ? "Saving…" : "Save Changes"}
           </Button>

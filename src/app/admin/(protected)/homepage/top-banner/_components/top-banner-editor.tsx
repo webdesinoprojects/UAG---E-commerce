@@ -130,7 +130,7 @@ export function TopBannerEditor({ announcement }: TopBannerEditorProps) {
             )}
             {isEnabled ? "Visible" : "Hidden"}
           </Badge>
-          <Button disabled={pending}>
+          <Button type="submit" disabled={pending}>
             <Save className="h-4 w-4" />
             {pending ? "Publishing..." : "Publish Changes"}
           </Button>

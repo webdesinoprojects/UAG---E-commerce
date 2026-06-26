@@ -5,6 +5,7 @@ import {
   readAdminCatalogCategories,
 } from "@/server/repositories/catalog-repository";
 import ProductEditForm from "./_components/product-edit-form";
+import { ProductMediaManager } from "./_components/product-media-manager";
 
 export const metadata = {
   title: "Edit Product | UAG E-commerce",
@@ -37,6 +38,10 @@ export default async function AdminProductEditPage({
       <ProductEditForm
         product={product}
         categoryOptions={categoryOptions}
+      />
+      <ProductMediaManager
+        productId={product.id}
+        initialMedia={product.mediaItems}
       />
     </div>
   );

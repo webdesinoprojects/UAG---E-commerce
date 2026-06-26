@@ -8,6 +8,7 @@
 # user local guides
 /developer/
 /trash/
+/supabase/.temp/
 
 .yarn/*
 !.yarn/patches

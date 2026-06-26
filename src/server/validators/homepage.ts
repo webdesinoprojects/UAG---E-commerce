@@ -212,6 +212,7 @@ const heroSlideInputSchema = z.object({
   subtitle: z.string().trim().min(1).max(120),
   description: z.string().trim().min(1).max(280),
   image: heroImagePathSchema,
+  imageMediaAssetId: z.string().uuid().nullable().optional(),
   accentColor: hexColorSchema,
   badgeText: z.string().trim().min(1).max(40),
   primaryCtaLabel: z.string().trim().min(1).max(40),
@@ -259,6 +260,7 @@ export function parseHomepageHeroCarouselForm(formData: FormData) {
       subtitle: read("subtitle"),
       description: read("description"),
       image: read("image"),
+      imageMediaAssetId: read("imageMediaAssetId") || null,
       accentColor: read("accentColor"),
       badgeText: read("badgeText"),
       primaryCtaLabel: read("primaryCtaLabel"),
@@ -289,6 +291,8 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       description:
         "Engineered for maximum sound isolation and heavy tactical environments. Complete with integrated case display control.",
       image: "/images/carousel/banner1.png",
+      fallbackImagePath: "/images/carousel/banner1.png",
+      imageMediaAssetId: null,
       accentColor: "#fbbf24",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -309,6 +313,8 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       description:
         "Take the power of studio-grade acoustics anywhere. Rugged waterproof chassis with synchronized LED rings.",
       image: "/images/carousel/banner2.png",
+      fallbackImagePath: "/images/carousel/banner2.png",
+      imageMediaAssetId: null,
       accentColor: "#ef4444",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -329,6 +335,8 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       description:
         "Built to survive extreme conditions. Real-time biometric tracking, built-in GPS, and a robust battery life of 30 days.",
       image: "/images/carousel/banner1.png",
+      fallbackImagePath: "/images/carousel/banner1.png",
+      imageMediaAssetId: null,
       accentColor: "#34d399",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -345,9 +353,11 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
   ],
 };
 
-type HeroCmsSectionItemRow = CmsSectionItemRow & {
+export type HeroCmsSectionItemRow = CmsSectionItemRow & {
   subtitle: string | null;
   body: string | null;
+  media_asset_id: string | null;
+  mediaUrl?: string | null;
 };
 
 const heroSectionSettingsSchema = z.object({
@@ -375,6 +385,7 @@ function parseHeroSlide(item: HeroCmsSectionItemRow): HomepageHeroSlide | null {
     subtitle: item.subtitle ?? "",
     description: item.body ?? "",
     image: safeSettings.image,
+    imageMediaAssetId: item.media_asset_id,
     accentColor: safeSettings.accentColor,
     badgeText: safeSettings.badgeText,
     primaryCtaLabel: safeSettings.primaryCtaLabel,
@@ -390,7 +401,12 @@ function parseHeroSlide(item: HeroCmsSectionItemRow): HomepageHeroSlide | null {
     return null;
   }
 
-  return parsed.data;
+  return {
+    ...parsed.data,
+    image: item.mediaUrl ?? parsed.data.image,
+    fallbackImagePath: parsed.data.image,
+    imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
+  };
 }
 
 export function toHomepageHeroCarousel(

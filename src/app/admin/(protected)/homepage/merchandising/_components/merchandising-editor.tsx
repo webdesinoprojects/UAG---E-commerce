@@ -523,7 +523,7 @@ export default function MerchandisingEditor({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:sticky xl:top-8 xl:self-start">
           <CardHeader>
             <CardTitle className="text-base">Preview</CardTitle>
           </CardHeader>

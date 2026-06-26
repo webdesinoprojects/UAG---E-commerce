@@ -38,6 +38,8 @@ export interface HomepageHeroSlide {
   subtitle: string;
   description: string;
   image: string;
+  fallbackImagePath: string;
+  imageMediaAssetId: string | null;
   accentColor: string;
   badgeText: string;
   primaryCtaLabel: string;

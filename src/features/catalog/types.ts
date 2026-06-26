@@ -36,6 +36,44 @@ export interface AdminProductDetailDto extends AdminProductListItemDto {
   description: string;
   seoTitle: string;
   seoDescription: string;
+  mediaItems: AdminProductMediaItemDto[];
+}
+
+export type CatalogProductMediaPlacement =
+  | "thumbnail"
+  | "gallery"
+  | "hero"
+  | "bento"
+  | "detail";
+
+export const PRODUCT_MEDIA_LIMITS = {
+  total: 12,
+  thumbnail: 1,
+  galleryImages: 5,
+  galleryVideos: 1,
+  galleryTotal: 6,
+  hero: 0,
+  bento: 5,
+  detail: 0,
+} as const;
+
+export interface AdminProductMediaItemDto {
+  id: string;
+  productId: string;
+  mediaAssetId: string;
+  url: string;
+  mimeType: string | null;
+  width: number | null;
+  height: number | null;
+  sizeBytes: number | null;
+  placement: CatalogProductMediaPlacement;
+  altText: string;
+  sortOrder: number;
+  isPrimary: boolean;
+  isEnabled: boolean;
+  settings: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface GetProductsParams {

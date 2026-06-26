@@ -1,7 +1,10 @@
 import "server-only";
 
 import { z } from "zod";
-import type { CatalogCategoryDto } from "@/features/catalog/types";
+import {
+  PRODUCT_MEDIA_LIMITS,
+  type CatalogCategoryDto,
+} from "@/features/catalog/types";
 
 const nullableUuidSchema = z
   .union([z.string().uuid(), z.literal(""), z.null(), z.undefined()])
@@ -202,5 +205,203 @@ export function parseCatalogProductCreateForm(formData: FormData) {
     seoTitle: formData.get("seoTitle") ?? "",
     seoDescription: formData.get("seoDescription") ?? "",
     primaryMediaAssetId: formData.get("primaryMediaAssetId"),
+  });
+}
+
+// Row schema: blank id normalizes to undefined; non-thumbnail isPrimary is forced false.
+const productMediaItemSchema = z
+  .object({
+    id: z
+      .union([z.string().uuid(), z.literal(""), z.null(), z.undefined()])
+      .transform((v): string | undefined =>
+        v && typeof v === "string" && v !== "" ? v : undefined
+      ),
+    mediaAssetId: z.string().uuid("Each row must reference a valid media asset."),
+    placement: z.enum(["thumbnail", "gallery", "hero", "bento", "detail"], {
+      error: "Invalid placement.",
+    }),
+    altText: z.string().max(200).default(""),
+    sortOrder: z.coerce.number().int().min(0).max(10000),
+    isPrimary: z.boolean(),
+    isEnabled: z.boolean(),
+  })
+  .transform((item) => ({
+    ...item,
+    // Non-thumbnail rows must never be submitted as primary.
+    isPrimary: item.placement === "thumbnail" ? item.isPrimary : false,
+  }));
+
+const productMediaItemsPayloadSchema = z.object({
+  mediaCount: z
+    .number()
+    .int()
+    .min(0)
+    .max(
+      PRODUCT_MEDIA_LIMITS.total,
+      `Product media is limited to ${PRODUCT_MEDIA_LIMITS.total} rows.`
+    ),
+  items: z
+    .array(productMediaItemSchema)
+    .max(
+      PRODUCT_MEDIA_LIMITS.total,
+      `Maximum ${PRODUCT_MEDIA_LIMITS.total} media items.`
+    ),
+});
+
+type ProductMediaItemsPayload = z.infer<typeof productMediaItemsPayloadSchema>;
+
+function validateProductMediaItems(
+  data: ProductMediaItemsPayload,
+  ctx: z.RefinementCtx
+) {
+  const { items } = data;
+  if (items.length === 0) return; // zero items = intentional clear
+
+  const enabledItems = items.filter((i) => i.isEnabled);
+  const thumbnailCount = enabledItems.filter((i) => i.placement === "thumbnail").length;
+  const galleryCount = enabledItems.filter((i) => i.placement === "gallery").length;
+  const heroCount = enabledItems.filter((i) => i.placement === "hero").length;
+  const bentoCount = enabledItems.filter((i) => i.placement === "bento").length;
+  const detailCount = enabledItems.filter((i) => i.placement === "detail").length;
+
+  if (thumbnailCount > PRODUCT_MEDIA_LIMITS.thumbnail) {
+    ctx.addIssue({
+      code: "custom",
+      message: `Only ${PRODUCT_MEDIA_LIMITS.thumbnail} enabled thumbnail is allowed.`,
+      path: ["items"],
+    });
+  }
+
+  if (galleryCount > PRODUCT_MEDIA_LIMITS.galleryTotal) {
+    ctx.addIssue({
+      code: "custom",
+      message: `Gallery allows ${PRODUCT_MEDIA_LIMITS.galleryImages} enabled images and ${PRODUCT_MEDIA_LIMITS.galleryVideos} enabled video.`,
+      path: ["items"],
+    });
+  }
+
+  if (heroCount > PRODUCT_MEDIA_LIMITS.hero) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Hero media is not rendered by the current storefront yet.",
+      path: ["items"],
+    });
+  }
+
+  if (bentoCount > PRODUCT_MEDIA_LIMITS.bento) {
+    ctx.addIssue({
+      code: "custom",
+      message: `Bento allows up to ${PRODUCT_MEDIA_LIMITS.bento} enabled images.`,
+      path: ["items"],
+    });
+  }
+
+  if (detailCount > PRODUCT_MEDIA_LIMITS.detail) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Detail media is not rendered by the current storefront yet.",
+      path: ["items"],
+    });
+  }
+
+  // Reject duplicate row ids
+  const rowIds = items.map((i) => i.id).filter((v): v is string => v !== undefined);
+  if (new Set(rowIds).size !== rowIds.length) {
+    ctx.addIssue({ code: "custom", message: "Duplicate row IDs in submission.", path: ["items"] });
+  }
+
+  // If any enabled items exist, require exactly one enabled primary thumbnail.
+  const hasEnabled = items.some((i) => i.isEnabled);
+  if (hasEnabled) {
+    const enabledPrimaries = items.filter(
+      (i) => i.placement === "thumbnail" && i.isPrimary && i.isEnabled
+    );
+    if (enabledPrimaries.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Exactly one enabled primary thumbnail is required.",
+        path: ["items"],
+      });
+    } else if (enabledPrimaries.length > 1) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Only one thumbnail may be marked as primary.",
+        path: ["items"],
+      });
+    }
+  }
+
+  // Reject duplicate mediaAssetId + placement + sortOrder combinations.
+  const comboKeys = new Set<string>();
+  for (const item of items) {
+    const key = `${item.mediaAssetId}:${item.placement}:${item.sortOrder}`;
+    if (comboKeys.has(key)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Duplicate media asset with the same placement and sort order.",
+        path: ["items"],
+      });
+      break;
+    }
+    comboKeys.add(key);
+  }
+}
+
+const catalogProductDraftMediaFormSchema = productMediaItemsPayloadSchema
+  .superRefine(validateProductMediaItems)
+  .transform(({ items }) => ({ items }));
+
+const catalogProductMediaFormSchema = productMediaItemsPayloadSchema
+  .extend({
+    productId: z.string().uuid("Invalid product ID."),
+  })
+  .superRefine(validateProductMediaItems)
+  .transform(({ productId, items }) => ({ productId, items }));
+
+export type CatalogProductMediaFormInput = z.infer<typeof catalogProductMediaFormSchema>;
+export type CatalogProductDraftMediaFormInput = z.infer<
+  typeof catalogProductDraftMediaFormSchema
+>;
+
+function readProductMediaFormPayload(formData: FormData) {
+  const rawCount = formData.get("mediaCount");
+  const count = rawCount ? parseInt(String(rawCount), 10) : 0;
+  const countClamped = Math.max(
+    0,
+    Math.min(PRODUCT_MEDIA_LIMITS.total, isNaN(count) ? 0 : count)
+  );
+
+  const rawItems = [];
+  for (let i = 0; i < countClamped; i++) {
+    rawItems.push({
+      id: formData.get(`media.${i}.id`)?.toString() ?? "",
+      mediaAssetId: formData.get(`media.${i}.mediaAssetId`)?.toString() ?? "",
+      placement: formData.get(`media.${i}.placement`)?.toString() ?? "",
+      altText: formData.get(`media.${i}.altText`)?.toString() ?? "",
+      sortOrder: formData.get(`media.${i}.sortOrder`)?.toString() ?? "0",
+      isPrimary: formData.get(`media.${i}.isPrimary`) === "true",
+      isEnabled: formData.get(`media.${i}.isEnabled`) === "true",
+    });
+  }
+
+  return {
+    mediaCount: isNaN(count) ? 0 : count,
+    items: rawItems,
+  };
+}
+
+export function parseCatalogProductDraftMediaForm(formData: FormData) {
+  return catalogProductDraftMediaFormSchema.safeParse(
+    readProductMediaFormPayload(formData)
+  );
+}
+
+export function parseCatalogProductMediaForm(formData: FormData) {
+  const payload = readProductMediaFormPayload(formData);
+
+  return catalogProductMediaFormSchema.safeParse({
+    productId: formData.get("productId"),
+    mediaCount: payload.mediaCount,
+    items: payload.items,
   });
 }

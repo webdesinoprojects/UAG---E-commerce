@@ -33,7 +33,7 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
-  const ITEMS_PER_PAGE = 9;
+  const ITEMS_PER_PAGE = 12;
   const startItem = totalProducts === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
   const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalProducts);
   const showingText = totalProducts === 0 

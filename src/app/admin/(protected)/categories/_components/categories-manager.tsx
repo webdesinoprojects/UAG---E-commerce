@@ -280,8 +280,8 @@ export default function CategoriesManager({
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-1.5">
+                <div className="grid gap-4">
+                  <div className="max-w-40 space-y-1.5">
                     <Label>Sort Order</Label>
                     <Input
                       name="sortOrder"
@@ -294,31 +294,37 @@ export default function CategoriesManager({
                       }
                     />
                   </div>
-                  <div className="flex items-center gap-2 rounded-lg border p-3">
-                    <Switch
-                      checked={selectedCategory.isActive}
-                      onCheckedChange={(checked) =>
-                        updateSelected({ isActive: checked })
-                      }
-                    />
-                    <div>
-                      <Label>Category active</Label>
-                      <p className="text-xs text-muted-foreground">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                    <div className="min-w-0 rounded-lg border p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <Label htmlFor="category-active">Category active</Label>
+                        <Switch
+                          id="category-active"
+                          className="shrink-0"
+                          checked={selectedCategory.isActive}
+                          onCheckedChange={(checked) =>
+                            updateSelected({ isActive: checked })
+                          }
+                        />
+                      </div>
+                      <p className="mt-2 text-[11px] leading-4 text-muted-foreground/75">
                         Hidden categories will not show publicly.
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-lg border p-3">
-                    <Switch
-                      checked={selectedCategory.isFeatured}
-                      onCheckedChange={(checked) =>
-                        updateSelected({ isFeatured: checked })
-                      }
-                    />
-                    <div>
-                      <Label>Featured</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Used later for homepage/category highlights.
+                    <div className="min-w-0 rounded-lg border p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <Label htmlFor="category-featured">Featured</Label>
+                        <Switch
+                          id="category-featured"
+                          className="shrink-0"
+                          checked={selectedCategory.isFeatured}
+                          onCheckedChange={(checked) =>
+                            updateSelected({ isFeatured: checked })
+                          }
+                        />
+                      </div>
+                      <p className="mt-2 text-[11px] leading-4 text-muted-foreground/75">
+                        Show in the homepage Shop by Tech Category section.
                       </p>
                     </div>
                   </div>
@@ -386,7 +392,7 @@ export default function CategoriesManager({
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="xl:sticky xl:top-8 xl:self-start">
           <CardHeader>
             <CardTitle>Preview</CardTitle>
             <CardDescription>

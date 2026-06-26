@@ -9,6 +9,7 @@ import NewArrivals from "@/features/homepage/components/new-arrivals";
 import MostPopular from "@/features/homepage/components/most-popular";
 import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
+import { getFeaturedCatalogCategories } from "@/features/catalog/queries";
 import {
   getHomepageAnnouncement,
   getHomepageBentoGallery,
@@ -24,12 +25,14 @@ export default async function StoreHomePage() {
     categoryCircles,
     merchandisingBanners,
     bentoGallery,
+    featuredCategories,
   ] = await Promise.all([
     getHomepageAnnouncement(),
     getHomepageHeroCarousel(),
     getHomepageCategoryCircles(),
     getHomepageMerchandisingBanners(),
     getHomepageBentoGallery(),
+    getFeaturedCatalogCategories(),
   ]);
 
   return (
@@ -44,7 +47,7 @@ export default async function StoreHomePage() {
       <HeroCarousel heroCarousel={heroCarousel} />
 
       {/* 4. Secondary Detailed Product Category Grid */}
-      <ProductCategoryGrid />
+      <ProductCategoryGrid categories={featuredCategories} />
 
       {/* 5. Milestones & Statistics Banner */}
       <Milestones />

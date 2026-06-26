@@ -127,7 +127,7 @@ function AdminSidebarContent() {
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-zinc-900 dark:bg-white text-white dark:text-zinc-900">
             <LayoutDashboard className="h-4 w-4" />
           </div>
-          Shadcn UI Kit
+          Ecommerce Admin
         </Link>
       </SidebarHeader>
 

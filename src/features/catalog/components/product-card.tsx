@@ -23,6 +23,9 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, variant = "default" }: ProductCardProps) {
+  const hasDiscount =
+    product.discount > 0 && product.originalPrice > product.price;
+
   // Format prices to INR format
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -41,9 +44,11 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
     )}>
       
       {/* 1. Discount Percentage Badge (Top-Left) */}
-      <div className="absolute top-2.5 left-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 font-sans text-[9px] font-black text-white shadow-md shadow-orange-600/10">
-        -{product.discount}%
-      </div>
+      {hasDiscount && (
+        <div className="absolute top-2.5 left-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 font-sans text-[9px] font-black text-white shadow-md shadow-orange-600/10">
+          -{product.discount}%
+        </div>
+      )}
 
       {/* 2. Product Image Container (Slightly wider, full bleed for transparent) */}
       <Link href={`/products/${product.slug}`} className={cn(
@@ -85,9 +90,11 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
 
         {/* Pricing Block */}
         <div className="mt-1.5 flex items-center justify-center gap-1.5">
-          <span className="text-[9px] sm:text-[11px] font-medium text-zinc-400 line-through dark:text-zinc-500">
-            {formatPrice(product.originalPrice)}
-          </span>
+          {hasDiscount && (
+            <span className="text-[9px] sm:text-[11px] font-medium text-zinc-400 line-through dark:text-zinc-500">
+              {formatPrice(product.originalPrice)}
+            </span>
+          )}
           <span className="text-[11px] sm:text-xs font-black text-blue-600 dark:text-blue-400">
             {formatPrice(product.price)}
           </span>

@@ -7,6 +7,7 @@ import {
   fallbackHomepageHeroCarousel,
   type HomepageAnnouncementInput,
   type HomepageHeroCarouselInput,
+  type HeroCmsSectionItemRow,
   toHomepageAnnouncement,
   toHomepageHeroCarousel,
   fallbackHomepageCategoryCircles,
@@ -74,7 +75,7 @@ async function fetchMediaMap(
 const TOP_MARQUEE_SECTION_KEY = "homepage.top_marquee";
 const HERO_CAROUSEL_SECTION_KEY = "homepage.hero_carousel";
 const HERO_ITEM_COLUMNS =
-  "id,item_key,title,subtitle,body,href,settings,sort_order,is_enabled";
+  "id,item_key,title,subtitle,body,href,settings,sort_order,is_enabled,media_asset_id";
 
 export async function readHomepageAnnouncement(): Promise<HomepageAnnouncement> {
   const supabase = createSupabaseAnonServerClient();
@@ -260,7 +261,19 @@ export async function readHomepageHeroCarousel(): Promise<HomepageHeroCarousel> 
       return fallbackHomepageHeroCarousel;
     }
 
-    return toHomepageHeroCarousel(section, items ?? []);
+    const heroItems = (items ?? []) as HeroCmsSectionItemRow[];
+    const mediaIds = heroItems
+      .map((item) => item.media_asset_id)
+      .filter((id): id is string => Boolean(id));
+    const mediaMap = await fetchMediaMap(supabase, mediaIds, true);
+    const enrichedItems = heroItems.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageHeroCarousel(section, enrichedItems);
   } catch {
     return fallbackHomepageHeroCarousel;
   }
@@ -296,7 +309,19 @@ export async function readAdminHomepageHeroCarousel(): Promise<HomepageHeroCarou
       return fallbackHomepageHeroCarousel;
     }
 
-    return toHomepageHeroCarousel(section, items ?? []);
+    const heroItems = (items ?? []) as HeroCmsSectionItemRow[];
+    const mediaIds = heroItems
+      .map((item) => item.media_asset_id)
+      .filter((id): id is string => Boolean(id));
+    const mediaMap = await fetchMediaMap(supabase, mediaIds, false);
+    const enrichedItems = heroItems.map((item) => ({
+      ...item,
+      mediaUrl: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.url ?? null
+        : null,
+    }));
+
+    return toHomepageHeroCarousel(section, enrichedItems);
   } catch {
     return fallbackHomepageHeroCarousel;
   }
@@ -313,6 +338,15 @@ export async function writeHomepageHeroCarousel(
   if (!supabase) {
     throw new Error("Supabase service client is not configured.");
   }
+
+  const mediaIds = Array.from(
+    new Set(
+      input.slides
+        .map((slide) => slide.imageMediaAssetId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  await assertMediaAssetsAreImages(supabase, mediaIds);
 
   const { data: section, error: sectionError } = await supabase
     .from("cms_sections")
@@ -352,6 +386,7 @@ export async function writeHomepageHeroCarousel(
     subtitle: slide.subtitle,
     body: slide.description,
     href: slide.primaryCtaHref,
+    media_asset_id: slide.imageMediaAssetId ?? null,
     settings: {
       image: slide.image,
       accentColor: slide.accentColor,

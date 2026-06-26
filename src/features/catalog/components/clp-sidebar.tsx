@@ -183,7 +183,11 @@ export function ClpSidebar({ filterOptions, topRatedProducts, mode = "desktop" }
                   {product.name}
                 </Link>
                 <div className="flex gap-1.5 items-center mt-1">
-                  <span className="text-[9px] text-zinc-400 line-through">₹{product.originalPrice}</span>
+                  {product.originalPrice > product.price && (
+                    <span className="text-[9px] text-zinc-400 line-through">
+                      ₹{product.originalPrice}
+                    </span>
+                  )}
                   <span className="text-[11px] font-black text-blue-600">₹{product.price}</span>
                 </div>
               </div>

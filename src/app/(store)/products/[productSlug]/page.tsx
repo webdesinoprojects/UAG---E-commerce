@@ -41,11 +41,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <ChevronRight className="w-3 h-3 shrink-0" />
           
           <div className="hidden md:flex items-center gap-1.5 shrink-0">
-            <Link href="/catalog" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Categories</Link>
+            <Link href="/categories" className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">Categories</Link>
             <ChevronRight className="w-3 h-3" />
-            <Link href={`/catalog?category=${product.category.toLowerCase().replace(/ /g, '-')}`} className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors">
-              {product.category}
-            </Link>
+            <span className="truncate max-w-[120px]">{product.category}</span>
             <ChevronRight className="w-3 h-3" />
           </div>
 

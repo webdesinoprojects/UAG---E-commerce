@@ -27,6 +27,7 @@ import type {
   HeroFeatureIcon,
   HomepageHeroCarousel,
 } from "@/features/homepage/types";
+import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,8 @@ interface SlideForm {
   subtitle: string;
   description: string;
   image: string;
+  imageUrl: string;
+  imageMediaAssetId: string | null;
   accentColor: string;
   badgeText: string;
   primaryCtaLabel: string;
@@ -132,7 +135,9 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
       title: slide.title,
       subtitle: slide.subtitle,
       description: slide.description,
-      image: slide.image,
+      image: slide.fallbackImagePath,
+      imageUrl: slide.image,
+      imageMediaAssetId: slide.imageMediaAssetId,
       accentColor: slide.accentColor,
       badgeText: slide.badgeText,
       primaryCtaLabel: slide.primaryCtaLabel,
@@ -200,7 +205,7 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
             )}
             {isEnabled ? "Visible" : "Hidden"}
           </Badge>
-          <Button disabled={pending}>
+          <Button type="submit" disabled={pending}>
             <Save className="h-4 w-4" />
             {pending ? "Publishing..." : "Publish Changes"}
           </Button>
@@ -288,7 +293,9 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
                       {slide.title || "Untitled slide"}
                     </span>
                     <span className="block truncate font-mono text-[11px] text-zinc-400">
-                      {slide.image || "no image"}
+                      {slide.imageMediaAssetId
+                        ? "Media Library asset"
+                        : slide.image || "no image"}
                     </span>
                   </span>
                   {slide.enabled ? (
@@ -432,17 +439,66 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
             {/* Media + Design */}
             <div className="space-y-3">
               <GroupLabel>Media &amp; Design</GroupLabel>
+              <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
+                <div className="relative aspect-video overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
+                  {current.imageUrl ? (
+                    // Admin-only preview; the selected ImageKit URL is already
+                    // validated when the media asset is persisted.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={current.imageUrl}
+                      alt=""
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-zinc-400">
+                      <ImageIcon className="h-5 w-5" />
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label>Hero image</Label>
+                  <MediaPickerModal
+                    allowedTypes="image"
+                    selectedAssetId={current.imageMediaAssetId}
+                    onSelect={(asset) =>
+                      updateSlide(selectedIndex, {
+                        imageMediaAssetId: asset?.id ?? null,
+                        imageUrl: asset?.url ?? current.image,
+                      })
+                    }
+                    trigger={
+                      <Button type="button" variant="outline">
+                        <ImageIcon className="h-4 w-4" />
+                        {current.imageMediaAssetId
+                          ? "Change media"
+                          : "Select from Media Library"}
+                      </Button>
+                    }
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Select an existing image or use the upload shortcut inside
+                    the Media Library drawer.
+                  </p>
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label>Image path</Label>
+                <Label>Local fallback path</Label>
                 <div className="flex gap-2">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-zinc-200 text-zinc-400 dark:border-zinc-800">
                     <ImageIcon className="h-4 w-4" />
                   </span>
                   <Input
                     value={current.image}
-                    onChange={(event) =>
-                      updateSlide(selectedIndex, { image: event.target.value })
-                    }
+                    onChange={(event) => {
+                      const image = event.target.value;
+                      updateSlide(selectedIndex, {
+                        image,
+                        imageUrl: current.imageMediaAssetId
+                          ? current.imageUrl
+                          : image,
+                      });
+                    }}
                     maxLength={300}
                     placeholder="/images/carousel/banner1.png"
                     className="flex-1 font-mono text-xs"
@@ -450,9 +506,8 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
                   />
                 </div>
                 <p className="text-xs text-zinc-500">
-                  Local path under{" "}
-                  <span className="font-mono">/images/</span>. A media library
-                  picker will replace this once uploads are wired.
+                  Used when no managed media is selected or the selected asset
+                  is unavailable publicly.
                 </p>
               </div>
               <div className="space-y-2">
@@ -557,7 +612,7 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
         </Card>
 
         {/* Live preview */}
-        <Card className="border-zinc-200 shadow-sm lg:col-span-4 dark:border-zinc-800">
+        <Card className="border-zinc-200 shadow-sm lg:sticky lg:top-8 lg:col-span-4 lg:self-start dark:border-zinc-800">
           <CardHeader>
             <div className="flex items-center justify-between gap-4">
               <div>
@@ -635,6 +690,11 @@ function HiddenSlideFields({
       <input type="hidden" name={`${prefix}subtitle`} value={slide.subtitle} />
       <input type="hidden" name={`${prefix}description`} value={slide.description} />
       <input type="hidden" name={`${prefix}image`} value={slide.image} />
+      <input
+        type="hidden"
+        name={`${prefix}imageMediaAssetId`}
+        value={slide.imageMediaAssetId ?? ""}
+      />
       <input type="hidden" name={`${prefix}accentColor`} value={slide.accentColor} />
       <input type="hidden" name={`${prefix}badgeText`} value={slide.badgeText} />
       <input type="hidden" name={`${prefix}primaryCtaLabel`} value={slide.primaryCtaLabel} />
@@ -664,12 +724,12 @@ function SlidePreview({ slide, dimmed }: { slide: SlideForm; dimmed: boolean }) 
         (dimmed ? " opacity-50" : "")
       }
     >
-      {slide.image ? (
-        // Admin-only preview of an arbitrary local path; next/image optimization
-        // adds no value here and would re-fetch on every keystroke.
+      {slide.imageUrl ? (
+        // Admin-only preview of a validated managed URL or local fallback;
+        // next/image optimization adds no value for this live form preview.
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={slide.image}
+          src={slide.imageUrl}
           alt=""
           className="absolute inset-0 h-full w-full object-cover"
         />
