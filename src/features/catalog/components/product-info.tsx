@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { ProductDetail } from "../types";
-import { ChevronLeft, ChevronRight, LayoutGrid, Repeat, Share2 } from "lucide-react";
+import { Repeat } from "lucide-react";
+import { addToCartAction } from "@/features/cart/actions";
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -38,11 +39,15 @@ export function ProductInfo({ product }: ProductInfoProps) {
         </span>
       </div>
 
-      {/* Quantity & Buy Now Actions */}
-      <div className="flex gap-4 mb-8">
+      {/* Quantity & Cart Actions */}
+      <form action={addToCartAction} className="flex gap-4 mb-8">
+        <input type="hidden" name="productId" value={product.id} />
+        <input type="hidden" name="quantity" value={quantity} />
+        <input type="hidden" name="redirectTo" value="/cart" />
         {/* Quantity Selector */}
         <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded h-11">
           <button 
+            type="button"
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
             className="w-10 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
           >
@@ -52,6 +57,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
             {quantity}
           </div>
           <button 
+            type="button"
             onClick={() => setQuantity(quantity + 1)}
             className="w-10 h-full flex items-center justify-center text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
           >
@@ -59,11 +65,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
           </button>
         </div>
         
-        {/* Buy Now */}
-        <button className="flex-1 bg-[#222222] text-white font-bold text-[11px] tracking-[0.1em] uppercase rounded h-11 hover:bg-black transition-colors">
-          BUY NOW
+        <button
+          type="submit"
+          className="flex-1 bg-[#222222] text-white font-bold text-[11px] tracking-[0.1em] uppercase rounded h-11 hover:bg-black transition-colors"
+        >
+          ADD TO CART
         </button>
-      </div>
+      </form>
 
       {/* Pincode Checker */}
       <div className="flex flex-col mb-8">

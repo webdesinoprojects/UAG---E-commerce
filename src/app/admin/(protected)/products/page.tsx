@@ -25,9 +25,11 @@ export default async function AdminProductsPage({
       ? "Product updated."
       : null;
 
+  const initialSearch = typeof params.q === "string" ? params.q : "";
+
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
-      <ProductsListClient products={products} toastMessage={toastMessage} />
+      <ProductsListClient products={products} toastMessage={toastMessage} initialSearch={initialSearch} />
     </div>
   );
 }

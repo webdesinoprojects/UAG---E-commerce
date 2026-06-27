@@ -68,6 +68,21 @@ const navigationData = {
             { title: "Footer Settings", url: "/admin/homepage/footer" },
           ]
         },
+{
+           title: "More Pages",
+           url: "/admin/pages",
+           icon: FileText,
+           defaultExpanded: false,
+           subItems: [
+             { title: "Blog", url: "/admin/pages/blog" },
+             { title: "About Us", url: "/admin/pages/about-us" },
+             { title: "Contact Us", url: "/admin/pages/contact-us" },
+             { title: "Privacy Policy", url: "/admin/pages/privacy-policy" },
+             { title: "FAQs", url: "/admin/pages/faqs" },
+             { title: "Homepage Info", url: "/admin/pages/home-info" },
+             { title: "New Launches", url: "/admin/pages/new-launches" },
+           ]
+         },
         { 
           title: "Catalog", 
           url: "/admin/products", 
@@ -76,6 +91,7 @@ const navigationData = {
           subItems: [
             { title: "Products", url: "/admin/products" },
             { title: "Categories", url: "/admin/categories" },
+            { title: "Inventory", url: "/admin/inventory" },
           ]
         },
         { 
@@ -85,8 +101,6 @@ const navigationData = {
           defaultExpanded: false,
           subItems: [
             { title: "All Orders", url: "/admin/orders" },
-            { title: "Abandoned Checkouts", url: "/admin/orders/abandoned" },
-            { title: "Fulfillment", url: "/admin/orders/fulfillment" },
             { title: "Returns & Refunds", url: "/admin/orders/returns" },
           ]
         },
@@ -97,7 +111,6 @@ const navigationData = {
           defaultExpanded: false,
           subItems: [
             { title: "All Customers", url: "/admin/customers" },
-            { title: "Customer Segments", url: "/admin/customers/segments" },
             { title: "Reviews & Ratings", url: "/admin/customers/reviews" },
             { title: "Support Tickets", url: "/admin/customers/support" },
           ]

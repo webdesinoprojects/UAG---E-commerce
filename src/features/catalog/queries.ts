@@ -9,6 +9,7 @@ import {
   readPublicTopRatedProducts,
   readPublicProductBySlug,
   readPublicAllProducts,
+  searchPublicProducts,
 } from "@/server/repositories/catalog-repository";
 import type {
   Category,
@@ -90,4 +91,12 @@ export async function getAllProducts(): Promise<Product[]> {
   cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "all");
 
   return readPublicAllProducts();
+}
+
+export async function searchProducts(query: string): Promise<Product[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, `search-${query.trim().toLowerCase()}`);
+
+  return searchPublicProducts(query);
 }

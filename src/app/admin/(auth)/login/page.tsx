@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import { getSafeAdminRedirect } from "@/server/validators/auth";
+import { getCurrentAdmin } from "@/server/auth/admin";
+import { redirect } from "next/navigation";
 import { AdminLoginForm } from "./_components/login-form";
 
 interface AdminLoginPageProps {
@@ -23,6 +25,11 @@ async function AdminLoginContent({
   const next = getSafeAdminRedirect(
     typeof search.next === "string" ? search.next : undefined
   );
+  const admin = await getCurrentAdmin();
+
+  if (admin) {
+    redirect(next);
+  }
 
   return <AdminLoginForm initialState={{ next, message: null }} />;
 }

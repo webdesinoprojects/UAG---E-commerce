@@ -52,6 +52,7 @@ import {
 interface ProductsListClientProps {
   products: AdminProductListItemDto[];
   toastMessage: string | null;
+  initialSearch?: string;
 }
 
 function formatPrice(priceCents: number, currency: string) {
@@ -80,10 +81,11 @@ const STATUS_LABELS: Record<ProductStatus, string> = {
 export default function ProductsListClient({
   products,
   toastMessage,
+  initialSearch,
 }: ProductsListClientProps) {
   const router = useRouter();
   const consumedToastRef = useRef<string | null>(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialSearch ?? "");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 

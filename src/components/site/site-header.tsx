@@ -8,22 +8,9 @@ import {
   Search,
   ShoppingCart,
   ChevronDown,
-  Sparkles,
-  Truck,
-  HelpCircle,
-  BookOpen,
-  Info,
-  Mail,
-  ShieldAlert,
-  ClipboardList,
+  UserRound,
+  X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -126,25 +113,46 @@ const categoryItems = [
   },
 ];
 
-const storeItems = [
-  { label: "Blog", href: "/blog", hasUserIcon: false },
-  { label: "Contact Us", href: "/contact-us", hasUserIcon: false },
-  { label: "Login / Register", href: "/admin/login", hasUserIcon: true },
-];
-
 const dropdownLinks = [
-  { href: "/blog", label: "Blog", icon: BookOpen },
-  { href: "/about-us", label: "About Us", icon: Info },
-  { href: "/contact-us", label: "Contact Us", icon: Mail },
-  { href: "/privacy-policy", label: "Privacy Policy", icon: ShieldAlert },
-  { href: "/shipping", label: "Shipping", icon: Truck },
-  { href: "/track-order", label: "Track Order", icon: ClipboardList },
+  { href: "/blog", label: "Blog" },
+  { href: "/about-us", label: "About Us" },
+  { href: "/contact-us", label: "Contact Us" },
+  { href: "/privacy-policy", label: "Privacy Policy" },
+  { href: "/shipping", label: "Shipping" },
+  { href: "/track-order", label: "Track Order" },
+  { href: "/faqs", label: "FAQs" },
 ];
 
-export default function SiteHeader() {
+interface SiteHeaderProps {
+  isCustomerSignedIn?: boolean;
+  cartItemCount?: number;
+  cartSubtotalCents?: number;
+}
+
+export default function SiteHeader({
+  isCustomerSignedIn = false,
+  cartItemCount = 0,
+  cartSubtotalCents = 0,
+}: SiteHeaderProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
+  const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"categories" | "store">("categories");
+  const accountHref = isCustomerSignedIn ? "/account" : "/auth/login";
+  const accountLabel = isCustomerSignedIn ? "My Account" : "Login / Register";
+  const isSearchPage = pathname.startsWith("/search");
+  const cartTotal = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(cartSubtotalCents / 100);
+  const storeItems = [
+    { label: "Blog", href: "/blog", hasUserIcon: false },
+    { label: "About Us", href: "/about-us", hasUserIcon: false },
+    { label: "Contact Us", href: "/contact-us", hasUserIcon: false },
+    { label: "Privacy Policy", href: "/privacy-policy", hasUserIcon: false },
+    { label: accountLabel, href: accountHref, hasUserIcon: true },
+  ];
 
   return (
     <>
@@ -198,46 +206,83 @@ export default function SiteHeader() {
                 New Launches
               </Link>
 
-              {/* More Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-accent/40 rounded-md transition-colors outline-hidden">
-                    More
-                    <ChevronDown className="h-3 w-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-56 mt-1 p-2 bg-popover border border-border rounded-xl shadow-lg">
-                  {dropdownLinks.map((link) => {
-                    const Icon = link.icon;
-                    return (
-                      <DropdownMenuItem key={link.href} asChild>
+              {/* More hover drawer */}
+              <div
+                className="relative"
+                onMouseEnter={() => setIsMoreOpen(true)}
+                onMouseLeave={() => setIsMoreOpen(false)}
+              >
+                <button
+                  className={cn(
+                    "flex items-center gap-1 px-3 py-2 text-muted-foreground hover:text-blue-800 hover:bg-zinc-100 rounded-md transition-colors outline-hidden",
+                    isMoreOpen ? "bg-zinc-100 text-blue-800" : ""
+                  )}
+                  aria-expanded={isMoreOpen}
+                  aria-haspopup="true"
+                >
+                  More
+                  <ChevronDown
+                    className={cn(
+                      "h-3 w-3 transition-transform duration-200",
+                      isMoreOpen ? "rotate-180" : ""
+                    )}
+                  />
+                </button>
+
+                {isMoreOpen ? (
+                  <div className="absolute left-0 top-full z-50 w-80 pt-9">
+                    <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white py-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+                      {dropdownLinks.map((link) => (
                         <Link
+                          key={link.href}
                           href={link.href}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground focus:bg-accent/60 transition-colors"
+                          onClick={() => setIsMoreOpen(false)}
+                          className="block px-8 py-2.5 text-lg font-medium text-zinc-400 transition-colors hover:bg-zinc-950 hover:text-white dark:text-zinc-500 dark:hover:bg-white dark:hover:text-zinc-950"
                         >
-                          <Icon className="h-4 w-4 text-muted-foreground" />
                           {link.label}
                         </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </nav>
           </div>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/admin/login"
-              className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Login / Register
-            </Link>
+            {isCustomerSignedIn ? (
+              <Link
+                href="/account"
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-background text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground",
+                  pathname === "/account" ? "text-foreground" : ""
+                )}
+                aria-label="My account"
+                title="My account"
+              >
+                <UserRound className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Login / Register
+              </Link>
+            )}
 
-            <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground" aria-label="Search">
-              <Search className="h-4 w-4" />
-            </Button>
+            <Link
+              href={isSearchPage ? "/" : "/search"}
+              className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground"
+              aria-label={isSearchPage ? "Close search" : "Search"}
+            >
+              {isSearchPage ? (
+                <X className="h-4 w-4" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Link>
 
             {/* Cart Icon indicator */}
             <Link
@@ -247,11 +292,11 @@ export default function SiteHeader() {
               <div className="relative">
                 <ShoppingCart className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                 <span className="absolute -top-2.5 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-                  0
+                  {cartItemCount}
                 </span>
               </div>
               <span className="text-xs font-bold text-foreground">
-                ₹0.00
+                {cartTotal}
               </span>
             </Link>
           </div>
@@ -473,7 +518,7 @@ export default function SiteHeader() {
               <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
             </svg>
             <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-black text-white">
-              0
+              {cartItemCount}
             </span>
           </div>
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Cart</span>
@@ -499,17 +544,21 @@ export default function SiteHeader() {
 
         {/* My Account Tab */}
         <Link 
-          href="/admin/login" 
+          href={accountHref} 
           className={cn(
             "flex flex-col items-center justify-center transition-colors py-1 flex-1 min-w-0",
-            pathname === "/admin/login" ? "text-primary" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+            pathname === "/account" || pathname.startsWith("/auth")
+              ? "text-primary"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           )}
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">My account</span>
+          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">
+            {isCustomerSignedIn ? "Account" : "Login"}
+          </span>
         </Link>
 
         {/* Menu Tab (Triggers Tech-Gear Store Sidebar Menu) */}

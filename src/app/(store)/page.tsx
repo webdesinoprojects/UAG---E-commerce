@@ -9,6 +9,7 @@ import NewArrivals from "@/features/homepage/components/new-arrivals";
 import MostPopular from "@/features/homepage/components/most-popular";
 import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
+import HomeInfoSection from "@/features/content-pages/components/home-info-section";
 import { getFeaturedCatalogCategories } from "@/features/catalog/queries";
 import {
   getHomepageAnnouncement,
@@ -51,6 +52,8 @@ export default async function StoreHomePage() {
 
       {/* 5. Milestones & Statistics Banner */}
       <Milestones />
+
+      <HomeInfoSection />
 
       {/* 6. Premium Fullscreen Banner Carousel */}
       <FullscreenBanner merchandisingBanners={merchandisingBanners} />

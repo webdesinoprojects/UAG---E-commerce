@@ -24,6 +24,7 @@ import type {
   PaginatedProducts,
   ProductDetail,
 } from "@/features/catalog/types";
+import type { CartCookieItem, CartLineItem } from "@/features/cart/types";
 import { PRODUCT_MEDIA_LIMITS } from "@/features/catalog/types";
 import type { Product } from "@/features/catalog/components/product-card";
 
@@ -847,6 +848,37 @@ export async function updateCatalogProductStatus(
   if (!updated) throw new Error("Product not found.");
 }
 
+export async function adjustProductStock(
+  productId: string,
+  quantityDelta: number
+): Promise<void> {
+  const client = createSupabaseServiceRoleClient();
+  if (!client) throw new Error("Database not available.");
+
+  const { data: current, error: fetchError } = await client
+    .from("catalog_products")
+    .select("stock_quantity")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (fetchError || !current) throw new Error("Product not found.");
+  if (current.stock_quantity + quantityDelta < 0) {
+    throw new Error("Insufficient stock.");
+  }
+
+  const { data: updated, error: updateError } = await client
+    .from("catalog_products")
+    .update({
+      stock_quantity: current.stock_quantity + quantityDelta,
+    })
+    .eq("id", productId)
+    .select("id")
+    .maybeSingle();
+
+  if (updateError) throw new Error("Failed to update stock.");
+  if (!updated) throw new Error("Product not found.");
+}
+
 export async function deleteDraftCatalogProduct(productId: string): Promise<void> {
   const client = createSupabaseServiceRoleClient();
   if (!client) throw new Error("Database not available.");
@@ -875,7 +907,7 @@ export async function deleteDraftCatalogProduct(productId: string): Promise<void
 const FALLBACK_PRODUCT_IMAGE = "/images/products/drone.png";
 
 const PUBLIC_PRODUCT_LIST_COLUMNS =
-  "id,name,slug,brand,price_cents,compare_at_price_cents,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at";
+  "id,name,slug,brand,price_cents,compare_at_price_cents,currency,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at";
 
 const PUBLIC_PRODUCT_DETAIL_COLUMNS =
   "id,name,slug,brand,price_cents,compare_at_price_cents,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at,description,short_description,feature_bullets,shipping_policy";
@@ -887,6 +919,7 @@ type PublicProductListRow = {
   brand: string;
   price_cents: number;
   compare_at_price_cents: number | null;
+  currency: string;
   stock_quantity: number;
   category_id: string | null;
   is_featured: boolean;
@@ -1353,6 +1386,118 @@ export async function readPublicAllProducts(): Promise<Product[]> {
       const catName = row.category_id ? (catNameMap.get(row.category_id) ?? "Uncategorized") : "Uncategorized";
       return mapPublicRowToProduct(row, catName, thumbnailMap.get(row.id) ?? FALLBACK_PRODUCT_IMAGE);
     });
+  } catch {
+    return [];
+  }
+}
+
+export async function searchPublicProducts(query: string): Promise<Product[]> {
+  const client = createSupabaseAnonServerClient();
+  const term = query.trim();
+
+  if (!client || term.length < 2) return [];
+
+  try {
+    const { data, error } = await client
+      .from("catalog_products")
+      .select(PUBLIC_PRODUCT_LIST_COLUMNS)
+      .eq("status", "active")
+      .or(`name.ilike.%${term}%,brand.ilike.%${term}%,sku.ilike.%${term}%`)
+      .order("is_featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(24);
+
+    if (error || !data || data.length === 0) return [];
+
+    const rows = data as PublicProductListRow[];
+    const [thumbnailMap, catNameMap] = await Promise.all([
+      batchFetchPublicThumbnails(client, rows.map((row) => row.id)),
+      batchFetchCategoryNamesPublic(
+        client,
+        [
+          ...new Set(
+            rows.map((row) => row.category_id).filter(Boolean)
+          ),
+        ] as string[]
+      ),
+    ]);
+
+    return rows.map((row) => {
+      const categoryName = row.category_id
+        ? catNameMap.get(row.category_id) ?? "Uncategorized"
+        : "Uncategorized";
+      return mapPublicRowToProduct(
+        row,
+        categoryName,
+        thumbnailMap.get(row.id) ?? FALLBACK_PRODUCT_IMAGE
+      );
+    });
+  } catch {
+    return [];
+  }
+}
+
+export async function readPublicCartLineItems(
+  cookieItems: CartCookieItem[]
+): Promise<CartLineItem[]> {
+  const client = createSupabaseAnonServerClient();
+  const ids = cookieItems.map((item) => item.productId);
+
+  if (!client || ids.length === 0) return [];
+
+  try {
+    const { data, error } = await client
+      .from("catalog_products")
+      .select(PUBLIC_PRODUCT_LIST_COLUMNS)
+      .in("id", ids)
+      .eq("status", "active");
+
+    if (error || !data || data.length === 0) return [];
+
+    const rows = data as PublicProductListRow[];
+    const quantityMap = new Map(
+      cookieItems.map((item) => [item.productId, item.quantity])
+    );
+    const [thumbnailMap, catNameMap] = await Promise.all([
+      batchFetchPublicThumbnails(client, rows.map((row) => row.id)),
+      batchFetchCategoryNamesPublic(
+        client,
+        [
+          ...new Set(
+            rows.map((row) => row.category_id).filter(Boolean)
+          ),
+        ] as string[]
+      ),
+    ]);
+
+    return rows
+      .map((row) => {
+        const quantity = Math.min(
+          Math.max(quantityMap.get(row.id) ?? 1, 1),
+          Math.max(row.stock_quantity, 1)
+        );
+        const category = row.category_id
+          ? catNameMap.get(row.category_id) ?? "Uncategorized"
+          : "Uncategorized";
+
+        return {
+          productId: row.id,
+          slug: row.slug,
+          name: row.name,
+          category,
+          image: thumbnailMap.get(row.id) ?? FALLBACK_PRODUCT_IMAGE,
+          priceCents: row.price_cents,
+          compareAtPriceCents: row.compare_at_price_cents,
+          currency: row.currency,
+          stockQuantity: row.stock_quantity,
+          quantity,
+          lineTotalCents: row.price_cents * quantity,
+        };
+      })
+      .sort(
+        (a, b) =>
+          ids.indexOf(a.productId) - ids.indexOf(b.productId)
+      );
   } catch {
     return [];
   }

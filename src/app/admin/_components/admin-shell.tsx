@@ -5,11 +5,11 @@
 "use client";
 
 import * as React from "react";
-import { Bell, LogOut, Moon, Search } from "lucide-react";
+import { Bell, LogOut, Moon } from "lucide-react";
 import { signOutAdminAction } from "@/server/auth/actions";
 import { AdminSidebar } from "./admin-sidebar";
+import { AdminSearch } from "./admin-search";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 interface AdminShellProps {
@@ -28,21 +28,7 @@ export function AdminShell({ children, adminEmail }: AdminShellProps) {
             <div className="flex flex-1 items-center gap-4">
               <SidebarTrigger className="md:hidden" />
 
-              <div className="relative hidden w-full max-w-md items-center md:flex">
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  className="h-9 rounded-lg border-zinc-200 bg-zinc-50 pl-9 text-sm focus-visible:ring-1 focus-visible:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50"
-                />
-                <Search
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
-                  aria-hidden="true"
-                />
-                <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 shadow-xs dark:border-zinc-700 dark:bg-zinc-800">
-                  <kbd>Ctrl</kbd>
-                  <kbd>K</kbd>
-                </div>
-              </div>
+              <AdminSearch />
             </div>
 
             <div className="flex shrink-0 items-center gap-4">
