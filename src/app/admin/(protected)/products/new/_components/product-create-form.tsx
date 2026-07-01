@@ -180,7 +180,7 @@ export default function ProductCreateForm({
             <Package className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">New Product</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">New Product</h1>
             <p className="text-sm text-muted-foreground">
               Fill in the details below, then save.
             </p>

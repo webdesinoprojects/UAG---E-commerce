@@ -208,7 +208,7 @@ export default function MerchandisingEditor({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Merchandising</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Merchandising</h1>
             <p className="text-sm text-muted-foreground">
               Manage the large promotional carousel shown mid-homepage.
             </p>
@@ -551,7 +551,7 @@ export default function MerchandisingEditor({
                     {selectedSlide.badgeText}
                   </span>
                   <div>
-                    <h3 className="text-3xl font-black leading-none">{selectedSlide.title}</h3>
+                    <h3 className="text-3xl font-black leading-none text-zinc-900 dark:text-white">{selectedSlide.title}</h3>
                     <p className="mt-2 text-sm font-bold text-zinc-300">
                       {selectedSlide.subtitle}
                     </p>

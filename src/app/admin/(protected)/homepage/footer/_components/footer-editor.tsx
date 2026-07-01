@@ -147,7 +147,7 @@ export default function FooterEditor({ initialData }: FooterEditorProps) {
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Footer Settings</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Footer Settings</h1>
             <p className="text-sm text-muted-foreground">
               Control footer logo, policy links, copyright, and social links.
             </p>

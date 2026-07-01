@@ -36,7 +36,7 @@ const safeCustomerRedirectSchema = z
   .catch(undefined)
   .transform((value) => {
     if (!value || !value.startsWith("/") || value.startsWith("//")) {
-      return "/account";
+      return "/";
     }
 
     if (
@@ -45,7 +45,7 @@ const safeCustomerRedirectSchema = z
       value.startsWith("/auth/login") ||
       value.startsWith("/auth/register")
     ) {
-      return "/account";
+      return "/";
     }
 
     return value;

@@ -49,6 +49,45 @@ export function CustomerLoginForm({ initialState }: CustomerLoginFormProps) {
         </div>
       </CardHeader>
       <CardContent>
+        <form action={action} className="space-y-3">
+          <input type="hidden" name="next" value={state.next} />
+          <Button
+            type="button"
+            variant="outline"
+            className="h-13 w-full border-[#1a73e8] bg-white text-base font-semibold text-[#1a73e8] hover:bg-[#f8fbff] hover:text-[#1557b0] dark:border-[#8ab4f8] dark:bg-white dark:text-[#1a73e8] dark:hover:bg-[#f8fbff]"
+          >
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                fill="#4285f4"
+                d="M23.52 12.27c0-.82-.07-1.6-.2-2.35H12v4.45h6.47a5.53 5.53 0 0 1-2.4 3.63v2.96h3.88c2.27-2.08 3.57-5.15 3.57-8.69Z"
+              />
+              <path
+                fill="#34a853"
+                d="M12 24c3.24 0 5.95-1.07 7.93-2.91l-3.88-2.96c-1.07.72-2.45 1.15-4.05 1.15-3.12 0-5.77-2.1-6.72-4.94H1.29v3.05A11.98 11.98 0 0 0 12 24Z"
+              />
+              <path
+                fill="#fbbc05"
+                d="M5.28 14.34a7.2 7.2 0 0 1 0-4.68V6.61H1.29a12 12 0 0 0 0 10.78l3.99-3.05Z"
+              />
+              <path
+                fill="#ea4335"
+                d="M12 4.72c1.76 0 3.34.6 4.58 1.79l3.44-3.43C17.94 1.14 15.23 0 12 0A11.98 11.98 0 0 0 1.29 6.61l3.99 3.05C6.23 6.82 8.88 4.72 12 4.72Z"
+              />
+            </svg>
+            Login with Google
+          </Button>
+        </form>
+
+        <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          <div className="h-px flex-1 bg-border" />
+          <span>or</span>
+          <div className="h-px flex-1 bg-border" />
+        </div>
+
         <form action={action} className="space-y-5">
           <input type="hidden" name="next" value={state.next} />
 

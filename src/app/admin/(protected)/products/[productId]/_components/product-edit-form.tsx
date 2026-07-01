@@ -168,7 +168,7 @@ export default function ProductEditForm({
             <Package className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">{product.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">{product.name}</h1>
             <p className="text-sm text-muted-foreground">
               Edit product · ID: {product.id.slice(0, 8)}…
             </p>

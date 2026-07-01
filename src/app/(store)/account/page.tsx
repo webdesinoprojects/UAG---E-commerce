@@ -1,119 +1,130 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
-import { Mail, ShieldCheck, UserRound } from "lucide-react";
+import {
+  CircleAlert,
+  ClipboardList,
+  LogOut,
+  UserCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { signOutCustomerAction } from "@/server/auth/actions";
 import { requireCustomer } from "@/server/auth/customer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  AccountPageFrame,
+  AccountPageFrameShell,
+} from "@/app/(store)/account/_components/account-page-frame";
 
 export const metadata: Metadata = {
   title: "My Account | UAG",
   description: "View your UAG customer account.",
 };
 
-export default async function AccountPage() {
+const dashboardTiles = [
+  { label: "Orders", href: "/account/orders", icon: ClipboardList },
+  { label: "Account details", href: "/account/profile", icon: UserCircle },
+];
+
+export default function AccountPage() {
   return (
-    <main className="bg-zinc-50 px-4 py-10 dark:bg-zinc-950 md:py-16">
-      <Suspense fallback={<AccountShell />}>
-        <AccountContent />
-      </Suspense>
-    </main>
+    <Suspense fallback={<AccountPageFrameShell />}>
+      <AccountContent />
+    </Suspense>
   );
 }
 
 async function AccountContent() {
   const customer = await requireCustomer();
+  const customerName = customer.displayName ?? customer.email.split("@")[0];
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
-      <div className="flex flex-col gap-4 rounded-lg bg-zinc-950 p-6 text-white shadow-xl md:flex-row md:items-center md:justify-between md:p-8">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">
-            My Account
-          </p>
-          <h1 className="mt-3 text-3xl font-heading font-bold tracking-tight md:text-4xl">
-            Welcome{customer.displayName ? `, ${customer.displayName}` : ""}.
-          </h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-zinc-300">
-            Your customer session is active. Order history, addresses, and
-            checkout preferences can be connected here as those modules land.
+    <AccountPageFrame active="dashboard">
+      <div className="space-y-7">
+        <div className="flex items-start gap-5 rounded-[8px] bg-[#e2b349] px-7 py-6 text-white shadow-sm">
+          <CircleAlert
+            className="mt-0.5 size-6 shrink-0"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+          <p className="text-[15px] font-semibold leading-7 sm:text-base">
+            Your account with UAG URBN ARMOUR GEAR is using a temporary
+            password. We emailed you a link to change your password.
           </p>
         </div>
 
-        <form action={signOutCustomerAction}>
-          <Button type="submit" variant="outline" className="bg-white text-zinc-950">
-            Sign Out
-          </Button>
-        </form>
-      </div>
+        <div className="space-y-6 text-[15px] leading-8 text-zinc-500 sm:text-base dark:text-zinc-400">
+          <p>
+            Welcome,{" "}
+            <span className="font-semibold text-zinc-700 dark:text-zinc-200">{customerName}</span>.
+          </p>
+          <p>
+            From your account dashboard you can view your{" "}
+            <Link
+              href="/account/orders"
+              className="font-semibold text-zinc-800 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
+            >
+              recent orders
+            </Link>
+            , and edit your password and{" "}
+            <Link
+              href="/account/profile"
+              className="font-semibold text-zinc-800 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
+            >
+              account details
+            </Link>
+            .
+          </p>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <UserRound className="h-5 w-5" aria-hidden="true" />
-              Profile
-            </CardTitle>
-            <CardDescription>
-              Basic account details from your secure customer profile.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Name
-              </p>
-              <p className="mt-2 font-medium">
-                {customer.displayName ?? "Not set"}
-              </p>
-            </div>
-            <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
-              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Role
-              </p>
-              <div className="mt-2">
-                <Badge variant="secondary">{customer.role}</Badge>
-              </div>
-            </div>
-            <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800 sm:col-span-2">
-              <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <Mail className="h-3.5 w-3.5" aria-hidden="true" />
-                Email
-              </p>
-              <p className="mt-2 font-medium">{customer.email}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-              Security
-            </CardTitle>
-            <CardDescription>
-              Session cookies are HttpOnly and scoped to this site.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
-            Customer auth is separate from admin auth, so shopper sessions do
-            not grant admin access.
-          </CardContent>
-        </Card>
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {dashboardTiles.map((tile) => (
+            <AccountTile key={tile.label} {...tile} />
+          ))}
+          <LogoutTile />
+        </div>
       </div>
-    </div>
+    </AccountPageFrame>
   );
 }
 
-function AccountShell() {
+function AccountTile({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+}) {
   return (
-    <div className="mx-auto h-[520px] w-full max-w-5xl rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950" />
+    <Link
+      href={href}
+      className="group flex min-h-[172px] flex-col items-center justify-center rounded-[8px] border border-zinc-200 bg-white px-6 py-7 text-center shadow-[0_1px_10px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_8px_22px_rgba(0,0,0,0.12)] dark:border-zinc-800 dark:bg-zinc-900"
+    >
+      <Icon
+        className="size-16 text-zinc-300 transition-colors group-hover:text-zinc-400 dark:text-zinc-600 dark:group-hover:text-zinc-500"
+        strokeWidth={1.4}
+        aria-hidden="true"
+      />
+      <span className="mt-4 text-lg font-bold text-zinc-950 dark:text-zinc-100">{label}</span>
+    </Link>
+  );
+}
+
+function LogoutTile() {
+  return (
+    <form action={signOutCustomerAction} className="contents">
+      <button
+        type="submit"
+        className="group flex min-h-[172px] flex-col items-center justify-center rounded-[8px] border border-zinc-200 bg-white px-6 py-7 text-center shadow-[0_1px_10px_rgba(0,0,0,0.10)] transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_8px_22px_rgba(0,0,0,0.12)] dark:border-zinc-800 dark:bg-zinc-900"
+      >
+        <LogOut
+          className="size-16 text-zinc-300 transition-colors group-hover:text-zinc-400 dark:text-zinc-600 dark:group-hover:text-zinc-500"
+          strokeWidth={1.4}
+          aria-hidden="true"
+        />
+        <span className="mt-4 text-lg font-bold text-red-600 dark:text-red-400">Logout</span>
+      </button>
+    </form>
   );
 }

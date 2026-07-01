@@ -1,4 +1,3 @@
-import React, { Suspense } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import Link from "next/link";

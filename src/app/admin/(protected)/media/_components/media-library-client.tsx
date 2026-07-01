@@ -448,7 +448,7 @@ export function MediaLibraryClient({
     return (
       <div className="mx-auto w-full max-w-7xl p-6">
         <div className="mb-6 space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Media Library</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Media Library</h1>
           <p className="text-muted-foreground">
             Upload and manage images and videos for the storefront.
           </p>
@@ -469,7 +469,7 @@ export function MediaLibraryClient({
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Media Library</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Media Library</h1>
           <p className="text-muted-foreground">
             Upload reusable images, GIFs, and videos for CMS sections and products.
           </p>
@@ -716,7 +716,7 @@ export function MediaLibraryClient({
       <section className="space-y-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Existing Assets</h2>
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">Existing Assets</h2>
             <p className="text-sm text-muted-foreground">
               Reuse these assets from homepage, product, and category editors.
             </p>

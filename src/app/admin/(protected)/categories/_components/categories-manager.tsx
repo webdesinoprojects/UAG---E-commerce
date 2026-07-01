@@ -135,7 +135,7 @@ export default function CategoriesManager({
             <FolderTree className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Categories</h1>
+             <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Categories</h1>
             <p className="text-sm text-muted-foreground">
               Manage catalog categories before building product creation.
             </p>
@@ -421,7 +421,7 @@ export default function CategoriesManager({
                     <Badge className="mb-2">
                       {selectedCategory.productCount} Products
                     </Badge>
-                    <h3 className="text-xl font-black uppercase">
+                     <h3 className="text-xl font-black uppercase text-white">
                       {selectedCategory.name}
                     </h3>
                   </div>

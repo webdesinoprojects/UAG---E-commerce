@@ -755,22 +755,22 @@ function SlidePreview({ slide, dimmed }: { slide: SlideForm; dimmed: boolean }) 
         <h3 className="line-clamp-1 text-lg font-black tracking-tight text-white">
           {slide.title || "Untitled slide"}
         </h3>
-        <p className="line-clamp-1 text-xs font-bold text-zinc-300">
+        <p className="line-clamp-1 text-xs font-bold text-zinc-300 dark:text-zinc-200">
           {slide.subtitle}
         </p>
-        <p className="line-clamp-2 max-w-[90%] text-[11px] leading-relaxed text-zinc-400">
+        <p className="line-clamp-2 max-w-[90%] text-[11px] leading-relaxed text-zinc-400 dark:text-zinc-300">
           {slide.description}
         </p>
         {features.length > 0 ? (
           <div className="flex flex-wrap gap-3 pt-1">
             {features.map((feature, index) => (
-              <span
-                key={index}
-                className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300"
-              >
-                <feature.Icon className="h-3 w-3 text-zinc-500" />
-                {feature.text}
-              </span>
+                <span
+                  key={index}
+                  className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-300 dark:text-zinc-200"
+                >
+                  <feature.Icon className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
+                  {feature.text}
+                </span>
             ))}
           </div>
         ) : null}

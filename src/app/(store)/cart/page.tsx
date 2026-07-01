@@ -113,7 +113,6 @@ async function CartContent() {
                       <CartLineControls
                         productId={item.productId}
                         quantity={item.quantity}
-                        stockQuantity={item.stockQuantity}
                       />
                       <p className="text-sm font-black text-zinc-950">
                         {formatMoney(item.lineTotalCents)}
@@ -146,12 +145,12 @@ async function CartContent() {
                   </div>
                 </div>
               </div>
-              <button
-                type="button"
-                className="mt-6 w-full rounded-md bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+              <Link
+                href="/checkout"
+                className="mt-6 flex w-full items-center justify-center rounded-md bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
               >
                 Checkout
-              </button>
+              </Link>
               <form action={clearCartAction}>
                 <button
                   type="submit"

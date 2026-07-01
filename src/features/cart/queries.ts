@@ -19,7 +19,7 @@ function parseCartCookie(value: string | undefined): CartCookieItem[] {
           typeof item.productId === "string" ? item.productId : "",
         quantity:
           typeof item.quantity === "number"
-            ? Math.max(1, Math.min(Math.trunc(item.quantity), 99))
+            ?             Math.max(1, Math.trunc(item.quantity))
             : 1,
       }))
       .filter((item) => item.productId);

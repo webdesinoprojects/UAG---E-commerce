@@ -135,7 +135,7 @@ export default function BentoGalleryEditor({
             </Link>
           </Button>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Bento Gallery</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Bento Gallery</h1>
             <p className="text-sm text-muted-foreground">
               Manage the visual gallery tiles shown near the lower homepage.
             </p>
@@ -454,7 +454,7 @@ export default function BentoGalleryEditor({
                     {selectedItem.badgeText}
                   </span>
                   <div>
-                    <h3 className="text-2xl font-black uppercase">{selectedItem.title}</h3>
+                    <h3 className="text-2xl font-black uppercase text-zinc-900 dark:text-white">{selectedItem.title}</h3>
                     <p className="mt-1 text-sm font-bold text-zinc-300">{selectedItem.subtitle}</p>
                     <p className="mt-3 text-xs text-zinc-400">{selectedItem.body}</p>
                   </div>

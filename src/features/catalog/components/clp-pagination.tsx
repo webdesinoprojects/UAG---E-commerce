@@ -4,7 +4,6 @@ import React from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface ClpPaginationProps {
   currentPage: number;

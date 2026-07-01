@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star, CheckCircle, ChevronDown, UserCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Star, CheckCircle, UserCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { ProductDetail } from "../types";
 

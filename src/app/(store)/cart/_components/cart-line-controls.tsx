@@ -9,15 +9,12 @@ import {
 interface CartLineControlsProps {
   productId: string;
   quantity: number;
-  stockQuantity: number;
 }
 
 export function CartLineControls({
   productId,
   quantity,
-  stockQuantity,
 }: CartLineControlsProps) {
-  const maxQuantity = Math.max(stockQuantity, 1);
 
   return (
     <div className="flex items-center gap-3">
@@ -46,11 +43,10 @@ export function CartLineControls({
           <input
             type="hidden"
             name="quantity"
-            value={Math.min(maxQuantity, quantity + 1)}
+            value={quantity + 1}
           />
           <button
             type="submit"
-            disabled={quantity >= maxQuantity}
             className="flex h-10 w-10 items-center justify-center text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Increase quantity"
           >

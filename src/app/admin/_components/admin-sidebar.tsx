@@ -15,16 +15,10 @@ import {
   Package,
   Users,
   Settings,
-  CreditCard,
-  LineChart,
-  Home,
-  MessageSquare,
   FileText,
-  Calendar,
   LogOut,
   ChevronDown,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 import {
   Sidebar,
@@ -41,7 +35,6 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Image as MediaIcon } from "lucide-react";
@@ -148,7 +141,7 @@ function AdminSidebarContent() {
       <SidebarContent className="flex-1 overflow-y-auto px-3 py-4 scrollbar-hide">
         {navigationData.navMain.map((group) => (
           <SidebarGroup key={group.title} className="mb-6">
-            <SidebarGroupLabel className="text-xs font-semibold text-zinc-400 dark:text-zinc-500 tracking-wider uppercase mb-2 px-3">
+            <SidebarGroupLabel className="text-xs font-semibold text-zinc-400 dark:text-zinc-300 tracking-wider uppercase mb-2 px-3">
               {group.title}
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -164,7 +157,7 @@ function AdminSidebarContent() {
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton 
                             isActive={pathname === item.url && !item.subItems} 
-                            className="h-10 gap-3 font-medium text-sm text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 rounded-lg px-3"
+                            className="h-10 gap-3 font-medium text-sm text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-white dark:hover:text-white dark:hover:bg-zinc-800/50 rounded-lg px-3"
                           >
                             <item.icon className="h-4.5 w-4.5" />
                             <span>{item.title}</span>
@@ -178,7 +171,7 @@ function AdminSidebarContent() {
                                 <SidebarMenuSubButton 
                                   asChild 
                                   isActive={pathname === subItem.url || (subItem.url !== "/admin" && pathname.startsWith(subItem.url + "/"))}
-                                  className="h-8 text-[13px] text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+                                  className="h-8 text-[13px] text-zinc-500 hover:text-zinc-900 dark:text-white dark:hover:text-white"
                                 >
                                   <Link href={subItem.url}>
                                     {subItem.title}
@@ -195,7 +188,7 @@ function AdminSidebarContent() {
                       <SidebarMenuButton 
                         asChild 
                         isActive={pathname === item.url}
-                        className="h-10 gap-3 font-medium text-sm text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800/50 rounded-lg px-3"
+                        className="h-10 gap-3 font-medium text-sm text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 dark:text-white dark:hover:text-white dark:hover:bg-zinc-800/50 rounded-lg px-3"
                       >
                         <Link href={item.url}>
                           <item.icon className="h-4.5 w-4.5" />
@@ -214,14 +207,15 @@ function AdminSidebarContent() {
       {/* Footer / Profile */}
       <SidebarFooter className="p-4 border-t border-zinc-100 dark:border-zinc-800/60">
         <div className="flex items-center gap-3 px-2 py-1">
-          <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden shrink-0">
+          <div className="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-500 overflow-hidden shrink-0">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="https://i.pravatar.cc/150?u=admin" alt="Admin Avatar" className="h-full w-full object-cover" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
             <span className="text-sm font-bold text-zinc-900 dark:text-white truncate">Toby Belhome</span>
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">hello@tobybelhome.com</span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-300 truncate">hello@tobybelhome.com</span>
           </div>
-          <LogOut className="h-4 w-4 text-zinc-400 hover:text-zinc-900 dark:hover:text-white cursor-pointer shrink-0" />
+          <LogOut className="h-4 w-4 text-zinc-400 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white cursor-pointer shrink-0" />
         </div>
       </SidebarFooter>
     </Sidebar>

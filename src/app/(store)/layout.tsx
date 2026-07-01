@@ -33,7 +33,6 @@ async function StoreHeader() {
     <SiteHeader
       isCustomerSignedIn={Boolean(customer)}
       cartItemCount={cart.itemCount}
-      cartSubtotalCents={cart.subtotalCents}
     />
   );
 }

@@ -4,13 +4,17 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import {
   FileText,
+  GalleryHorizontalEnd,
   Image as ImageIcon,
   LayoutDashboard,
+  Megaphone,
   Package,
   Search,
+  Settings,
   ShoppingCart,
   Star,
   Users,
+  Warehouse,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -49,19 +53,107 @@ const routeEntries: SearchEntry[] = [
     icon: ImageIcon,
   },
   {
-    title: "Homepage CMS",
-    description: "Storefront sections and homepage content",
-    href: "/admin/homepage",
-    type: "Page",
-    keywords: "homepage cms storefront banner carousel bento footer",
+    title: "Top Marquee Banner",
+    description: "Storefront CMS announcement strip",
+    href: "/admin/homepage/top-banner",
+    type: "Storefront",
+    keywords: "top marquee banner announcement strip storefront cms homepage",
+    icon: Megaphone,
+  },
+  {
+    title: "Hero Carousel",
+    description: "Homepage hero slides and calls to action",
+    href: "/admin/homepage/hero-carousel",
+    type: "Storefront",
+    keywords: "hero carousel slides homepage storefront cms banner cta",
+    icon: GalleryHorizontalEnd,
+  },
+  {
+    title: "Categories Showcase",
+    description: "Homepage category circles and showcase content",
+    href: "/admin/homepage/categories",
+    type: "Storefront",
+    keywords: "categories showcase category circles homepage storefront cms",
     icon: FileText,
   },
   {
-    title: "More Pages",
-    description: "Blog, about, contact, FAQs, and policies",
-    href: "/admin/pages",
+    title: "Bento Gallery",
+    description: "Homepage bento image gallery",
+    href: "/admin/homepage/bento-gallery",
+    type: "Storefront",
+    keywords: "bento gallery homepage storefront cms images",
+    icon: ImageIcon,
+  },
+  {
+    title: "Merchandising",
+    description: "Homepage merchandising and featured sections",
+    href: "/admin/homepage/merchandising",
+    type: "Storefront",
+    keywords: "merchandising homepage storefront cms featured products sections",
+    icon: Package,
+  },
+  {
+    title: "Footer Settings",
+    description: "Storefront footer links, columns, and social settings",
+    href: "/admin/homepage/footer",
+    type: "Storefront",
+    keywords: "footer settings storefront cms links social address",
+    icon: FileText,
+  },
+  {
+    title: "Blog",
+    description: "CMS page content for the blog page",
+    href: "/admin/pages/blog",
     type: "Page",
-    keywords: "blog about contact privacy faq new launches pages content",
+    keywords: "blog more pages cms content articles posts",
+    icon: FileText,
+  },
+  {
+    title: "About Us",
+    description: "CMS page content for About Us",
+    href: "/admin/pages/about-us",
+    type: "Page",
+    keywords: "about us more pages cms content company story",
+    icon: FileText,
+  },
+  {
+    title: "Contact Us",
+    description: "CMS page content for Contact Us",
+    href: "/admin/pages/contact-us",
+    type: "Page",
+    keywords: "contact us more pages cms content support phone email",
+    icon: FileText,
+  },
+  {
+    title: "Privacy Policy",
+    description: "CMS page content for Privacy Policy",
+    href: "/admin/pages/privacy-policy",
+    type: "Page",
+    keywords: "privacy policy more pages cms content legal",
+    icon: FileText,
+  },
+  {
+    title: "FAQs",
+    description: "CMS page content for frequently asked questions",
+    href: "/admin/pages/faqs",
+    type: "Page",
+    keywords: "faqs faq frequently asked questions more pages cms help",
+    icon: FileText,
+  },
+  {
+    title: "Homepage Info",
+    description: "CMS page content for homepage information",
+    href: "/admin/pages/home-info",
+    type: "Page",
+    keywords: "homepage info more pages cms content information home info",
+    icon: FileText,
+  },
+  {
+    title: "New Launches",
+    description: "CMS page content for new launches",
+    href: "/admin/pages/new-launches",
+    type: "Page",
+    keywords: "new launches more pages cms content launch products",
     icon: FileText,
   },
   {
@@ -87,6 +179,14 @@ const routeEntries: SearchEntry[] = [
     type: "Page",
     keywords: "categories catalog groups collection",
     icon: Package,
+  },
+  {
+    title: "Inventory",
+    description: "Stock levels and inventory operations",
+    href: "/admin/inventory",
+    type: "Catalog",
+    keywords: "inventory stock warehouse quantity sku catalog",
+    icon: Warehouse,
   },
   {
     title: "All Orders",
@@ -119,6 +219,22 @@ const routeEntries: SearchEntry[] = [
     type: "Page",
     keywords: "reviews ratings stars product sentiment customers",
     icon: Star,
+  },
+  {
+    title: "Support Tickets",
+    description: "Customer support tickets and service requests",
+    href: "/admin/customers/support",
+    type: "Customer",
+    keywords: "support tickets customer help service complaints requests",
+    icon: Users,
+  },
+  {
+    title: "Settings",
+    description: "Admin settings and store configuration",
+    href: "/admin/settings",
+    type: "Settings",
+    keywords: "settings configuration admin preferences store options",
+    icon: Settings,
   },
 ];
 
@@ -176,14 +292,14 @@ export function AdminSearch() {
   const normalizedQuery = query.trim().toLowerCase();
   const results = React.useMemo(() => {
     if (!normalizedQuery) {
-      return routeEntries.slice(0, 6);
+      return routeEntries;
     }
 
     return searchEntries
       .map((entry) => ({ entry, score: getSearchScore(entry, normalizedQuery) }))
       .filter((result) => result.score > 0)
       .sort((a, b) => b.score - a.score)
-      .slice(0, 8)
+      .slice(0, 20)
       .map((result) => result.entry);
   }, [normalizedQuery]);
 
@@ -239,7 +355,7 @@ export function AdminSearch() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative hidden w-full max-w-md items-center md:flex"
+      className="relative flex min-w-0 flex-1 items-center md:max-w-md"
     >
       <Input
         type="search"
@@ -255,7 +371,7 @@ export function AdminSearch() {
         }}
         onKeyDown={handleKeyDown}
         placeholder="Search admin panel..."
-        className="h-9 rounded-lg border-zinc-200 bg-zinc-50 pl-9 pr-14 text-sm focus-visible:ring-1 focus-visible:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50"
+        className="h-9 rounded-lg border-zinc-200 bg-zinc-50 pl-9 pr-3 text-sm focus-visible:ring-1 focus-visible:ring-zinc-400 dark:border-zinc-800 dark:bg-zinc-900/50 sm:pr-14"
         aria-label="Search admin panel"
         aria-expanded={open}
       />
@@ -263,7 +379,7 @@ export function AdminSearch() {
         className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"
         aria-hidden="true"
       />
-      <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 shadow-xs dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="absolute right-3 top-1/2 hidden -translate-y-1/2 items-center gap-1 rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-medium text-zinc-400 shadow-xs dark:border-zinc-700 dark:bg-zinc-800 sm:flex">
         <kbd>Ctrl</kbd>
         <kbd>K</kbd>
       </div>

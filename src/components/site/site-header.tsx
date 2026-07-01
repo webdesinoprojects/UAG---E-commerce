@@ -10,9 +10,12 @@ import {
   ChevronDown,
   UserRound,
   X,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 // Custom SVG Icons for categories to ensure compiler stability and crisp rendering
 const EarbudsSvg = () => (
@@ -126,32 +129,26 @@ const dropdownLinks = [
 interface SiteHeaderProps {
   isCustomerSignedIn?: boolean;
   cartItemCount?: number;
-  cartSubtotalCents?: number;
 }
 
 export default function SiteHeader({
   isCustomerSignedIn = false,
   cartItemCount = 0,
-  cartSubtotalCents = 0,
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"categories" | "store">("categories");
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const accountHref = isCustomerSignedIn ? "/account" : "/auth/login";
-  const accountLabel = isCustomerSignedIn ? "My Account" : "Login / Register";
   const isSearchPage = pathname.startsWith("/search");
-  const cartTotal = new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(cartSubtotalCents / 100);
+  const cartHref = isCustomerSignedIn ? "/cart" : "/auth/login?next=/cart";
   const storeItems = [
-    { label: "Blog", href: "/blog", hasUserIcon: false },
-    { label: "About Us", href: "/about-us", hasUserIcon: false },
-    { label: "Contact Us", href: "/contact-us", hasUserIcon: false },
-    { label: "Privacy Policy", href: "/privacy-policy", hasUserIcon: false },
-    { label: accountLabel, href: accountHref, hasUserIcon: true },
+    { label: "Blog", href: "/blog" },
+    { label: "About Us", href: "/about-us" },
+    { label: "Contact Us", href: "/contact-us" },
+    { label: "Privacy Policy", href: "/privacy-policy" },
   ];
 
   return (
@@ -256,10 +253,9 @@ export default function SiteHeader({
                 href="/account"
                 className={cn(
                   "flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-background text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground",
-                  pathname === "/account" ? "text-foreground" : ""
+                  pathname.startsWith("/account") ? "text-foreground" : ""
                 )}
                 aria-label="My account"
-                title="My account"
               >
                 <UserRound className="h-4 w-4" aria-hidden="true" />
               </Link>
@@ -284,10 +280,24 @@ export default function SiteHeader({
               )}
             </Link>
 
+            <button
+              type="button"
+              aria-label="Toggle theme"
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground"
+            >
+              {isDark ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </button>
+
             {/* Cart Icon indicator */}
             <Link
-              href="/cart"
-              className="group flex items-center gap-2 rounded-full border border-border/80 bg-background/50 hover:bg-accent/30 py-1.5 px-3.5 transition-colors"
+              href={cartHref}
+              className="group flex h-9 w-9 items-center justify-center rounded-full border border-border/80 bg-background/50 transition-colors hover:bg-accent/30"
+              aria-label={isCustomerSignedIn ? "Cart" : "Login to view cart"}
             >
               <div className="relative">
                 <ShoppingCart className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -295,9 +305,6 @@ export default function SiteHeader({
                   {cartItemCount}
                 </span>
               </div>
-              <span className="text-xs font-bold text-foreground">
-                {cartTotal}
-              </span>
             </Link>
           </div>
         </div>
@@ -468,12 +475,6 @@ export default function SiteHeader({
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3.5 px-5 py-4.5 hover:bg-zinc-50/60 dark:hover:bg-zinc-900/20 transition-all duration-150 group border-b border-zinc-100 dark:border-zinc-900/40"
               >
-                {item.hasUserIcon && (
-                  <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-950 dark:group-hover:text-white transition-colors" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
-                )}
                 <span className="text-[15px] font-serif text-zinc-800 dark:text-zinc-300 tracking-wide group-hover:text-zinc-950 dark:group-hover:text-white transition-colors">
                   {item.label}
                 </span>
@@ -505,11 +506,12 @@ export default function SiteHeader({
 
         {/* Cart Tab with Numeric Indicator */}
         <Link 
-          href="/cart" 
+          href={cartHref} 
           className={cn(
             "flex flex-col items-center justify-center transition-colors py-1 flex-1 min-w-0 relative",
             pathname === "/cart" ? "text-primary" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           )}
+          aria-label={isCustomerSignedIn ? "Cart" : "Login to view cart"}
         >
           <div className="relative">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -547,7 +549,7 @@ export default function SiteHeader({
           href={accountHref} 
           className={cn(
             "flex flex-col items-center justify-center transition-colors py-1 flex-1 min-w-0",
-            pathname === "/account" || pathname.startsWith("/auth")
+            pathname.startsWith("/account") || pathname.startsWith("/auth")
               ? "text-primary"
               : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           )}

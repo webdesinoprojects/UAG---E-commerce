@@ -8,7 +8,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Download, ArrowUpRight, ShoppingBag, TrendingUp } from "lucide-react";
+import { Download, ArrowUpRight, TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, LineChart, Cell } from "recharts";
 
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,10 @@ const getRevenueColor = (revenue: number) => {
 export default function AdminDashboardPage() {
   const [chartFilter, setChartFilter] = React.useState("year");
 
+  const handleDownload = React.useCallback(() => {
+    window.open("/api/admin/dashboard/export", "_blank");
+  }, []);
+
   // Get top 4 products for the "Top Selling" widget
   const topProducts = [...mockProducts].sort((a, b) => b.sales - a.sales).slice(0, 4);
 
@@ -72,7 +76,7 @@ export default function AdminDashboardPage() {
             </svg>
             10 Apr 2026 - 07 May 2026
           </div>
-          <Button className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-sm h-9 px-4">
+          <Button onClick={handleDownload} className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-sm h-9 px-4">
             <Download className="h-4 w-4 mr-2" />
             Download
           </Button>
@@ -259,7 +263,7 @@ export default function AdminDashboardPage() {
                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">+2.5%</span>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="h-8 shadow-sm">
+            <Button onClick={handleDownload} variant="outline" size="sm" className="h-8 shadow-sm">
               <Download className="h-3.5 w-3.5 mr-2" />
               Export
             </Button>
@@ -356,10 +360,11 @@ export default function AdminDashboardPage() {
             <div className="flex flex-col gap-5">
               {topProducts.map((product) => (
                 <div key={product.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-md overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-700">
-                      <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
-                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-md overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0 border border-zinc-200 dark:border-zinc-700">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                      </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-sm font-medium text-zinc-900 dark:text-white truncate">{product.name}</span>
                       <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate">{product.category}</span>

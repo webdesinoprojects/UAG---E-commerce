@@ -99,7 +99,7 @@ export function ContentPageEditor({ page }: ContentPageEditorProps) {
               More Pages
             </Link>
           </Button>
-          <h1 className="text-3xl font-heading font-bold tracking-tight">
+          <h1 className="text-3xl font-heading font-bold tracking-tight text-zinc-900 dark:text-white">
             {page.adminTitle}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">

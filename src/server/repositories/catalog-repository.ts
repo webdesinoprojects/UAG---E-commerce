@@ -1472,10 +1472,7 @@ export async function readPublicCartLineItems(
 
     return rows
       .map((row) => {
-        const quantity = Math.min(
-          Math.max(quantityMap.get(row.id) ?? 1, 1),
-          Math.max(row.stock_quantity, 1)
-        );
+        const quantity = Math.max(quantityMap.get(row.id) ?? 1, 1);
         const category = row.category_id
           ? catNameMap.get(row.category_id) ?? "Uncategorized"
           : "Uncategorized";
