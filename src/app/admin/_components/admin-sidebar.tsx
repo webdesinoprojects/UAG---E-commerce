@@ -95,6 +95,7 @@ const navigationData = {
           subItems: [
             { title: "All Orders", url: "/admin/orders" },
             { title: "Returns & Refunds", url: "/admin/orders/returns" },
+            { title: "Coupons", url: "/admin/coupons" },
           ]
         },
         { 

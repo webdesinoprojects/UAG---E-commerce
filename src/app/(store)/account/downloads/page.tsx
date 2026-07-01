@@ -29,30 +29,30 @@ async function AccountDownloadsContent() {
     <AccountPageFrame active="downloads">
       <div className="space-y-7">
         <div>
-          <h2 className="font-sans text-3xl font-bold text-zinc-950">
+          <h2 className="font-sans text-3xl font-bold text-zinc-950 dark:text-zinc-100">
             Downloads
           </h2>
-          <p className="mt-3 text-base leading-7 text-zinc-500">
+          <p className="mt-3 text-base leading-7 text-zinc-500 dark:text-zinc-400">
             Downloadable products linked to your orders will appear here.
           </p>
         </div>
 
-        <div className="flex min-h-[260px] flex-col items-center justify-center rounded-[8px] border border-dashed border-zinc-300 bg-white px-6 py-12 text-center">
+        <div className="flex min-h-[260px] flex-col items-center justify-center rounded-[8px] border border-dashed border-zinc-300 bg-white px-6 py-12 text-center dark:border-zinc-700 dark:bg-zinc-900">
           <Download
-            className="size-16 text-zinc-300"
+            className="size-16 text-zinc-300 dark:text-zinc-600"
             strokeWidth={1.4}
             aria-hidden="true"
           />
-          <h3 className="mt-5 font-sans text-2xl font-bold text-zinc-950">
+          <h3 className="mt-5 font-sans text-2xl font-bold text-zinc-950 dark:text-zinc-100">
             No downloads available
           </h3>
-          <p className="mt-3 max-w-md text-sm leading-6 text-zinc-500">
+          <p className="mt-3 max-w-md text-sm leading-6 text-zinc-500 dark:text-zinc-400">
             Your available files will show here after a qualifying order is
             completed.
           </p>
           <Button
             asChild
-            className="mt-6 bg-zinc-950 text-white hover:bg-zinc-800"
+            className="mt-6 bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-950 dark:hover:bg-zinc-200"
           >
             <Link href="/categories">Continue shopping</Link>
           </Button>

@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ coupons: data ?? [] });
+    return NextResponse.json({ coupons: (data ?? []).map(mapCouponRow) });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ coupons: data ?? [] });
+  return NextResponse.json({ coupons: (data ?? []).map(mapCouponRow) });
 }
 
 export async function POST(request: NextRequest) {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ coupon: data }, { status: 201 });
+  return NextResponse.json({ coupon: mapCouponRow(data) }, { status: 201 });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ coupon: data });
+  return NextResponse.json({ coupon: mapCouponRow(data) });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -180,4 +180,23 @@ export async function DELETE(request: NextRequest) {
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function mapCouponRow(row: Record<string, unknown>) {
+  return {
+    id: String(row.id),
+    code: String(row.code),
+    description: row.description ? String(row.description) : null,
+    percentOff: Number(row.percent_off),
+    minCents: Number(row.min_cents),
+    maxDiscountCents:
+      row.max_discount_cents !== null && row.max_discount_cents !== undefined
+        ? Number(row.max_discount_cents)
+        : null,
+    isActive: Boolean(row.is_active),
+    startsAt: String(row.starts_at),
+    expiresAt: row.expires_at ? String(row.expires_at) : null,
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  };
 }

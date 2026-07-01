@@ -14,7 +14,7 @@ interface CustomerRegisterPageProps {
 
 export default function CustomerRegisterPage(props: CustomerRegisterPageProps) {
   return (
-    <main className="bg-zinc-50 px-4 py-10 dark:bg-zinc-950 md:py-16">
+    <main className="flex min-h-svh items-center justify-center bg-zinc-50 px-4 py-10 dark:bg-black md:py-16">
       <Suspense fallback={<AuthShell />}>
         <CustomerRegisterContent {...props} />
       </Suspense>
@@ -32,28 +32,28 @@ async function CustomerRegisterContent({
 
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-6 md:grid-cols-[minmax(0,0.92fr)_minmax(360px,0.78fr)] md:items-stretch">
-      <section className="hidden md:flex min-h-[560px] flex-col justify-between rounded-lg bg-zinc-950 p-6 text-white shadow-xl md:p-8">
+      <section className="hidden min-h-[560px] flex-col justify-between rounded-lg bg-zinc-950 p-6 text-white shadow-xl dark:border dark:border-black/10 dark:bg-white dark:text-black md:flex md:p-8">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-zinc-400 dark:text-black/65">
             Create Account
           </p>
-          <h1 className="mt-5 max-w-xl text-4xl font-heading font-bold tracking-tight text-white md:text-5xl">
+          <h1 className="mt-5 max-w-xl text-4xl font-heading font-bold tracking-tight text-white dark:text-black md:text-5xl">
             Your UAG account keeps the useful stuff close.
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-6 text-zinc-300">
+          <p className="mt-5 max-w-md text-sm leading-6 text-zinc-300 dark:text-black/75">
             Register once with email and password. Supabase handles the secure
             account record, and the app keeps your auth session server-side.
           </p>
         </div>
 
-        <div className="grid gap-3 text-sm text-zinc-300 sm:grid-cols-3">
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+        <div className="grid gap-3 text-sm text-zinc-300 dark:text-black sm:grid-cols-3">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4 dark:border-black/10 dark:bg-white">
             Email account
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4 dark:border-black/10 dark:bg-white">
             Customer profile
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/5 p-4">
+          <div className="rounded-lg border border-white/10 bg-white/5 p-4 dark:border-black/10 dark:bg-white">
             Account-ready cart
           </div>
         </div>
@@ -66,6 +66,6 @@ async function CustomerRegisterContent({
 
 function AuthShell() {
   return (
-    <div className="mx-auto h-[560px] w-full max-w-md rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-950" />
+    <div className="mx-auto h-[560px] w-full max-w-md rounded-lg border border-zinc-200 bg-white shadow-xl dark:border-white/15 dark:bg-black" />
   );
 }

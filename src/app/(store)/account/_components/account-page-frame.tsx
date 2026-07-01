@@ -29,12 +29,12 @@ export function AccountPageFrame({
   children: ReactNode;
 }) {
   return (
-    <div className="bg-white text-zinc-950">
+    <div className="bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
       <AccountHero />
 
       <section className="mx-auto grid w-full max-w-[1520px] gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[310px_minmax(0,1fr)] lg:px-12 lg:py-14">
         <AccountSidebar active={active} />
-        <div className="min-w-0 lg:border-l lg:border-zinc-200 lg:pl-10">
+        <div className="min-w-0 lg:border-l lg:border-zinc-200 lg:pl-10 dark:lg:border-zinc-800">
           {children}
         </div>
       </section>
@@ -87,10 +87,10 @@ function AccountHero() {
 function AccountSidebar({ active }: { active: AccountNavKey }) {
   return (
     <aside className="lg:pr-2">
-      <h2 className="font-sans text-2xl font-semibold uppercase tracking-normal text-zinc-950">
+      <h2 className="font-sans text-2xl font-semibold uppercase tracking-normal text-zinc-950 dark:text-zinc-100">
         My Account
       </h2>
-      <div className="mt-5 h-px w-full bg-zinc-200" />
+      <div className="mt-5 h-px w-full bg-zinc-200 dark:bg-zinc-800" />
       <nav className="mt-5 space-y-3" aria-label="Account navigation">
         {accountLinks.map((item) => {
           const isActive = item.key === active;
@@ -102,8 +102,8 @@ function AccountSidebar({ active }: { active: AccountNavKey }) {
               aria-current={isActive ? "page" : undefined}
               className={
                 isActive
-                  ? "block rounded-[8px] bg-zinc-100 px-5 py-4 text-base font-bold text-zinc-950"
-                  : "block rounded-[8px] px-5 py-3 text-base font-bold text-zinc-950 transition-colors hover:bg-zinc-100"
+                  ? "block rounded-[8px] bg-zinc-100 px-5 py-4 text-base font-bold text-zinc-950 dark:bg-zinc-900 dark:text-white"
+                  : "block rounded-[8px] px-5 py-3 text-base font-bold text-zinc-950 transition-colors hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-white"
               }
             >
               {item.label}
@@ -113,7 +113,7 @@ function AccountSidebar({ active }: { active: AccountNavKey }) {
         <form action={signOutCustomerAction}>
           <button
             type="submit"
-            className="block w-full rounded-[8px] px-5 py-3 text-left text-base font-bold text-red-600 transition-colors hover:bg-zinc-100"
+            className="block w-full rounded-[8px] px-5 py-3 text-left text-base font-bold text-red-600 transition-colors hover:bg-zinc-100 dark:text-red-400 dark:hover:bg-zinc-900"
           >
             Logout
           </button>

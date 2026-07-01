@@ -61,10 +61,10 @@ export default async function NewLaunchesPage() {
             return (
               <article
                 key={block.id}
-                className="group relative overflow-hidden rounded-xl border border-zinc-200 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-zinc-200/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-zinc-300"
                 style={{ backgroundColor: cardBackground, color: cardText }}
               >
-                <div className="relative aspect-[1.15] overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                <div className="relative aspect-[4/3] overflow-hidden bg-zinc-100">
                   <Image
                     src={blockImage}
                     alt={block.title}
@@ -72,23 +72,26 @@ export default async function NewLaunchesPage() {
                     sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                 </div>
 
-                <div className="p-6">
-                  <h3 className="text-xl font-heading font-bold">
+                <div className="flex flex-1 flex-col p-5">
+                  <h3 className="text-lg font-bold leading-snug">
                     {block.title}
                   </h3>
-                  <p className="mt-3 line-clamp-3 text-sm leading-6 opacity-75">
+                  <p className="mt-2.5 text-sm leading-6 opacity-70 line-clamp-2">
                     {block.body}
                   </p>
-                  <Link
-                    href={href}
-                    className="mt-6 inline-flex items-center gap-2 text-sm font-bold transition-opacity hover:opacity-75"
-                    style={{ color: accent }}
-                  >
-                    {block.ctaLabel ?? "View Product"}
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
+                  <div className="mt-auto pt-4">
+                    <Link
+                      href={href}
+                      className="inline-flex items-center gap-1.5 text-sm font-bold transition-all duration-200 hover:gap-2"
+                      style={{ color: accent }}
+                    >
+                      {block.ctaLabel ?? "View Product"}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
                 </div>
               </article>
             );

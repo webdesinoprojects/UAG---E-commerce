@@ -13,6 +13,7 @@ import {
   Settings,
   ShoppingCart,
   Star,
+  TicketPercent,
   Users,
   Warehouse,
 } from "lucide-react";
@@ -203,6 +204,14 @@ const routeEntries: SearchEntry[] = [
     type: "Page",
     keywords: "returns refunds replacements return refund order",
     icon: ShoppingCart,
+  },
+  {
+    title: "Coupons",
+    description: "Discount codes and checkout offers",
+    href: "/admin/coupons",
+    type: "Orders",
+    keywords: "coupons coupon discount promo code checkout offers percentage",
+    icon: TicketPercent,
   },
   {
     title: "All Customers",

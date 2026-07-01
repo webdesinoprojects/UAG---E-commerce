@@ -9,9 +9,9 @@ import {
   ShoppingCart,
   ChevronDown,
   UserRound,
-  X,
   Moon,
   Sun,
+  X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -131,6 +131,38 @@ interface SiteHeaderProps {
   cartItemCount?: number;
 }
 
+function ThemeToggleButton({ className }: { className?: string }) {
+  const { resolvedTheme, setTheme } = useTheme();
+  const mounted = React.useSyncExternalStore(
+    React.useCallback(() => () => undefined, []),
+    () => true,
+    () => false
+  );
+
+  const isDark = mounted && resolvedTheme === "dark";
+  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
+
+  return (
+    <button
+      type="button"
+      aria-label={mounted ? label : "Toggle theme"}
+      aria-pressed={isDark}
+      disabled={!mounted}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-md border border-border/70 bg-background/80 text-muted-foreground shadow-sm transition-colors hover:bg-accent/30 hover:text-foreground disabled:cursor-default disabled:opacity-70 dark:bg-white/10 dark:text-zinc-100 dark:hover:bg-white/15",
+        className
+      )}
+    >
+      {isDark ? (
+        <Sun className="h-4 w-4" aria-hidden="true" />
+      ) : (
+        <Moon className="h-4 w-4" aria-hidden="true" />
+      )}
+    </button>
+  );
+}
+
 export default function SiteHeader({
   isCustomerSignedIn = false,
   cartItemCount = 0,
@@ -139,8 +171,6 @@ export default function SiteHeader({
   const [isOpen, setIsOpen] = React.useState(false);
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"categories" | "store">("categories");
-  const { resolvedTheme, setTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
   const accountHref = isCustomerSignedIn ? "/account" : "/auth/login";
   const isSearchPage = pathname.startsWith("/search");
   const cartHref = isCustomerSignedIn ? "/cart" : "/auth/login?next=/cart";
@@ -161,13 +191,13 @@ export default function SiteHeader({
           
           {/* Left: Brand Logo & Links */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2 group">
+            <Link href="/" className="-ml-2 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors group dark:bg-white dark:shadow-sm">
               <Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
                 width={120}
                 height={40}
-                className="h-10 w-auto object-contain mix-blend-multiply"
+                className="h-10 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
                 style={{ width: "auto" }}
                 priority
               />
@@ -280,18 +310,7 @@ export default function SiteHeader({
               )}
             </Link>
 
-            <button
-              type="button"
-              aria-label="Toggle theme"
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent/30 hover:text-foreground"
-            >
-              {isDark ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </button>
+            <ThemeToggleButton />
 
             {/* Cart Icon indicator */}
             <Link
@@ -337,13 +356,13 @@ export default function SiteHeader({
 
           {/* Center: Brand Logo */}
           <div className="flex justify-center flex-1">
-            <Link href="/" className="flex items-center select-none">
+            <Link href="/" className="flex items-center rounded-md px-2 py-1 transition-colors select-none dark:bg-white dark:shadow-sm">
               <Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
                 width={100}
                 height={32}
-                className="h-8 w-auto object-contain mix-blend-multiply"
+                className="h-8 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
                 style={{ width: "auto" }}
                 priority
               />
@@ -392,6 +411,8 @@ export default function SiteHeader({
                 <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.107C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.388.511a3.003 3.003 0 0 0-2.11 2.107C0 8.053 0 12 0 12s0 3.947.502 5.837a3.003 3.003 0 0 0 2.11 2.107C4.495 20.455 12 20.455 12 20.455s7.505 0 9.388-.511a3.003 3.003 0 0 0 2.11-2.107C24 15.947 24 12 24 12s0-3.947-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
               </svg>
             </a>
+
+            <ThemeToggleButton className="h-8 w-8 rounded-full" />
           </div>
 
         </div>
