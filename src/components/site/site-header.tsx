@@ -192,13 +192,12 @@ export default function SiteHeader({
           {/* Left: Brand Logo & Links */}
           <div className="flex items-center gap-6">
             <Link href="/" className="-ml-2 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors group dark:bg-white dark:shadow-sm">
-              <Image
+<Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
                 width={120}
                 height={40}
                 className="h-10 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
-                style={{ width: "auto" }}
                 priority
               />
             </Link>
@@ -357,13 +356,12 @@ export default function SiteHeader({
           {/* Center: Brand Logo */}
           <div className="flex justify-center flex-1">
             <Link href="/" className="flex items-center rounded-md px-2 py-1 transition-colors select-none dark:bg-white dark:shadow-sm">
-              <Image
+<Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
                 width={100}
                 height={32}
                 className="h-8 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
-                style={{ width: "auto" }}
                 priority
               />
             </Link>
@@ -508,7 +506,8 @@ export default function SiteHeader({
       </Sheet>
 
       {/* 4. Bottom Tab Navigation Bar on Mobile (fixed at bottom of screen, sibling to header to keep position fixed functional) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-45 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-900 h-16 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.05)] select-none">
+      {!pathname.includes("/invoice") && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-45 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-900 h-16 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.05)] select-none">
         
         {/* Home Tab */}
         <Link 
@@ -603,6 +602,7 @@ export default function SiteHeader({
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Menu</span>
         </button>
       </div>
+      )}
     </>
   );
 }

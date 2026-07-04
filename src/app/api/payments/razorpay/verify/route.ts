@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CART_COOKIE_NAME } from "@/lib/cart-cookies";
+import {
+  CHECKOUT_ORDER_ACCESS_COOKIE,
+  getCheckoutOrderAccessCookieOptions,
+} from "@/lib/checkout-order-cookies";
 import { markOrderPaid } from "@/server/repositories/commerce-repository";
 import { verifyRazorpayPaymentSignature } from "@/server/payments/razorpay";
 import { razorpayVerifySchema } from "@/server/validators/commerce";
@@ -38,6 +42,11 @@ export async function POST(request: NextRequest) {
       ok: true,
       redirectTo,
     });
+    response.cookies.set(
+      CHECKOUT_ORDER_ACCESS_COOKIE,
+      parsed.data.orderId,
+      getCheckoutOrderAccessCookieOptions()
+    );
     response.cookies.delete(CART_COOKIE_NAME);
     return response;
   } catch (error) {

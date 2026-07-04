@@ -12,7 +12,7 @@ const DEFAULT_ACCESS_TOKEN_MAX_AGE = 60 * 60;
 const MIN_ACCESS_TOKEN_MAX_AGE = 60;
 const MAX_ACCESS_TOKEN_MAX_AGE = 60 * 60 * 24;
 
-export const ADMIN_REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
+export const ADMIN_REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 30;
 
 export interface AdminAuthCookieOptions {
   httpOnly: true;

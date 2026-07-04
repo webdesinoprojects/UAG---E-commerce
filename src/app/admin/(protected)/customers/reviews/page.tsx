@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockProductReviews } from "@/features/admin/mock-data";
+import { readAdminReviews } from "@/server/repositories/commerce-repository";
 import { requireAdmin } from "@/server/auth/admin";
 
 export const metadata = {
@@ -31,30 +31,11 @@ export default async function AdminReviewsPage({
   await requireAdmin();
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim() : "";
-  const normalizedQuery = query.toLowerCase();
-  const reviews = normalizedQuery
-    ? mockProductReviews.filter((review) =>
-        [
-          review.id,
-          review.productName,
-          review.reviewer,
-          review.sentiment,
-          review.latestComment,
-          review.updatedAt,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedQuery),
-      )
-    : mockProductReviews;
+  const reviews = await readAdminReviews(query);
 
   const averageRating =
-    mockProductReviews.reduce((sum, review) => sum + review.rating, 0) /
-    mockProductReviews.length;
-  const totalReviews = mockProductReviews.reduce(
-    (sum, review) => sum + review.reviews,
-    0,
-  );
+    reviews.length === 0 ? 0 : reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length;
+  const totalReviews = reviews.reduce((sum) => sum + 1, 0);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
@@ -108,31 +89,34 @@ export default async function AdminReviewsPage({
                   </TableCell>
                 </TableRow>
               ) : (
-                reviews.map((review) => (
-                  <TableRow key={review.id}>
-                    <TableCell className="px-4 font-semibold">{review.id}</TableCell>
-                    <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {review.productName}
-                    </TableCell>
-                    <TableCell>{review.reviewer}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center gap-1 font-semibold">
-                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                        {review.rating.toFixed(1)}
-                      </span>
-                    </TableCell>
-                    <TableCell>{review.reviews}</TableCell>
-                    <TableCell className="whitespace-normal text-zinc-600 dark:text-zinc-300">
-                      {review.latestComment}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={review.sentiment === "Positive" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300"}>
-                        {review.sentiment}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{review.updatedAt}</TableCell>
-                  </TableRow>
-                ))
+                reviews.map((review) => {
+                  const sentiment = review.rating >= 4 ? "Positive" : review.rating >= 3 ? "Mixed" : "Negative";
+                  return (
+                    <TableRow key={review.id}>
+                      <TableCell className="px-4 font-semibold">{review.id}</TableCell>
+                      <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {review.productName}
+                      </TableCell>
+                      <TableCell>{review.reviewer}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center gap-1 font-semibold">
+                          <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          {review.rating.toFixed(1)}
+                        </span>
+                      </TableCell>
+                      <TableCell>{review.rating}</TableCell>
+                      <TableCell className="whitespace-normal text-zinc-600 dark:text-zinc-300">
+                        {review.comment}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={sentiment === "Positive" ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300" : sentiment === "Mixed" ? "bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300" : "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300"}>
+                          {sentiment}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(review.updatedAt).toLocaleString("en-IN")}</TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

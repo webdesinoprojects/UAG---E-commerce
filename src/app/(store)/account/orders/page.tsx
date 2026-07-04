@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { PackageCheck } from "lucide-react";
+import { Eye, PackageCheck, ReceiptText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requireCustomer } from "@/server/auth/customer";
@@ -123,7 +123,23 @@ async function CustomerOrdersContent() {
                   ))}
                 </div>
                 <div className="mt-4 flex justify-end border-t border-zinc-200 pt-4 text-lg font-black dark:border-zinc-800">
-                  {formatMoney(order.totalCents, order.currency)}
+                  <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-wrap gap-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/account/orders/${order.id}`}>
+                          <Eye className="h-4 w-4" aria-hidden="true" />
+                          Details
+                        </Link>
+                      </Button>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/account/orders/${order.id}/invoice`}>
+                          <ReceiptText className="h-4 w-4" aria-hidden="true" />
+                          Invoice
+                        </Link>
+                      </Button>
+                    </div>
+                    <span>{formatMoney(order.totalCents, order.currency)}</span>
+                  </div>
                 </div>
               </article>
             ))}

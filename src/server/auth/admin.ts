@@ -1,6 +1,5 @@
 import "server-only";
 
-import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -90,7 +89,7 @@ function getUniqueCookieValues(
   return values;
 }
 
-export const getCurrentAdmin = cache(async () => {
+export async function getCurrentAdmin() {
   await connection();
 
   const cookieStore = await cookies();
@@ -112,7 +111,7 @@ export const getCurrentAdmin = cache(async () => {
   }
 
   return null;
-});
+}
 
 export async function requireAdmin() {
   const admin = await getCurrentAdmin();

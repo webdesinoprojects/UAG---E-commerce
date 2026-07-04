@@ -11,6 +11,7 @@ const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}
 
 const trackOrderSchema = z.object({
   identifier: z.string().min(1, "Order number or ID is required."),
+  phone: z.string().trim().min(7, "Phone number is required.").max(20),
 });
 
 export interface TrackOrderState {
@@ -18,6 +19,7 @@ export interface TrackOrderState {
   notFound: boolean;
   fieldErrors?: {
     identifier?: string[];
+    phone?: string[];
   };
   message?: string;
 }
@@ -26,13 +28,18 @@ function isUuid(value: string): boolean {
   return uuidRegex.test(value.trim());
 }
 
+function phoneDigits(value: string) {
+  return value.replace(/\D/g, "") || value.trim();
+}
+
 export async function trackOrderAction(
   _previousState: TrackOrderState,
   formData: FormData
 ): Promise<TrackOrderState> {
   const identifier = formData.get("identifier");
+  const phone = formData.get("phone");
 
-  const parsed = trackOrderSchema.safeParse({ identifier });
+  const parsed = trackOrderSchema.safeParse({ identifier, phone });
 
   if (!parsed.success) {
     return {
@@ -53,8 +60,16 @@ export async function trackOrderAction(
       }
     } else {
       order = await lookupOrderByTracking({
-        orderNumber: normalizedId,
+        identifier: normalizedId,
+        customerPhone: parsed.data.phone,
       });
+    }
+
+    if (
+      order &&
+      phoneDigits(order.customerPhone) !== phoneDigits(parsed.data.phone)
+    ) {
+      order = null;
     }
 
     return {

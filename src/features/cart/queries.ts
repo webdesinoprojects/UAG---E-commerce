@@ -30,7 +30,10 @@ function parseCartCookie(value: string | undefined): CartCookieItem[] {
 
 export async function readCartCookieItems(): Promise<CartCookieItem[]> {
   const cookieStore = await cookies();
-  return parseCartCookie(cookieStore.get(CART_COOKIE_NAME)?.value);
+  const cartCookies = cookieStore.getAll(CART_COOKIE_NAME);
+  const cartCookie = cartCookies.find((c) => c.value) || cartCookies[0];
+
+  return parseCartCookie(cartCookie?.value);
 }
 
 export async function getCartSummary(): Promise<CartSummary> {

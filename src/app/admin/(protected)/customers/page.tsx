@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockAdminCustomers } from "@/features/admin/mock-data";
+import { readAdminCustomers } from "@/server/repositories/commerce-repository";
 import { requireAdmin } from "@/server/auth/admin";
 
 export const metadata = {
@@ -30,34 +30,26 @@ export default async function AdminCustomersPage({
   await requireAdmin();
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim() : "";
+  const customers = await readAdminCustomers(query);
   const normalizedQuery = query.toLowerCase();
-  const customers = normalizedQuery
-    ? mockAdminCustomers.filter((customer) =>
+  const filtered = normalizedQuery
+    ? customers.filter((customer) =>
         [
           customer.id,
           customer.name,
           customer.email,
-          customer.phone,
-          customer.lastLogin,
+          customer.email,
+          customer.lastOrderAt ?? "",
         ]
           .join(" ")
           .toLowerCase()
           .includes(normalizedQuery),
       )
-    : mockAdminCustomers;
+    : customers;
 
-  const booked = mockAdminCustomers.reduce(
-    (sum, customer) => sum + customer.totalProductsBooked,
-    0,
-  );
-  const returned = mockAdminCustomers.reduce(
-    (sum, customer) => sum + customer.returned,
-    0,
-  );
-  const replaced = mockAdminCustomers.reduce(
-    (sum, customer) => sum + customer.replaced,
-    0,
-  );
+  const booked = filtered.reduce((sum, customer) => sum + customer.totalOrders, 0);
+  const returned = 0;
+  const replaced = 0;
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
@@ -87,7 +79,7 @@ export default async function AdminCustomersPage({
           <CardTitle>Customer Directory</CardTitle>
           <CardDescription>
             {query
-              ? `${customers.length} result${customers.length === 1 ? "" : "s"} for "${query}".`
+              ? `${filtered.length} result${filtered.length === 1 ? "" : "s"} for "${query}".`
               : "Login profile and customer order history in one table."}
           </CardDescription>
         </CardHeader>
@@ -98,33 +90,31 @@ export default async function AdminCustomersPage({
                 <TableHead className="min-w-[120px] px-4">Customer ID</TableHead>
                 <TableHead className="min-w-[180px]">Name</TableHead>
                 <TableHead className="min-w-[240px]">Email</TableHead>
-                <TableHead className="min-w-[150px]">Phone No.</TableHead>
-                <TableHead>Booked</TableHead>
-                <TableHead>Returned</TableHead>
-                <TableHead>Replaced</TableHead>
-                <TableHead className="min-w-[120px]">Last Login</TableHead>
+                <TableHead>Orders</TableHead>
+                <TableHead>Items</TableHead>
+                <TableHead>Total Spent</TableHead>
+                <TableHead className="min-w-[120px]">Last Order</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {customers.length === 0 ? (
+              {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-28 text-center text-zinc-500">
+                  <TableCell colSpan={7} className="h-28 text-center text-zinc-500">
                     No customers match this search.
                   </TableCell>
                 </TableRow>
               ) : (
-                customers.map((customer) => (
+                filtered.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell className="px-4 font-semibold">{customer.id}</TableCell>
                     <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
                       {customer.name}
                     </TableCell>
                     <TableCell>{customer.email}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.totalProductsBooked}</TableCell>
-                    <TableCell>{customer.returned}</TableCell>
-                    <TableCell>{customer.replaced}</TableCell>
-                    <TableCell>{customer.lastLogin}</TableCell>
+                    <TableCell>{customer.totalOrders}</TableCell>
+                    <TableCell>{customer.totalItems}</TableCell>
+                    <TableCell>{formatCents(customer.totalSpentCents)}</TableCell>
+                    <TableCell>{customer.lastOrderAt ? new Date(customer.lastOrderAt).toLocaleString("en-IN") : "-"}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -145,4 +135,12 @@ function Summary({ label, value }: { label: string; value: string }) {
       </div>
     </div>
   );
+}
+
+function formatCents(cents: number) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import { RazorpayPayment } from "@/features/checkout/components/razorpay-payment";
+import { CHECKOUT_ORDER_ACCESS_COOKIE } from "@/lib/checkout-order-cookies";
+import { getCurrentCustomer } from "@/server/auth/customer";
 import { getRazorpayPublicKey } from "@/server/payments/razorpay";
 import { readOrderById } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
@@ -50,6 +53,20 @@ async function RazorpayPaymentContent({
   ]);
 
   if (!order) notFound();
+
+  const [customer, cookieStore] = await Promise.all([
+    getCurrentCustomer(),
+    cookies(),
+  ]);
+  const hasGuestCheckoutAccess =
+    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value === order.id;
+
+  if (order.customerId) {
+    if (customer?.id !== order.customerId) notFound();
+  } else if (!hasGuestCheckoutAccess) {
+    notFound();
+  }
+
   if (order.paymentMethod !== "razorpay") redirect("/checkout");
   if (order.paymentStatus === "paid") redirect(`/checkout/confirmation/${orderId}`);
   if (!order.razorpayOrderId || !keyId) redirect("/checkout");

@@ -5,6 +5,7 @@ import {
   CircleAlert,
   ClipboardList,
   LogOut,
+  MapPin,
   UserCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
 
 const dashboardTiles = [
   { label: "Orders", href: "/account/orders", icon: ClipboardList },
+  { label: "Addresses", href: "/account/addresses", icon: MapPin },
   { label: "Account details", href: "/account/profile", icon: UserCircle },
 ];
 
@@ -58,21 +60,21 @@ async function AccountContent() {
             <span className="font-semibold text-zinc-700 dark:text-zinc-200">{customerName}</span>.
           </p>
           <p>
-            From your account dashboard you can view your{" "}
+            From your account dashboard you can view{" "}
             <Link
               href="/account/orders"
               className="font-semibold text-zinc-800 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
             >
               recent orders
             </Link>
-            , and edit your password and{" "}
+            {", manage saved checkout addresses, and edit "}
             <Link
               href="/account/profile"
               className="font-semibold text-zinc-800 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
             >
               account details
             </Link>
-            .
+            {"."}
           </p>
         </div>
 

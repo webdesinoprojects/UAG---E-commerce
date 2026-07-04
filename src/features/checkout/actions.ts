@@ -6,6 +6,10 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { CART_COOKIE_NAME } from "@/lib/cart-cookies";
+import {
+  CHECKOUT_ORDER_ACCESS_COOKIE,
+  getCheckoutOrderAccessCookieOptions,
+} from "@/lib/checkout-order-cookies";
 import { getCartSummary } from "@/features/cart/queries";
 import { getCurrentCustomer } from "@/server/auth/customer";
 import { createCheckoutOrder } from "@/server/repositories/commerce-repository";
@@ -33,6 +37,7 @@ export async function createCheckoutOrderAction(
     paymentMethod: formData.get("paymentMethod"),
     notes: formData.get("notes"),
     couponCode: formData.get("couponCode"),
+    saveAddress: formData.get("saveAddress"),
   });
 
   if (!parsed.success) {
@@ -54,6 +59,11 @@ export async function createCheckoutOrderAction(
 
     if (result.paymentMethod === "cod") {
       const cookieStore = await cookies();
+      cookieStore.set(
+        CHECKOUT_ORDER_ACCESS_COOKIE,
+        result.orderId,
+        getCheckoutOrderAccessCookieOptions()
+      );
       cookieStore.delete(CART_COOKIE_NAME);
       revalidatePath("/cart");
       revalidatePath("/checkout");
@@ -62,6 +72,12 @@ export async function createCheckoutOrderAction(
       revalidatePath("/admin/inventory");
       redirectTo = `/checkout/confirmation/${result.orderId}`;
     } else {
+      const cookieStore = await cookies();
+      cookieStore.set(
+        CHECKOUT_ORDER_ACCESS_COOKIE,
+        result.orderId,
+        getCheckoutOrderAccessCookieOptions()
+      );
       redirectTo = `/checkout/payment/${result.orderId}`;
     }
   } catch (error) {

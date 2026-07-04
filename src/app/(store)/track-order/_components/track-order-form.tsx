@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { format } from "date-fns";
 import {
   AlertCircle,
@@ -12,10 +12,12 @@ import {
   HelpCircle,
   Home,
   PackageCheck,
+  RotateCcw,
   Search,
   ShieldPlus,
   ShoppingCart,
   Star,
+  XCircle,
 } from "lucide-react";
 
 import { trackOrderAction, type TrackOrderState } from "@/features/commerce/actions";
@@ -23,6 +25,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { createOrderServiceRequestAction, type CommerceActionState } from "@/features/commerce/order-actions";
 
 type Order = NonNullable<TrackOrderState["order"]>;
 
@@ -296,7 +302,7 @@ function SearchPanel({
         Find your order details
       </h1>
       <p className="mt-2 text-sm leading-6 text-zinc-500">
-        Enter your order number or order ID to load live order status.
+        Enter your order number or order ID with the phone used at checkout.
       </p>
 
       <form action={formAction} className="mt-5 space-y-4">
@@ -313,6 +319,18 @@ function SearchPanel({
             <FieldError>
               {state.fieldErrors?.identifier?.[0] ?? null}
             </FieldError>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="phone">Phone number</FieldLabel>
+            <Input
+              id="phone"
+              name="phone"
+              inputMode="tel"
+              placeholder="Phone used on the order"
+              required
+              aria-invalid={!!state.fieldErrors?.phone?.[0]}
+            />
+            <FieldError>{state.fieldErrors?.phone?.[0] ?? null}</FieldError>
           </Field>
         </FieldGroup>
 
@@ -335,7 +353,7 @@ function SearchPanel({
       {state.notFound && !state.message ? (
         <Alert variant="destructive" className="mt-4">
           <AlertDescription>
-            No order found with this order number or ID. Please check and try again.
+            No order found with that order number and phone. Please check and try again.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -405,12 +423,16 @@ function MobileOrderDetails({ order }: { order: Order }) {
       <MobileTimeline order={order} />
 
       <div className="grid grid-cols-2 border-y border-zinc-100 text-sm font-semibold text-zinc-800">
-        <Link
-          href="/contact-us"
-          className="flex h-11 items-center justify-center border-r border-zinc-100"
-        >
-          Cancel
-        </Link>
+        {order.status !== "delivered" && order.customerId ? (
+          <CancelRequestDialog order={order} />
+        ) : (
+          <Link
+            href="/contact-us"
+            className="flex h-11 items-center justify-center border-r border-zinc-100"
+          >
+            Cancel
+          </Link>
+        )}
         <Link
           href="/contact-us"
           className="flex h-11 items-center justify-center"
@@ -517,13 +539,18 @@ function DesktopOrderDetails({ order }: { order: Order }) {
                 <span>Download Invoice</span>
               </div>
               <Button
-                asChild
+                asChild={!!order.customerId}
                 variant="outline"
                 className="h-9 rounded-md px-5 text-xs font-semibold text-[#2874f0]"
+                disabled={!order.customerId}
               >
-                <Link href={`/checkout/confirmation/${order.id}`}>
-                  Download
-                </Link>
+                {order.customerId ? (
+                  <Link href={`/account/orders/${order.id}/invoice`}>
+                    Download
+                  </Link>
+                ) : (
+                  <span>Account only</span>
+                )}
               </Button>
             </div>
           </section>
@@ -567,13 +594,26 @@ function DesktopOrderDetails({ order }: { order: Order }) {
           <DesktopTimeline order={order} />
 
           <div className="flex flex-col gap-4 border-t border-zinc-100 pt-4 text-sm font-semibold text-[#2874f0] lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
-            <Link
-              href="/contact-us"
-              className="flex items-center gap-2 hover:underline"
-            >
-              <Star className="h-4 w-4 fill-[#2874f0]" />
-              Rate & Review Product
-            </Link>
+            {order.status === "delivered" && order.customerId ? (
+              <Link
+                href={`/account/orders/${order.id}/review`}
+                className="flex items-center gap-2 hover:underline"
+              >
+                <Star className="h-4 w-4 fill-[#2874f0]" />
+                Rate & Review Product
+              </Link>
+            ) : (
+              <Link
+                href="/contact-us"
+                className="flex items-center gap-2 hover:underline"
+              >
+                <Star className="h-4 w-4 fill-[#2874f0]" />
+                Rate & Review Product
+              </Link>
+            )}
+            {order.status !== "delivered" && order.customerId ? (
+              <CancelRequestDialog order={order} />
+            ) : null}
             <Link
               href="/contact-us"
               className="flex items-center gap-2 hover:underline"
@@ -585,6 +625,81 @@ function DesktopOrderDetails({ order }: { order: Order }) {
         </section>
       </div>
     </section>
+  );
+}
+
+function CancelRequestDialog({ order }: { order: Order }) {
+  const [state, action, pending] = useActionState(
+    createOrderServiceRequestAction,
+    { message: null } as CommerceActionState
+  );
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <button type="button" className="flex h-11 items-center justify-center border-r border-zinc-100 text-left">
+          Cancel
+        </button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cancel Order / Request Return or Replacement</DialogTitle>
+        </DialogHeader>
+        <form action={action} className="mt-4 space-y-4">
+          <input type="hidden" name="orderId" value={order.id} />
+          <input type="hidden" name="orderItemId" value={order.items[0]?.id ?? ""} />
+
+          <FieldGroup>
+            <Field>
+              <FieldLabel>Request Type</FieldLabel>
+              <RadioGroup name="requestType" defaultValue="return" className="flex gap-4">
+                <label className="flex items-center gap-2">
+                  <RadioGroupItem value="return" id="req-return" />
+                  <span>Return</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <RadioGroupItem value="replacement" id="req-replacement" />
+                  <span>Replacement</span>
+                </label>
+              </RadioGroup>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="reason">Reason</FieldLabel>
+              <Input
+                id="reason"
+                name="reason"
+                placeholder="Damaged, wrong item, not working..."
+                required
+              />
+              <FieldError>{state.fieldErrors?.reason?.[0] ?? null}</FieldError>
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="details">Details</FieldLabel>
+              <Textarea
+                id="details"
+                name="details"
+                rows={3}
+                placeholder="Tell us more about the issue..."
+                required
+              />
+              <FieldError>{state.fieldErrors?.details?.[0] ?? null}</FieldError>
+            </Field>
+          </FieldGroup>
+
+          {state.message && (
+            <Alert variant="destructive">
+              <AlertDescription>{state.message}</AlertDescription>
+            </Alert>
+          )}
+
+          <Button type="submit" className="w-full" disabled={pending}>
+            {pending ? "Submitting..." : "Submit Request"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

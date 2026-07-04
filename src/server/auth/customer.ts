@@ -1,6 +1,5 @@
 import "server-only";
 
-import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
@@ -8,7 +7,13 @@ import {
   createSupabaseAnonServerClient,
   createSupabaseUserServerClient,
 } from "@/server/db/supabase";
-import { CUSTOMER_ACCESS_TOKEN_COOKIE } from "@/lib/customer-auth-cookies";
+import {
+  CUSTOMER_ACCESS_TOKEN_COOKIE,
+  CUSTOMER_REFRESH_TOKEN_COOKIE,
+} from "@/lib/customer-auth-cookies";
+import { isJwtExpiredOrNearExpiry } from "@/lib/jwt";
+import { getSupabasePublicEnv } from "@/server/db/env";
+import { setCustomerSessionCookies } from "@/server/auth/customer-session-cookies";
 
 export interface CustomerSession {
   id: string;
@@ -70,18 +75,80 @@ export async function getCustomerFromAccessToken(
   return toCustomerSession(profile);
 }
 
-export const getCurrentCustomer = cache(async () => {
+async function refreshCustomerSession(): Promise<string | null> {
+  const cookieStore = await cookies();
+  const refreshToken = cookieStore.get(CUSTOMER_REFRESH_TOKEN_COOKIE)?.value;
+
+  if (!refreshToken) {
+    return null;
+  }
+
+  const env = getSupabasePublicEnv();
+
+  if (!env) {
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${env.SUPABASE_URL.replace(/\/$/, "")}/auth/v1/token?grant_type=refresh_token`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          apikey: env.SUPABASE_ANON_KEY,
+          authorization: `Bearer ${env.SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const json = (await response.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+    };
+
+    if (!json.access_token || !json.refresh_token) {
+      return null;
+    }
+
+    await setCustomerSessionCookies({
+      accessToken: json.access_token,
+      refreshToken: json.refresh_token,
+      expiresIn: json.expires_in,
+    });
+
+    return json.access_token;
+  } catch {
+    return null;
+  }
+}
+
+export async function getCurrentCustomer() {
   await connection();
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get(CUSTOMER_ACCESS_TOKEN_COOKIE)?.value;
+  let accessToken = cookieStore.get(CUSTOMER_ACCESS_TOKEN_COOKIE)?.value;
 
   if (!accessToken) {
     return null;
   }
 
+  if (isJwtExpiredOrNearExpiry(accessToken, 60)) {
+    const refreshed = await refreshCustomerSession();
+    if (refreshed) {
+      accessToken = refreshed;
+    }
+  }
+
   return getCustomerFromAccessToken(accessToken);
-});
+}
 
 export async function requireCustomer() {
   const customer = await getCurrentCustomer();

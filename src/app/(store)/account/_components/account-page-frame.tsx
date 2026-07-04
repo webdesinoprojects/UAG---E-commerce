@@ -5,7 +5,7 @@ import Link from "next/link";
 import { signOutCustomerAction } from "@/server/auth/actions";
 
 export type AccountNavKey =
-  | "dashboard"
+  "dashboard"
   | "orders"
   | "downloads"
   | "addresses"
@@ -18,6 +18,7 @@ const accountLinks: Array<{
 }> = [
   { key: "dashboard", label: "Dashboard", href: "/account" },
   { key: "orders", label: "Orders", href: "/account/orders" },
+  { key: "addresses", label: "Addresses", href: "/account/addresses" },
   { key: "profile", label: "Account details", href: "/account/profile" },
 ];
 
@@ -32,9 +33,13 @@ export function AccountPageFrame({
     <div className="bg-white text-zinc-950 dark:bg-zinc-950 dark:text-zinc-100">
       <AccountHero />
 
-      <section className="mx-auto grid w-full max-w-[1520px] gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[310px_minmax(0,1fr)] lg:px-12 lg:py-14">
-        <AccountSidebar active={active} />
-        <div className="min-w-0 lg:border-l lg:border-zinc-200 lg:pl-10 dark:lg:border-zinc-800">
+      <section className="mx-auto flex w-full max-w-[1520px] gap-10 px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <div className="hidden lg:block lg:w-[310px] lg:shrink-0">
+          <div className="sticky top-6">
+            <AccountSidebar active={active} />
+          </div>
+        </div>
+        <div className="min-w-0 flex-1 lg:border-l lg:border-zinc-200 lg:pl-10 dark:lg:border-zinc-800 lg:overflow-y-auto lg:max-h-[calc(100vh-48px)]">
           {children}
         </div>
       </section>
@@ -46,10 +51,14 @@ export function AccountPageFrameShell() {
   return (
     <div className="bg-white dark:bg-zinc-950">
       <div className="h-[220px] bg-zinc-950" />
-      <div className="mx-auto grid w-full max-w-[1520px] gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[310px_minmax(0,1fr)] lg:px-12 lg:py-14">
-        <div className="h-80 rounded-[8px] bg-zinc-100 dark:bg-zinc-800" />
-        <div className="h-[520px] rounded-[8px] bg-zinc-100 dark:bg-zinc-800" />
-      </div>
+      <section className="mx-auto flex w-full max-w-[1520px] gap-10 px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <div className="hidden lg:block lg:w-[310px] lg:shrink-0">
+          <div className="h-[520px] rounded-[8px] bg-zinc-100 dark:bg-zinc-800" />
+        </div>
+        <div className="min-w-0 flex-1 lg:border-l lg:border-zinc-200 lg:pl-10 dark:lg:border-zinc-800">
+          <div className="h-[520px] rounded-[8px] bg-zinc-100 dark:bg-zinc-800" />
+        </div>
+      </section>
     </div>
   );
 }
@@ -86,7 +95,7 @@ function AccountHero() {
 
 function AccountSidebar({ active }: { active: AccountNavKey }) {
   return (
-    <aside className="lg:pr-2">
+    <aside>
       <h2 className="font-sans text-2xl font-semibold uppercase tracking-normal text-zinc-950 dark:text-zinc-100">
         My Account
       </h2>

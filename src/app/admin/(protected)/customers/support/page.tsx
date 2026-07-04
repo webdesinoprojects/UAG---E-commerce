@@ -16,29 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockAdminCustomers } from "@/features/admin/mock-data";
+import { readAdminServiceRequests } from "@/server/repositories/commerce-repository";
 import { requireAdmin } from "@/server/auth/admin";
 
 export const metadata = {
   title: "Support Tickets | UAG E-commerce",
 };
-
-const supportTickets = mockAdminCustomers.slice(0, 6).map((customer, index) => ({
-  id: `TKT-${String(index + 1).padStart(4, "0")}`,
-  customer: customer.name,
-  email: customer.email,
-  subject: [
-    "Delivery status request",
-    "Replacement eligibility",
-    "Invoice copy needed",
-    "Product warranty question",
-    "Return pickup follow-up",
-    "Order address update",
-  ][index],
-  priority: index < 2 ? "High" : index < 4 ? "Medium" : "Low",
-  status: index % 3 === 0 ? "Open" : index % 3 === 1 ? "In Review" : "Resolved",
-  updatedAt: customer.lastLogin,
-}));
 
 export default async function AdminSupportTicketsPage({
   searchParams,
@@ -48,22 +31,7 @@ export default async function AdminSupportTicketsPage({
   await requireAdmin();
   const params = await searchParams;
   const query = typeof params.q === "string" ? params.q.trim() : "";
-  const normalizedQuery = query.toLowerCase();
-  const tickets = normalizedQuery
-    ? supportTickets.filter((ticket) =>
-        [
-          ticket.id,
-          ticket.customer,
-          ticket.email,
-          ticket.subject,
-          ticket.priority,
-          ticket.status,
-        ]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedQuery),
-      )
-    : supportTickets;
+  const tickets = await readAdminServiceRequests(query);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6">
@@ -86,17 +54,17 @@ export default async function AdminSupportTicketsPage({
           <CardDescription>
             {query
               ? `${tickets.length} result${tickets.length === 1 ? "" : "s"} for "${query}".`
-              : "Support tickets are ready for the live helpdesk integration."}
+              : "Service requests and follow-ups from customers."}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="min-w-[110px] px-4">Ticket</TableHead>
+                <TableHead className="min-w-[110px] px-4">Request</TableHead>
                 <TableHead className="min-w-[180px]">Customer</TableHead>
-                <TableHead className="min-w-[260px]">Subject</TableHead>
-                <TableHead>Priority</TableHead>
+                <TableHead className="min-w-[260px]">Product</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="min-w-[120px]">Updated</TableHead>
               </TableRow>
@@ -111,21 +79,21 @@ export default async function AdminSupportTicketsPage({
               ) : (
                 tickets.map((ticket) => (
                   <TableRow key={ticket.id}>
-                    <TableCell className="px-4 font-semibold">{ticket.id}</TableCell>
+                    <TableCell className="px-4 font-semibold">{ticket.requestNumber}</TableCell>
                     <TableCell>
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {ticket.customer}
+                        {ticket.customerName ?? ticket.customerId ?? "-"}
                       </div>
-                      <div className="text-xs text-zinc-500">{ticket.email}</div>
+                      <div className="text-xs text-zinc-500">{ticket.customerEmail ?? ""}</div>
                     </TableCell>
-                    <TableCell>{ticket.subject}</TableCell>
+                    <TableCell>{ticket.productName ?? "-"}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{ticket.priority}</Badge>
+                      <Badge variant="outline">{ticket.requestType}</Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={statusClass(ticket.status)}>{ticket.status}</Badge>
+                      <Badge className={statusClass(ticket.status)}>{ticket.status.replace(/_/g, " ")}</Badge>
                     </TableCell>
-                    <TableCell>{ticket.updatedAt}</TableCell>
+                    <TableCell>{new Date(ticket.updatedAt).toLocaleString("en-IN")}</TableCell>
                   </TableRow>
                 ))
               )}
@@ -138,12 +106,12 @@ export default async function AdminSupportTicketsPage({
 }
 
 function statusClass(status: string) {
-  if (status === "Resolved") {
+  if (status === "completed") {
     return "bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:bg-emerald-900/30 dark:text-emerald-300";
   }
 
-  if (status === "In Review") {
-    return "bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300";
+  if (status === "rejected" || status === "cancelled") {
+    return "bg-red-100 text-red-800 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-300";
   }
 
   return "bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300";

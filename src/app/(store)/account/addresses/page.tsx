@@ -1,27 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { MapPin } from "lucide-react";
 import { requireCustomer } from "@/server/auth/customer";
+import { readCustomerAddresses } from "@/server/repositories/commerce-repository";
 import {
   AccountPageFrame,
   AccountPageFrameShell,
 } from "@/app/(store)/account/_components/account-page-frame";
+import { AddressManager } from "@/app/(store)/account/addresses/_components/address-manager";
 
 export const metadata: Metadata = {
   title: "Addresses | UAG",
-  description: "View your UAG account addresses.",
+  description: "Manage your UAG account addresses.",
 };
-
-const addressCards = [
-  {
-    title: "Billing address",
-    description: "You have not set up this type of address yet.",
-  },
-  {
-    title: "Shipping address",
-    description: "You have not set up this type of address yet.",
-  },
-];
 
 export default function AccountAddressesPage() {
   return (
@@ -32,7 +22,8 @@ export default function AccountAddressesPage() {
 }
 
 async function AccountAddressesContent() {
-  await requireCustomer();
+  const customer = await requireCustomer();
+  const addresses = await readCustomerAddresses(customer.id);
 
   return (
     <AccountPageFrame active="addresses">
@@ -42,31 +33,13 @@ async function AccountAddressesContent() {
             Addresses
           </h2>
           <p className="mt-3 text-base leading-7 text-zinc-500 dark:text-zinc-400">
-            The following addresses will be used on the checkout page by
-            default.
+            Saved addresses can be reused during checkout and updated from here.
           </p>
         </div>
-
-        <div className="grid gap-5 md:grid-cols-2">
-          {addressCards.map((card) => (
-            <section
-              key={card.title}
-              className="rounded-[8px] border border-zinc-200 bg-white p-7 shadow-[0_1px_10px_rgba(0,0,0,0.08)] dark:border-zinc-800 dark:bg-zinc-900"
-            >
-              <MapPin
-                className="size-12 text-zinc-300 dark:text-zinc-600"
-                strokeWidth={1.4}
-                aria-hidden="true"
-              />
-              <h3 className="mt-5 font-sans text-2xl font-bold text-zinc-950 dark:text-zinc-100">
-                {card.title}
-              </h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                {card.description}
-              </p>
-            </section>
-          ))}
-        </div>
+        <AddressManager
+          addresses={addresses}
+          defaultName={customer.displayName ?? ""}
+        />
       </div>
     </AccountPageFrame>
   );

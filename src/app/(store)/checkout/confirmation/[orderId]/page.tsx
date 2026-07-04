@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CHECKOUT_ORDER_ACCESS_COOKIE } from "@/lib/checkout-order-cookies";
+import { getCurrentCustomer } from "@/server/auth/customer";
 import { readOrderById } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
 import { CheckCircle2 } from "lucide-react";
@@ -83,6 +86,19 @@ async function OrderConfirmationContent({
   const order = await readOrderById(client, orderId);
 
   if (!order) notFound();
+
+  const [customer, cookieStore] = await Promise.all([
+    getCurrentCustomer(),
+    cookies(),
+  ]);
+  const hasGuestCheckoutAccess =
+    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value === order.id;
+
+  if (order.customerId) {
+    if (customer?.id !== order.customerId) notFound();
+  } else if (!hasGuestCheckoutAccess) {
+    notFound();
+  }
 
   const meta = statusMeta(order.status);
 
