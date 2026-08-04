@@ -6,6 +6,7 @@ import { z } from "zod";
 import { lookupOrderByTracking, readOrderById } from "@/server/repositories/commerce-repository";
 import type { OrderDto } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
+import { enforceRateLimit } from "@/server/security/rate-limit";
 
 const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -36,6 +37,8 @@ export async function trackOrderAction(
   _previousState: TrackOrderState,
   formData: FormData
 ): Promise<TrackOrderState> {
+  try { await enforceRateLimit("order:track", 10, 60 * 15); }
+  catch (error) { return { order: null, notFound: false, message: error instanceof Error ? error.message : "Too many requests." }; }
   const identifier = formData.get("identifier");
   const phone = formData.get("phone");
 

@@ -252,6 +252,7 @@ export type Database = {
           low_stock_threshold: number;
           name: string;
           price_cents: number;
+          product_url: string | null;
           published_at: string | null;
           seo_description: string | null;
           seo_title: string | null;
@@ -283,6 +284,7 @@ export type Database = {
           low_stock_threshold?: number;
           name: string;
           price_cents?: number;
+          product_url?: string | null;
           published_at?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
@@ -312,6 +314,7 @@ export type Database = {
           low_stock_threshold?: number;
           name?: string;
           price_cents?: number;
+          product_url?: string | null;
           published_at?: string | null;
           seo_description?: string | null;
           seo_title?: string | null;
@@ -325,6 +328,12 @@ export type Database = {
           stock_quantity?: number;
           updated_by?: string | null;
         };
+        Relationships: [];
+      };
+      contact_submissions: {
+        Row: { id: string; name: string; email: string; subject: string; message: string; status: string; created_at: string; updated_at: string };
+        Insert: { id?: string; name: string; email: string; subject: string; message: string; status?: string; created_at?: string; updated_at?: string };
+        Update: { name?: string; email?: string; subject?: string; message?: string; status?: string; updated_at?: string };
         Relationships: [];
       };
       media_assets: {
@@ -404,6 +413,10 @@ export type Database = {
     Functions: {
       is_admin: {
         Args: Record<string, never>;
+        Returns: boolean;
+      };
+      consume_api_rate_limit: {
+        Args: { p_bucket_key: string; p_limit: number; p_window_seconds: number };
         Returns: boolean;
       };
     };

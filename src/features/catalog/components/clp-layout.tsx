@@ -36,7 +36,7 @@ export function ClpLayout({
           </React.Suspense>
 
           {/* 3. Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="w-full flex-1 flex flex-col min-w-0">
             
             <React.Suspense fallback={<div className="h-14 w-full bg-zinc-100 dark:bg-zinc-800 animate-pulse rounded-lg mb-6"></div>}>
               <ClpTopbar 

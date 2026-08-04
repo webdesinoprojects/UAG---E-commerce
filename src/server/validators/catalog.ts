@@ -130,6 +130,13 @@ export const catalogProductCreateInputSchema = z.object({
     .min(2, "Slug must be at least 2 characters.")
     .max(100, "Slug too long.")
     .regex(/^[a-z0-9][a-z0-9-]*$/, "Use lowercase letters, numbers, and hyphens only."),
+  productUrl: z
+    .union([
+      z.string().trim().url("Enter a complete http:// or https:// URL.").max(2048).refine((value) => /^https?:\/\//i.test(value), "Only http:// or https:// URLs are allowed."),
+      z.string().trim().regex(/^\/(?!\/)[^\s]*$/, "Use a site path beginning with /."),
+      z.literal(""), z.null(), z.undefined(),
+    ])
+    .transform((value) => value || null),
   sku: z
     .union([z.string().trim().min(1).max(100), z.literal(""), z.null(), z.undefined()])
     .transform((v): string | null =>
@@ -188,6 +195,7 @@ export function parseCatalogProductCreateForm(formData: FormData) {
   return catalogProductCreateInputSchema.safeParse({
     name: formData.get("name"),
     slug: formData.get("slug"),
+    productUrl: formData.get("productUrl"),
     sku: formData.get("sku"),
     categoryId: formData.get("categoryId"),
     brand: (formData.get("brand") ?? "").toString().trim() || DEFAULT_BRAND,

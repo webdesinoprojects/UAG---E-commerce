@@ -104,7 +104,7 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
             <select 
               value={currentSort}
               onChange={(e) => updateParam("sort", e.target.value)}
-              className="appearance-none bg-transparent text-[10px] sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 pr-8 py-1 focus:outline-none cursor-pointer"
+              className="appearance-none bg-transparent text-[10px] sm:text-xs font-bold text-zinc-900 dark:text-zinc-100 dark:[&>option]:bg-zinc-900 dark:[&>option]:text-zinc-100 pr-8 py-1 focus:outline-none cursor-pointer"
             >
               <option value="default">Default sorting</option>
               <option value="popularity">Sort by popularity</option>
@@ -169,7 +169,7 @@ export function ClpTopbar({ categoryName, totalProducts, currentPage, filterOpti
             <select 
               value={currentSort}
               onChange={(e) => updateParam("sort", e.target.value)}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer dark:bg-zinc-900 dark:text-zinc-100 dark:[&>option]:bg-zinc-900 dark:[&>option]:text-zinc-100"
               aria-label="Sort products"
             >
               <option value="default">Default sorting</option>

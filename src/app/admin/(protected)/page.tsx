@@ -18,7 +18,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-import { mockDashboardData, mockProducts } from "@/features/admin/mock-data";
+type DashboardData = {
+  overview: { totalRevenue: number; activeUsers: number; totalOrders: number; products: number };
+  revenueChart: { name: string; revenue: number; orders: number }[];
+  recentOrders: { id: string; customer: string; status: string; amount: number }[];
+  topProducts: { id: string; name: string; category: string; price: number; image: string; sales: number }[];
+  generatedAt: string;
+};
+const EMPTY_DASHBOARD: DashboardData = { overview: { totalRevenue: 0, activeUsers: 0, totalOrders: 0, products: 0 }, revenueChart: [], recentOrders: [], topProducts: [], generatedAt: new Date(0).toISOString() };
 
 // Chart configurations for Shadcn Chart wrapper
 const revenueChartConfig = {
@@ -48,13 +55,17 @@ const getRevenueColor = (revenue: number) => {
 
 export default function AdminDashboardPage() {
   const [chartFilter, setChartFilter] = React.useState("year");
+  const [dashboardData, setDashboardData] = React.useState<DashboardData>(EMPTY_DASHBOARD);
+  React.useEffect(() => {
+    fetch("/api/admin/dashboard", { cache: "no-store" }).then((response) => response.ok ? response.json() : Promise.reject()).then(setDashboardData).catch(() => undefined);
+  }, []);
 
   const handleDownload = React.useCallback(() => {
     window.open("/api/admin/dashboard/export", "_blank");
   }, []);
 
   // Get top 4 products for the "Top Selling" widget
-  const topProducts = [...mockProducts].sort((a, b) => b.sales - a.sales).slice(0, 4);
+  const topProducts = dashboardData.topProducts;
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto pb-10">
@@ -74,7 +85,7 @@ export default function AdminDashboardPage() {
               <line x1="8" y1="2" x2="8" y2="6"></line>
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
-            10 Apr 2026 - 07 May 2026
+            {new Date(dashboardData.generatedAt).toLocaleDateString("en-IN")}
           </div>
           <Button onClick={handleDownload} className="bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 shadow-sm h-9 px-4">
             <Download className="h-4 w-4 mr-2" />
@@ -113,7 +124,7 @@ export default function AdminDashboardPage() {
             <CardDescription>Best seller of the month</CardDescription>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold mt-2">$15,231.89</div>
+            <div className="text-3xl font-bold mt-2">₹{dashboardData.overview.totalRevenue.toLocaleString("en-IN")}</div>
             <div className="text-xs font-medium text-emerald-600 dark:text-emerald-500 mt-1 flex items-center">
               <ArrowUpRight className="h-3 w-3 mr-1" />
               +65% from last month
@@ -140,7 +151,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">+6.1%</span>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">$34.1K</div>
+            <div className="text-3xl font-bold">₹{dashboardData.overview.totalRevenue.toLocaleString("en-IN")}</div>
           </CardContent>
           <CardFooter className="pt-4 pb-4 relative z-10">
             <Link href="#" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center hover:text-zinc-900 dark:hover:text-white transition-colors">
@@ -165,7 +176,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">+19.2%</span>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">500.1K</div>
+            <div className="text-3xl font-bold">{dashboardData.overview.activeUsers.toLocaleString("en-IN")}</div>
           </CardContent>
           <CardFooter className="pt-4 pb-4 relative z-10">
             <Link href="#" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center hover:text-zinc-900 dark:hover:text-white transition-colors">
@@ -190,7 +201,7 @@ export default function AdminDashboardPage() {
             <span className="text-xs font-bold text-red-600 bg-red-50 dark:bg-red-950/30 px-2 py-0.5 rounded-full">-1.2%</span>
           </CardHeader>
           <CardContent className="relative z-10">
-            <div className="text-3xl font-bold">11.3%</div>
+            <div className="text-3xl font-bold">{dashboardData.overview.totalOrders.toLocaleString("en-IN")}</div>
           </CardContent>
           <CardFooter className="pt-4 pb-4 relative z-10">
             <Link href="#" className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center hover:text-zinc-900 dark:hover:text-white transition-colors">
@@ -226,7 +237,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="flex-1 pb-4">
             <ChartContainer config={revenueChartConfig} className="h-[250px] w-full">
-              <BarChart data={mockDashboardData.revenueChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={dashboardData.revenueChart} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-zinc-200)" />
                 <XAxis 
                   dataKey="name" 
@@ -243,7 +254,7 @@ export default function AdminDashboardPage() {
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="revenue" radius={[4, 4, 0, 0]} barSize={32}>
-                  {mockDashboardData.revenueChart.map((entry, index) => (
+                  {dashboardData.revenueChart.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={getRevenueColor(entry.revenue)} />
                   ))}
                 </Bar>
@@ -259,7 +270,7 @@ export default function AdminDashboardPage() {
             <div>
               <CardTitle className="text-base">Returning Rate</CardTitle>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-2xl font-bold">$42,379</span>
+                <span className="text-2xl font-bold">₹{dashboardData.overview.totalRevenue.toLocaleString("en-IN")}</span>
                 <span className="text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">+2.5%</span>
               </div>
             </div>
@@ -270,7 +281,7 @@ export default function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="flex-1 pb-4">
             <ChartContainer config={returningChartConfig} className="h-[200px] w-full mt-8">
-              <LineChart data={mockDashboardData.revenueChart} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <LineChart data={dashboardData.revenueChart} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-zinc-200)" />
                 <XAxis 
                   dataKey="name" 
@@ -322,7 +333,7 @@ export default function AdminDashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockDashboardData.recentOrders.map((order) => (
+                {dashboardData.recentOrders.map((order) => (
                   <TableRow key={order.id} className="border-zinc-100 dark:border-zinc-800/60 hover:bg-zinc-50 dark:hover:bg-zinc-900/50">
                     <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">{order.id}</TableCell>
                     <TableCell className="text-zinc-600 dark:text-zinc-300">{order.customer}</TableCell>

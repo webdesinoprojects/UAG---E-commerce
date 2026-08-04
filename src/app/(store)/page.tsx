@@ -10,7 +10,7 @@ import MostPopular from "@/features/homepage/components/most-popular";
 import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
 import HomeInfoSection from "@/features/content-pages/components/home-info-section";
-import { getFeaturedCatalogCategories } from "@/features/catalog/queries";
+import { getFeaturedCatalogCategories, getNewArrivalProducts, getPopularProducts } from "@/features/catalog/queries";
 import {
   getHomepageAnnouncement,
   getHomepageBentoGallery,
@@ -27,6 +27,8 @@ export default async function StoreHomePage() {
     merchandisingBanners,
     bentoGallery,
     featuredCategories,
+    newArrivalProducts,
+    popularProducts,
   ] = await Promise.all([
     getHomepageAnnouncement(),
     getHomepageHeroCarousel(),
@@ -34,6 +36,8 @@ export default async function StoreHomePage() {
     getHomepageMerchandisingBanners(),
     getHomepageBentoGallery(),
     getFeaturedCatalogCategories(),
+    getNewArrivalProducts(),
+    getPopularProducts(),
   ]);
 
   return (
@@ -59,10 +63,10 @@ export default async function StoreHomePage() {
       <FullscreenBanner merchandisingBanners={merchandisingBanners} />
 
       {/* 7. New Arrivals Filter Grid */}
-      <NewArrivals />
+      <NewArrivals products={newArrivalProducts} />
 
       {/* 8. Most Popular Product Carousel */}
-      <MostPopular />
+      <MostPopular products={popularProducts} />
 
       {/* 9. Bento Grid Showcase */}
       <BentoGrid bentoGallery={bentoGallery} />

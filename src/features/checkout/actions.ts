@@ -14,6 +14,8 @@ import { getCartSummary } from "@/features/cart/queries";
 import { getCurrentCustomer } from "@/server/auth/customer";
 import { createCheckoutOrder } from "@/server/repositories/commerce-repository";
 import { checkoutSchema } from "@/server/validators/commerce";
+import { createGuestOrderAccessToken } from "@/server/security/guest-order-access";
+import { enforceRateLimit } from "@/server/security/rate-limit";
 
 export interface CheckoutState {
   message: string | null;
@@ -24,6 +26,11 @@ export async function createCheckoutOrderAction(
   _previousState: CheckoutState,
   formData: FormData
 ): Promise<CheckoutState> {
+  try {
+    await enforceRateLimit("checkout:create", 10, 60 * 10);
+  } catch (error) {
+    return { message: error instanceof Error ? error.message : "Too many requests." };
+  }
   const customer = await getCurrentCustomer();
   const parsed = checkoutSchema.safeParse({
     fullName: formData.get("fullName"),
@@ -61,7 +68,7 @@ export async function createCheckoutOrderAction(
       const cookieStore = await cookies();
       cookieStore.set(
         CHECKOUT_ORDER_ACCESS_COOKIE,
-        result.orderId,
+        createGuestOrderAccessToken(result.orderId, 60 * 60 * 24),
         getCheckoutOrderAccessCookieOptions()
       );
       cookieStore.delete(CART_COOKIE_NAME);
@@ -75,7 +82,7 @@ export async function createCheckoutOrderAction(
       const cookieStore = await cookies();
       cookieStore.set(
         CHECKOUT_ORDER_ACCESS_COOKIE,
-        result.orderId,
+        createGuestOrderAccessToken(result.orderId, 60 * 60 * 24),
         getCheckoutOrderAccessCookieOptions()
       );
       redirectTo = `/checkout/payment/${result.orderId}`;

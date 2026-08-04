@@ -8,6 +8,7 @@ import { getCurrentCustomer } from "@/server/auth/customer";
 import { getRazorpayPublicKey } from "@/server/payments/razorpay";
 import { readOrderById } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
+import { verifyGuestOrderAccessToken } from "@/server/security/guest-order-access";
 
 export const metadata: Metadata = {
   title: "Payment | UAG",
@@ -58,8 +59,10 @@ async function RazorpayPaymentContent({
     getCurrentCustomer(),
     cookies(),
   ]);
-  const hasGuestCheckoutAccess =
-    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value === order.id;
+  const hasGuestCheckoutAccess = verifyGuestOrderAccessToken(
+    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value,
+    order.id
+  );
 
   if (order.customerId) {
     if (customer?.id !== order.customerId) notFound();

@@ -9,7 +9,6 @@ import {
   Package,
   Save,
   Tag,
-  X,
 } from "lucide-react";
 import { createCatalogProductAction } from "@/features/catalog/actions";
 import type { AdminProductFormCategoryOption } from "@/features/catalog/types";
@@ -38,6 +37,7 @@ interface ProductCreateFormProps {
 interface FormState {
   name: string;
   slug: string;
+  productUrl: string;
   sku: string;
   categoryId: string;
   brand: string;
@@ -83,6 +83,7 @@ function FieldError({ message }: { message?: string }) {
 const INITIAL_STATE: FormState = {
   name: "",
   slug: "",
+  productUrl: "",
   sku: "",
   categoryId: "",
   brand: "UAG Urbn Armour Gear",
@@ -125,10 +126,6 @@ export default function ProductCreateForm({
       name: value,
       slug: form.slugAutoGenerate ? slugify(value) : form.slug,
     });
-  };
-
-  const handleSlugChange = (value: string) => {
-    update({ slug: slugify(value), slugAutoGenerate: false });
   };
 
   const handlePrimaryThumbnailChange = useCallback(
@@ -227,34 +224,23 @@ export default function ProductCreateForm({
               </div>
 
               <div className="space-y-1.5">
-                <Label>Slug *</Label>
+                <Label htmlFor="productUrl">Product URL</Label>
                 <div className="flex gap-2">
                   <Input
-                    name="slug"
-                    value={form.slug}
-                    onChange={(e) => handleSlugChange(e.target.value)}
-                    placeholder="crystal-anc-earbuds"
-                    maxLength={100}
-                    className="font-mono text-sm"
+                    id="productUrl"
+                    name="productUrl"
+                    type="url"
+                    value={form.productUrl}
+                    onChange={(e) => update({ productUrl: e.target.value })}
+                    placeholder="https://example.com/product"
+                    maxLength={2048}
                   />
-                  {!form.slugAutoGenerate && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      title="Reset auto-generate"
-                      onClick={() =>
-                        update({ slug: slugify(form.name), slugAutoGenerate: true })
-                      }
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Public URL: /products/{form.slug || "…"}
+                  Product buttons open this URL. Leave blank to use the UAG product page.
                 </p>
-                <FieldError message={fe.slug?.[0]} />
+                <input type="hidden" name="slug" value={form.slug} />
+                <FieldError message={fe.productUrl?.[0]} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

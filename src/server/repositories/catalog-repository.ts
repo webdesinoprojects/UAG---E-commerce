@@ -219,12 +219,13 @@ export async function upsertCatalogCategory(
 // --- Product List ---
 
 const PRODUCT_LIST_COLUMNS =
-  "id,name,slug,sku,category_id,brand,status,price_cents,compare_at_price_cents,currency,stock_quantity,low_stock_threshold,is_featured,is_new_arrival,is_popular,created_at,updated_at";
+  "id,name,slug,product_url,sku,category_id,brand,status,price_cents,compare_at_price_cents,currency,stock_quantity,low_stock_threshold,is_featured,is_new_arrival,is_popular,created_at,updated_at";
 
 type CatalogProductListRow = {
   id: string;
   name: string;
   slug: string;
+  product_url: string | null;
   sku: string | null;
   category_id: string | null;
   brand: string;
@@ -306,6 +307,7 @@ export async function readAdminProductList(): Promise<AdminProductListItemDto[]>
       id: row.id,
       name: row.name,
       slug: row.slug,
+      productUrl: row.product_url,
       sku: row.sku,
       categoryId: row.category_id,
       categoryName: row.category_id ? (categoryNameMap.get(row.category_id) ?? null) : null,
@@ -374,6 +376,7 @@ export async function createCatalogProduct(
     .insert({
       name: input.name,
       slug: input.slug,
+      product_url: input.productUrl,
       sku: input.sku,
       category_id: input.categoryId,
       brand: input.brand,
@@ -431,7 +434,7 @@ export async function createCatalogProduct(
 // --- Product Detail / Edit ---
 
 const PRODUCT_DETAIL_COLUMNS =
-  "id,name,slug,sku,category_id,brand,status,price_cents,compare_at_price_cents,currency,stock_quantity,low_stock_threshold,is_featured,is_new_arrival,is_popular,short_description,description,seo_title,seo_description,created_at,updated_at";
+  "id,name,slug,product_url,sku,category_id,brand,status,price_cents,compare_at_price_cents,currency,stock_quantity,low_stock_threshold,is_featured,is_new_arrival,is_popular,short_description,description,seo_title,seo_description,created_at,updated_at";
 
 type CatalogProductDetailRow = CatalogProductListRow & {
   short_description: string | null;
@@ -558,6 +561,7 @@ export async function readAdminProductById(
       id: row.id,
       name: row.name,
       slug: row.slug,
+      productUrl: row.product_url,
       sku: row.sku,
       categoryId: row.category_id,
       categoryName,
@@ -613,6 +617,7 @@ export async function updateCatalogProduct(
     .update({
       name: input.name,
       slug: input.slug,
+      product_url: input.productUrl,
       sku: input.sku,
       category_id: input.categoryId,
       brand: input.brand,
@@ -907,15 +912,16 @@ export async function deleteDraftCatalogProduct(productId: string): Promise<void
 const FALLBACK_PRODUCT_IMAGE = "/images/products/drone.png";
 
 const PUBLIC_PRODUCT_LIST_COLUMNS =
-  "id,name,slug,brand,price_cents,compare_at_price_cents,currency,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at";
+  "id,name,slug,product_url,brand,price_cents,compare_at_price_cents,currency,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at";
 
 const PUBLIC_PRODUCT_DETAIL_COLUMNS =
-  "id,name,slug,brand,price_cents,compare_at_price_cents,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at,description,short_description,feature_bullets,shipping_policy";
+  "id,name,slug,product_url,brand,price_cents,compare_at_price_cents,stock_quantity,category_id,is_featured,is_popular,is_new_arrival,created_at,description,short_description,feature_bullets,shipping_policy";
 
 type PublicProductListRow = {
   id: string;
   name: string;
   slug: string;
+  product_url: string | null;
   brand: string;
   price_cents: number;
   compare_at_price_cents: number | null;
@@ -978,6 +984,7 @@ function mapPublicRowToProduct(
     discount: computeDiscount(row.price_cents, row.compare_at_price_cents),
     image: thumbnailUrl || FALLBACK_PRODUCT_IMAGE,
     slug: row.slug,
+    productUrl: row.product_url,
   };
 }
 
@@ -1389,6 +1396,38 @@ export async function readPublicAllProducts(): Promise<Product[]> {
   } catch {
     return [];
   }
+}
+
+export async function readPublicNewArrivalProducts(): Promise<Product[]> {
+  const client = createSupabaseAnonServerClient();
+  if (!client) return [];
+  const { data, error } = await client.from("catalog_products").select(PUBLIC_PRODUCT_LIST_COLUMNS)
+    .eq("status", "active").eq("is_new_arrival", true).order("created_at", { ascending: false }).limit(50);
+  if (error || !data?.length) return [];
+  const rows = data as PublicProductListRow[];
+  const [thumbnailMap, catNameMap] = await Promise.all([
+    batchFetchPublicThumbnails(client, rows.map((row) => row.id)),
+    batchFetchCategoryNamesPublic(client, [...new Set(rows.map((row) => row.category_id).filter(Boolean))] as string[]),
+  ]);
+  return rows.map((row) => mapPublicRowToProduct(row, row.category_id ? (catNameMap.get(row.category_id) ?? "Uncategorized") : "Uncategorized", thumbnailMap.get(row.id) ?? FALLBACK_PRODUCT_IMAGE));
+}
+
+export async function readPublicPopularProducts(): Promise<Product[]> {
+  const client = createSupabaseAnonServerClient();
+  if (!client) return [];
+  const { data, error } = await client.from("catalog_products").select(PUBLIC_PRODUCT_LIST_COLUMNS)
+    .eq("status", "active").eq("is_popular", true).order("created_at", { ascending: false }).limit(50);
+  if (error || !data?.length) return [];
+  const rows = data as PublicProductListRow[];
+  const [thumbnailMap, catNameMap] = await Promise.all([
+    batchFetchPublicThumbnails(client, rows.map((row) => row.id)),
+    batchFetchCategoryNamesPublic(client, [...new Set(rows.map((row) => row.category_id).filter(Boolean))] as string[]),
+  ]);
+  return rows.map((row) => mapPublicRowToProduct(
+    row,
+    row.category_id ? (catNameMap.get(row.category_id) ?? "Uncategorized") : "Uncategorized",
+    thumbnailMap.get(row.id) ?? FALLBACK_PRODUCT_IMAGE
+  ));
 }
 
 export async function searchPublicProducts(query: string): Promise<Product[]> {

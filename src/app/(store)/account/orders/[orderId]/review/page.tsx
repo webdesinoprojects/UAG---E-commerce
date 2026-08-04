@@ -3,16 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ArrowLeft, PackageCheck, Star } from "lucide-react";
+import { ArrowLeft, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { requireCustomer } from "@/server/auth/customer";
 import { readOrderById } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
-import { createProductReview } from "@/server/repositories/reviews";
+import { submitProductReviewAction } from "./actions";
 
 export const metadata: Metadata = {
   title: "Rate & Review Product | UAG",
@@ -57,7 +56,7 @@ async function OrderReviewContent({
     readOrderById(client, orderId),
   ]);
 
-  if (!order || order.customerId !== customer.id) notFound();
+  if (!order || order.customerId !== customer.id || order.status !== "delivered") notFound();
 
   const item = order.items[0];
 
@@ -103,7 +102,7 @@ async function OrderReviewContent({
           </div>
         )}
 
-        <form action={`/account/orders/${orderId}/review`} className="space-y-4" method="post">
+        <form action={submitProductReviewAction} className="space-y-4">
           <input type="hidden" name="productId" value={item?.productId ?? ""} />
           <input type="hidden" name="orderId" value={orderId} />
 

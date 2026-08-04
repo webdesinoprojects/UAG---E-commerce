@@ -6,6 +6,7 @@ import { CHECKOUT_ORDER_ACCESS_COOKIE } from "@/lib/checkout-order-cookies";
 import { getCurrentCustomer } from "@/server/auth/customer";
 import { readOrderById } from "@/server/repositories/commerce-repository";
 import { createSupabaseServiceRoleClient } from "@/server/db/supabase";
+import { verifyGuestOrderAccessToken } from "@/server/security/guest-order-access";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,8 +92,10 @@ async function OrderConfirmationContent({
     getCurrentCustomer(),
     cookies(),
   ]);
-  const hasGuestCheckoutAccess =
-    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value === order.id;
+  const hasGuestCheckoutAccess = verifyGuestOrderAccessToken(
+    cookieStore.get(CHECKOUT_ORDER_ACCESS_COOKIE)?.value,
+    order.id
+  );
 
   if (order.customerId) {
     if (customer?.id !== order.customerId) notFound();

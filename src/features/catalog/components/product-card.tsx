@@ -15,6 +15,7 @@ export interface Product {
   discount: number;
   image: string;
   slug: string;
+  productUrl?: string | null;
 }
 
 interface ProductCardProps {
@@ -23,6 +24,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, variant = "default" }: ProductCardProps) {
+  const productHref = product.productUrl || `/products/${product.slug}`;
   const hasDiscount =
     product.discount > 0 && product.originalPrice > product.price;
 
@@ -51,7 +53,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
       )}
 
       {/* 2. Product Image Container (Slightly wider, full bleed for transparent) */}
-      <Link href={`/products/${product.slug}`} className={cn(
+      <Link href={productHref} className={cn(
         "relative w-full overflow-hidden rounded-2xl flex items-center justify-center border transition-all duration-300",
         variant === "default"
           ? "aspect-[6/5] bg-zinc-50/50 border-zinc-100 dark:bg-zinc-900/40 dark:border-zinc-850 p-3"
@@ -76,7 +78,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
       <div className="flex-1 flex flex-col justify-between mt-2.5 text-center">
         <div>
           {/* Product Title */}
-          <Link href={`/products/${product.slug}`}>
+          <Link href={productHref}>
             <h4 className="text-[10px] sm:text-xs font-bold leading-snug text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors line-clamp-2 min-h-[30px] flex items-center justify-center px-0.5">
               {product.name}
             </h4>
@@ -106,7 +108,11 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
         className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider rounded-xl py-2 h-auto mt-3 transition-all duration-200 active:scale-[0.98] border-0 shadow-sm"
         asChild
       >
-        <Link href={`/products/${product.slug}`}>
+        <Link
+          href={productHref}
+          target={product.productUrl ? "_blank" : undefined}
+          rel={product.productUrl ? "noopener noreferrer" : undefined}
+        >
           Buy Now
         </Link>
       </Button>

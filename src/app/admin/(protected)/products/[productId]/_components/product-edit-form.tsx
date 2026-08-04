@@ -49,6 +49,7 @@ interface ProductEditFormProps {
 interface FormState {
   name: string;
   slug: string;
+  productUrl: string;
   sku: string;
   categoryId: string;
   brand: string;
@@ -69,15 +70,6 @@ interface FormState {
   primaryImageUrl: string | null;
 }
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 100);
-}
-
 function formatPreviewPrice(rupees: string, currency: string) {
   const n = parseFloat(rupees);
   if (isNaN(n) || n < 0) return null;
@@ -94,6 +86,7 @@ function buildInitialState(product: AdminProductDetailDto): FormState {
   return {
     name: product.name,
     slug: product.slug,
+    productUrl: product.productUrl ?? "",
     sku: product.sku ?? "",
     categoryId: product.categoryId ?? "",
     brand: product.brand,
@@ -213,18 +206,21 @@ export default function ProductEditForm({
               </div>
 
               <div className="space-y-1.5">
-                <Label>Slug *</Label>
+                <Label htmlFor="productUrl">Product URL</Label>
                 <Input
-                  name="slug"
-                  value={form.slug}
-                  onChange={(e) => update({ slug: slugify(e.target.value) })}
-                  maxLength={100}
-                  className="font-mono text-sm"
+                  id="productUrl"
+                  name="productUrl"
+                  type="url"
+                  value={form.productUrl}
+                  onChange={(e) => update({ productUrl: e.target.value })}
+                  placeholder="https://example.com/product"
+                  maxLength={2048}
                 />
                 <p className="text-xs text-muted-foreground">
-                  /products/{form.slug}
+                  Product buttons open this URL. Leave blank to use the UAG product page.
                 </p>
-                <FieldError message={fe.slug?.[0]} />
+                <input type="hidden" name="slug" value={form.slug} />
+                <FieldError message={fe.productUrl?.[0]} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

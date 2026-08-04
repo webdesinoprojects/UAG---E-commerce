@@ -9,6 +9,8 @@ import {
   readPublicTopRatedProducts,
   readPublicProductBySlug,
   readPublicAllProducts,
+  readPublicNewArrivalProducts,
+  readPublicPopularProducts,
   searchPublicProducts,
 } from "@/server/repositories/catalog-repository";
 import type {
@@ -91,6 +93,20 @@ export async function getAllProducts(): Promise<Product[]> {
   cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "all");
 
   return readPublicAllProducts();
+}
+
+export async function getNewArrivalProducts(): Promise<Product[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "new-arrivals");
+  return readPublicNewArrivalProducts();
+}
+
+export async function getPopularProducts(): Promise<Product[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(CATALOG_PRODUCTS_CACHE_TAG, "popular-products");
+  return readPublicPopularProducts();
 }
 
 export async function searchProducts(query: string): Promise<Product[]> {

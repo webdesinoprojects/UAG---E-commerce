@@ -6,6 +6,7 @@ export interface AdminProductListItemDto {
   id: string;
   name: string;
   slug: string;
+  productUrl: string | null;
   sku: string | null;
   categoryId: string | null;
   categoryName: string | null;

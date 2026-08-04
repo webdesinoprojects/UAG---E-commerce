@@ -27,6 +27,7 @@ import {
   customerLoginSchema,
   customerRegisterSchema,
 } from "@/server/validators/auth";
+import { enforceRateLimit } from "@/server/security/rate-limit";
 
 export interface AdminLoginState {
   next: string;
@@ -41,6 +42,8 @@ export async function signInAdminAction(
   previousState: AdminLoginState,
   formData: FormData
 ): Promise<AdminLoginState> {
+  try { await enforceRateLimit("auth:admin-login", 5, 60 * 15); }
+  catch (error) { return { next: previousState.next, message: error instanceof Error ? error.message : "Too many requests." }; }
   const parsed = adminLoginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -200,6 +203,8 @@ export async function signInCustomerAction(
   previousState: CustomerAuthState,
   formData: FormData
 ): Promise<CustomerAuthState> {
+  try { await enforceRateLimit("auth:customer-login", 10, 60 * 15); }
+  catch (error) { return { next: previousState.next, message: error instanceof Error ? error.message : "Too many requests." }; }
   const parsed = customerLoginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -248,6 +253,8 @@ export async function registerCustomerAction(
   previousState: CustomerAuthState,
   formData: FormData
 ): Promise<CustomerAuthState> {
+  try { await enforceRateLimit("auth:register", 5, 60 * 60); }
+  catch (error) { return { next: previousState.next, message: error instanceof Error ? error.message : "Too many requests." }; }
   const parsed = customerRegisterSchema.safeParse({
     name: formData.get("name"),
     email: formData.get("email"),

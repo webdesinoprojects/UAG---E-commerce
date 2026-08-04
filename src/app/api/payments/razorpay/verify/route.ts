@@ -7,8 +7,15 @@ import {
 import { markOrderPaid } from "@/server/repositories/commerce-repository";
 import { verifyRazorpayPaymentSignature } from "@/server/payments/razorpay";
 import { razorpayVerifySchema } from "@/server/validators/commerce";
+import { createGuestOrderAccessToken } from "@/server/security/guest-order-access";
+import { enforceRateLimit } from "@/server/security/rate-limit";
 
 export async function POST(request: NextRequest) {
+  try {
+    await enforceRateLimit("payment:verify", 20, 60 * 10);
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Too many requests." }, { status: 429 });
+  }
   const body = await request.json().catch(() => null);
   const parsed = razorpayVerifySchema.safeParse(body);
 
@@ -44,7 +51,7 @@ export async function POST(request: NextRequest) {
     });
     response.cookies.set(
       CHECKOUT_ORDER_ACCESS_COOKIE,
-      parsed.data.orderId,
+      createGuestOrderAccessToken(parsed.data.orderId, 60 * 60 * 24),
       getCheckoutOrderAccessCookieOptions()
     );
     response.cookies.delete(CART_COOKIE_NAME);

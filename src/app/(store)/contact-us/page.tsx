@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { Mail, MapPin, Phone, Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { getContentPage } from "@/features/content-pages/queries";
+import { ContactForm } from "./_components/contact-form";
 
 export const metadata: Metadata = {
   title: "Contact Us | UAG",
@@ -75,54 +73,7 @@ export default async function ContactUsPage() {
           })}
         </div>
 
-        <form className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 md:p-8">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className="text-sm font-semibold" htmlFor="name">
-                Name
-              </label>
-              <Input id="name" name="name" className="mt-2" placeholder="Your name" />
-            </div>
-            <div>
-              <label className="text-sm font-semibold" htmlFor="email">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                className="mt-2"
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-          <div className="mt-4">
-            <label className="text-sm font-semibold" htmlFor="subject">
-              Subject
-            </label>
-            <Input
-              id="subject"
-              name="subject"
-              className="mt-2"
-              placeholder="How can we help?"
-            />
-          </div>
-          <div className="mt-4">
-            <label className="text-sm font-semibold" htmlFor="message">
-              Message
-            </label>
-            <Textarea
-              id="message"
-              name="message"
-              className="mt-2 min-h-36"
-              placeholder="Share the details..."
-            />
-          </div>
-          <Button type="button" className="mt-6">
-            <Send className="h-4 w-4" aria-hidden="true" />
-            Send Message
-          </Button>
-        </form>
+        <ContactForm />
       </section>
     </main>
   );
