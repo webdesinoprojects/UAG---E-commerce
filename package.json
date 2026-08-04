@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "seed:products": "node scripts/import-woocommerce-products.mjs"
+    "seed:products": "node scripts/import-woocommerce-products.mjs",
+    "migrate:product-images": "node scripts/migrate-product-images-to-imagekit.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
