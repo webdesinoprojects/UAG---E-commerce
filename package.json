@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:products": "node scripts/import-woocommerce-products.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
@@ -39,6 +40,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "csv-parse": "^7.0.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",

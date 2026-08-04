@@ -21,6 +21,11 @@ function parseImagekitRemotePattern() {
 }
 
 const imagekitPattern = parseImagekitRemotePattern();
+const productImportPattern = {
+  protocol: "https" as const,
+  hostname: "uag.co.in",
+  pathname: "/wp-content/uploads/**",
+};
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -38,9 +43,10 @@ const nextConfig: NextConfig = {
         search: "",
       },
     ],
-    ...(imagekitPattern && {
-      remotePatterns: [imagekitPattern],
-    }),
+    remotePatterns: [
+      ...(imagekitPattern ? [imagekitPattern] : []),
+      productImportPattern,
+    ],
     dangerouslyAllowLocalIP: false,
     maximumRedirects: 0,
   },

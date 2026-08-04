@@ -1345,17 +1345,18 @@ export async function readPublicProductBySlug(
       .filter((url): url is string => !!url);
 
     const featureBullets = parseFeatureBullets(row.feature_bullets);
-    const description = row.description ?? row.short_description ?? "";
+    const shortDescription = row.short_description ?? row.description ?? "";
+    const longDescription = row.description ?? row.short_description ?? "";
 
     const baseProduct = mapPublicRowToProduct(row, categoryName, thumbnailUrl);
 
     return {
       ...baseProduct,
       brand: row.brand,
-      description,
+      description: shortDescription,
       media,
       features: featureBullets.length > 0 ? featureBullets : undefined,
-      featuresAndCompatibility: description || undefined,
+      featuresAndCompatibility: longDescription || undefined,
       bentoImages: bentoImages.length >= 5 ? bentoImages.slice(0, 5) : undefined,
       shippingPolicy: row.shipping_policy ?? undefined,
       promises: DEFAULT_PRODUCT_PROMISES,
