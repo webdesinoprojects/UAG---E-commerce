@@ -557,8 +557,8 @@ export function MediaLibraryClient({
               </div>
               <p className="text-lg font-semibold">Drag and drop files here</p>
               <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                JPEG, PNG, WebP, AVIF, GIF, MP4, and WebM. Images up to 8MB,
-                GIFs up to 12MB, videos up to 25MB.
+                JPEG, PNG, WebP, AVIF, GIF, MP4, and WebM. Up to 30MB per
+                file.
               </p>
               <Button type="button" className="mt-6">
                 <Plus className="mr-2 h-4 w-4" />

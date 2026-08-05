@@ -9,9 +9,9 @@ export const ALLOWED_MIME_TYPES = [
 ] as const;
 
 export const FILE_SIZE_LIMITS = {
-  image: 8 * 1024 * 1024,
-  gif: 12 * 1024 * 1024,
-  video: 25 * 1024 * 1024,
+  image: 30 * 1024 * 1024,
+  gif: 30 * 1024 * 1024,
+  video: 30 * 1024 * 1024,
 } as const;
 
 export const IMAGEKIT_UPLOAD_API_ENDPOINT =
