@@ -27,7 +27,7 @@ export default function CategoryCircles({
             <Link
               key={category.id}
               href={category.href}
-              className="group flex flex-col items-center text-center shrink-0 w-[140px] md:w-auto snap-start"
+              className="group flex w-[140px] shrink-0 snap-start flex-col items-center text-center md:w-[180px] lg:w-[calc((100%-6rem)/5)]"
             >
               {/* Card Container */}
               <Card className="relative overflow-hidden aspect-square w-full rounded-2xl md:rounded-[2rem] border border-zinc-100 bg-zinc-50/50 p-3 shadow-xs transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md group-hover:bg-white group-hover:border-primary/20 dark:bg-zinc-900/10 dark:border-zinc-800/40 dark:group-hover:bg-zinc-900/40">
