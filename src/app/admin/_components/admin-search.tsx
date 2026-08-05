@@ -16,6 +16,7 @@ import {
   TicketPercent,
   Users,
   Warehouse,
+  Video,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,14 @@ const routeEntries: SearchEntry[] = [
     type: "Storefront",
     keywords: "merchandising homepage storefront cms featured products sections",
     icon: Package,
+  },
+  {
+    title: "Watch Stories",
+    description: "Homepage video stories and display order",
+    href: "/admin/homepage/watch-stories",
+    type: "Storefront",
+    keywords: "watch stories videos homepage storefront cms upload",
+    icon: Video,
   },
   {
     title: "Footer Settings",

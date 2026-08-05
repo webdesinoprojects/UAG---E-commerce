@@ -10,6 +10,7 @@ import {
   HOMEPAGE_MERCHANDISING_BANNERS_CACHE_TAG,
   HOMEPAGE_TOP_MARQUEE_CACHE_TAG,
   HOMEPAGE_CATEGORY_CIRCLES_CACHE_TAG,
+  HOMEPAGE_WATCH_STORIES_CACHE_TAG,
   SITE_FOOTER_CACHE_TAG,
 } from "@/features/homepage/queries";
 import { requireAdmin } from "@/server/auth/admin";
@@ -19,6 +20,7 @@ import {
   writeHomepageHeroCarousel,
   writeHomepageMerchandisingBanners,
   writeHomepageCategoryCircles,
+  writeHomepageWatchStories,
   writeSiteFooter,
 } from "@/server/repositories/homepage-repository";
 import {
@@ -27,6 +29,7 @@ import {
   parseHomepageHeroCarouselForm,
   parseHomepageMerchandisingBannersForm,
   parseHomepageCategoryCirclesForm,
+  parseHomepageWatchStoriesForm,
   parseSiteFooterForm,
 } from "@/server/validators/homepage";
 
@@ -164,6 +167,39 @@ export async function updateHomepageBentoGalleryAction(
     return {
       status: "error",
       message: "Could not publish the bento gallery. Try again.",
+    };
+  }
+}
+
+export async function updateHomepageWatchStoriesAction(
+  _previousState: HomepageAnnouncementActionState,
+  formData: FormData
+): Promise<HomepageAnnouncementActionState> {
+  const admin = await requireAdmin();
+  const parsed = parseHomepageWatchStoriesForm(formData);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Check the story titles and videos, then try again.",
+      fieldErrors: parsed.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await writeHomepageWatchStories(parsed.data, admin.id);
+    updateTag(HOMEPAGE_WATCH_STORIES_CACHE_TAG);
+    updateTag(HOMEPAGE_CACHE_TAG);
+    revalidatePath("/admin/homepage/watch-stories");
+
+    return {
+      status: "success",
+      message: "Watch stories published.",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "Could not publish the stories. Check the selected videos and try again.",
     };
   }
 }

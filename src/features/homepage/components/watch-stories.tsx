@@ -1,21 +1,18 @@
 "use client";
 
 import React from "react";
+import type { HomepageWatchStories } from "@/features/homepage/types";
 
-const stories = [
-  { id: "s1", index: "01", title: "Airdopes 2", file: "story1.mp4" },
-  { id: "s2", index: "02", title: "GM8 Pro", file: "story2.mp4" },
-  { id: "s3", index: "03", title: "Master Buds 2", file: "story3.mp4" },
-  { id: "s4", index: "04", title: "Latest Shoot", file: "story4.mp4" },
-  { id: "s5", index: "05", title: "AeroStrike HD", file: "story5.mp4" },
-  { id: "s6", index: "06", title: "Vital Watch", file: "story6.mp4" },
-  { id: "s7", index: "07", title: "Soundstage", file: "story7.mp4" },
-  { id: "s8", index: "08", title: "Solar Core", file: "story8.mp4" },
-  { id: "s9", index: "09", title: "Armour Speed", file: "story9.mp4" },
-  { id: "s10", index: "10", title: "Pro ANC Buds", file: "story10.mp4" }
-];
+export default function WatchStories({
+  watchStories,
+}: {
+  watchStories: HomepageWatchStories;
+}) {
+  if (!watchStories.isEnabled) return null;
 
-export default function WatchStories() {
+  const stories = watchStories.items.filter((story) => story.isEnabled).slice(0, 8);
+  if (stories.length === 0) return null;
+
   // We duplicate the list to ensure a seamless looping effect in the marquee
   const duplicateStories = [...stories, ...stories];
 
@@ -30,10 +27,10 @@ export default function WatchStories() {
         {/* Header Block with Elegant Typography & Animations */}
         <div className="flex flex-col items-center text-center mb-12 px-4 animate-header-reveal">
           <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.35em] text-amber-500/80 mb-2.5">
-            OUR WORK
+            {watchStories.eyebrow}
           </span>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-black font-sans text-white tracking-tight leading-tight">
-            Watch Our <span className="elegant-serif italic text-amber-500 font-medium tracking-wide">Stories</span>
+            {watchStories.heading} <span className="elegant-serif italic text-amber-500 font-medium tracking-wide">{watchStories.accentHeading}</span>
           </h2>
           <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent mt-4" />
         </div>
@@ -55,7 +52,7 @@ export default function WatchStories() {
                 {/* Video container */}
                 <div className="relative w-full aspect-[9/16]">
                   <video
-                    src={`/videos/${story.file}`}
+                    src={story.videoUrl}
                     autoPlay
                     loop
                     muted
@@ -76,7 +73,7 @@ export default function WatchStories() {
                 {/* Bottom details box */}
                 <div className="p-5 sm:p-4 flex flex-col justify-center z-30 transition-colors duration-300 md:group-hover:bg-[#111111]">
                   <span className="text-[11px] sm:text-[10px] font-black tracking-widest text-amber-500/80 mb-1 sm:mb-0.5 md:group-hover:text-amber-400 transition-colors">
-                    {story.index}
+                    {String((i % stories.length) + 1).padStart(2, "0")}
                   </span>
                   <span className="text-sm sm:text-xs font-black font-sans text-white uppercase tracking-wider leading-none">
                     {story.title}

@@ -109,6 +109,24 @@ export interface HomepageBentoGallery {
   items: HomepageBentoItem[];
 }
 
+export interface HomepageStory {
+  id: string;
+  title: string;
+  fallbackVideoPath: string;
+  videoUrl: string;
+  videoMediaAssetId: string | null;
+  sortOrder: number;
+  isEnabled: boolean;
+}
+
+export interface HomepageWatchStories {
+  isEnabled: boolean;
+  eyebrow: string;
+  heading: string;
+  accentHeading: string;
+  items: HomepageStory[];
+}
+
 export interface HomepageMerchandisingSlide {
   id: string;
   title: string;

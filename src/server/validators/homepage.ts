@@ -10,6 +10,8 @@ import type {
   HomepageCategoryCircles,
   HomepageBentoGallery,
   HomepageBentoItem,
+  HomepageStory,
+  HomepageWatchStories,
   HomepageMerchandisingBanners,
   HomepageMerchandisingSlide,
   SiteFooterContent,
@@ -913,6 +915,179 @@ export function toHomepageBentoGallery(
     heading: safe.heading ?? fallbackHomepageBentoGallery.heading,
     description: safe.description ?? fallbackHomepageBentoGallery.description,
     items: validItems,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage watch stories                                                     */
+/* -------------------------------------------------------------------------- */
+
+const storyVideoPathSchema = z
+  .string()
+  .trim()
+  .max(300)
+  .refine(
+    (value) =>
+      value === "" ||
+      (/^\/videos\/[A-Za-z0-9/_-]+\.(mp4|webm)$/i.test(value) &&
+        !value.includes("..")),
+    "Use a local /videos/... MP4 or WebM path."
+  );
+
+export const homepageStoryInputSchema = z
+  .object({
+    id: z.string().trim().min(1).max(120),
+    title: z.string().trim().min(1).max(60),
+    video: storyVideoPathSchema,
+    videoMediaAssetId: z.string().uuid().nullable().optional(),
+    sortOrder: z.coerce.number().int().min(0).max(10_000),
+    isEnabled: z.boolean(),
+  })
+  .superRefine((value, ctx) => {
+    if (!value.video && !value.videoMediaAssetId) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["video"],
+        message: "Upload or select a video for this story.",
+      });
+    }
+  });
+
+export const homepageWatchStoriesInputSchema = z.object({
+  isEnabled: z.boolean(),
+  eyebrow: z.string().trim().min(1).max(40),
+  heading: z.string().trim().min(1).max(60),
+  accentHeading: z.string().trim().min(1).max(40),
+  items: z.array(homepageStoryInputSchema).max(8, "Use at most 8 stories."),
+});
+
+export type HomepageWatchStoriesInput = z.infer<
+  typeof homepageWatchStoriesInputSchema
+>;
+
+export function parseHomepageWatchStoriesForm(formData: FormData) {
+  const rawCount = Number(formData.get("itemCount"));
+  const itemCount = Number.isFinite(rawCount)
+    ? Math.min(Math.max(rawCount, 0), 8)
+    : 0;
+
+  const items = Array.from({ length: itemCount }, (_, index) => {
+    const prefix = `item-${index}-`;
+    const read = (field: string) => formData.get(`${prefix}${field}`) as string | null;
+
+    return {
+      id: read("id") || `story-${index + 1}`,
+      title: read("title") || "",
+      video: read("video") || "",
+      videoMediaAssetId: read("videoMediaAssetId") || null,
+      sortOrder: read("sortOrder"),
+      isEnabled: read("isEnabled") === "true",
+    };
+  });
+
+  return homepageWatchStoriesInputSchema.safeParse({
+    isEnabled: formData.get("isEnabled") === "true",
+    eyebrow: formData.get("eyebrow") ?? "",
+    heading: formData.get("heading") ?? "",
+    accentHeading: formData.get("accentHeading") ?? "",
+    items,
+  });
+}
+
+export const fallbackHomepageWatchStories: HomepageWatchStories = {
+  isEnabled: true,
+  eyebrow: "OUR WORK",
+  heading: "Watch Our",
+  accentHeading: "Stories",
+  items: [
+    ["story-1", "Airdopes 2", "/videos/story1.mp4"],
+    ["story-2", "GM8 Pro", "/videos/story2.mp4"],
+    ["story-3", "Master Buds 2", "/videos/story3.mp4"],
+    ["story-4", "Latest Shoot", "/videos/story4.mp4"],
+    ["story-5", "AeroStrike HD", "/videos/story5.mp4"],
+    ["story-6", "Vital Watch", "/videos/story6.mp4"],
+    ["story-7", "Soundstage", "/videos/story7.mp4"],
+    ["story-8", "Solar Core", "/videos/story8.mp4"],
+  ].map(([id, title, video], index) => ({
+    id,
+    title,
+    fallbackVideoPath: video,
+    videoUrl: video,
+    videoMediaAssetId: null,
+    sortOrder: (index + 1) * 10,
+    isEnabled: true,
+  })),
+};
+
+const watchStoriesSectionSettingsSchema = z.object({
+  eyebrow: z.string().optional(),
+  heading: z.string().optional(),
+  accentHeading: z.string().optional(),
+});
+
+const watchStoryItemSettingsSchema = z.object({
+  localVideoPath: storyVideoPathSchema.optional(),
+});
+
+export type WatchStoryCmsSectionItemRow = CmsSectionItemRow & {
+  media_asset_id?: string | null;
+  mediaUrl?: string | null;
+  mediaMimeType?: string | null;
+};
+
+function parseWatchStory(item: WatchStoryCmsSectionItemRow): HomepageStory | null {
+  const settings = watchStoryItemSettingsSchema.safeParse(item.settings);
+  const safeSettings = settings.success ? settings.data : {};
+  const localVideoPath = safeSettings.localVideoPath ?? "";
+
+  if (item.media_asset_id && !item.mediaMimeType?.startsWith("video/")) {
+    return null;
+  }
+
+  const parsed = homepageStoryInputSchema.safeParse({
+    id: item.item_key ?? item.id,
+    title: item.title,
+    video: localVideoPath,
+    videoMediaAssetId: item.media_asset_id ?? null,
+    sortOrder: item.sort_order,
+    isEnabled: item.is_enabled,
+  });
+
+  if (!parsed.success) return null;
+
+  const videoUrl = item.mediaUrl ?? parsed.data.video;
+  if (!videoUrl) return null;
+
+  return {
+    id: parsed.data.id,
+    title: parsed.data.title,
+    fallbackVideoPath: parsed.data.video,
+    videoUrl,
+    videoMediaAssetId: parsed.data.videoMediaAssetId ?? null,
+    sortOrder: parsed.data.sortOrder,
+    isEnabled: parsed.data.isEnabled,
+  };
+}
+
+export function toHomepageWatchStories(
+  section: CmsSectionRow,
+  items: WatchStoryCmsSectionItemRow[]
+): HomepageWatchStories {
+  const settings = watchStoriesSectionSettingsSchema.safeParse(section.settings);
+  const safe = settings.success ? settings.data : {};
+  const stories = items
+    .map(parseWatchStory)
+    .filter((story): story is HomepageStory => Boolean(story))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .slice(0, 8);
+
+  return {
+    isEnabled: section.is_enabled,
+    eyebrow: safe.eyebrow ?? fallbackHomepageWatchStories.eyebrow,
+    heading: safe.heading ?? fallbackHomepageWatchStories.heading,
+    accentHeading:
+      safe.accentHeading ?? fallbackHomepageWatchStories.accentHeading,
+    items: stories,
   };
 }
 

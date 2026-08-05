@@ -58,6 +58,7 @@ const navigationData = {
             { title: "Categories Showcase", url: "/admin/homepage/categories" },
             { title: "Bento Gallery", url: "/admin/homepage/bento-gallery" },
             { title: "Merchandising", url: "/admin/homepage/merchandising" },
+            { title: "Watch Stories", url: "/admin/homepage/watch-stories" },
             { title: "Footer Settings", url: "/admin/homepage/footer" },
           ]
         },

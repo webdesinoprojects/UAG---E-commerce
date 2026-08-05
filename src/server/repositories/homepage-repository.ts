@@ -18,6 +18,10 @@ import {
   toHomepageBentoGallery,
   type BentoCmsSectionItemRow,
   type HomepageBentoGalleryInput,
+  fallbackHomepageWatchStories,
+  toHomepageWatchStories,
+  type WatchStoryCmsSectionItemRow,
+  type HomepageWatchStoriesInput,
   fallbackHomepageMerchandisingBanners,
   toHomepageMerchandisingBanners,
   type MerchCmsSectionItemRow,
@@ -32,6 +36,7 @@ import type {
   HomepageHeroCarousel,
   HomepageCategoryCircles,
   HomepageBentoGallery,
+  HomepageWatchStories,
   HomepageMerchandisingBanners,
   SiteFooterContent,
 } from "@/features/homepage/types";
@@ -905,6 +910,198 @@ export async function writeHomepageBentoGallery(
 
   if (insertError) {
     throw new Error("Failed to save bento gallery items.");
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* Homepage watch stories                                                     */
+/* -------------------------------------------------------------------------- */
+
+const WATCH_STORIES_SECTION_KEY = "homepage.watch_stories";
+const WATCH_STORY_ITEM_COLUMNS =
+  "id,item_key,title,href,settings,sort_order,is_enabled,media_asset_id";
+const WATCH_STORY_MAX_VIDEO_BYTES = 30 * 1024 * 1024;
+
+function enrichWatchStoryItems(
+  items: WatchStoryCmsSectionItemRow[],
+  mediaMap: Map<string, { url: string; mime_type: string | null }>
+): WatchStoryCmsSectionItemRow[] {
+  return items.map((item) => {
+    const asset = item.media_asset_id ? mediaMap.get(item.media_asset_id) : null;
+    return {
+      ...item,
+      mediaUrl: asset?.url ?? null,
+      mediaMimeType: asset?.mime_type ?? null,
+    };
+  });
+}
+
+export async function readHomepageWatchStories(): Promise<HomepageWatchStories> {
+  const supabase = createSupabaseAnonServerClient();
+
+  if (!supabase) return fallbackHomepageWatchStories;
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", WATCH_STORIES_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) return fallbackHomepageWatchStories;
+    if (!section.is_enabled) return toHomepageWatchStories(section, []);
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(WATCH_STORY_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .eq("is_enabled", true)
+      .order("sort_order", { ascending: true })
+      .limit(8);
+
+    if (itemsError || !items) return fallbackHomepageWatchStories;
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), true);
+    return toHomepageWatchStories(
+      section,
+      enrichWatchStoryItems(items, mediaMap)
+    );
+  } catch {
+    return fallbackHomepageWatchStories;
+  }
+}
+
+export async function readAdminHomepageWatchStories(): Promise<HomepageWatchStories> {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) return fallbackHomepageWatchStories;
+
+  try {
+    const { data: section, error: sectionError } = await supabase
+      .from("cms_sections")
+      .select("id,is_enabled,settings")
+      .eq("section_key", WATCH_STORIES_SECTION_KEY)
+      .maybeSingle();
+
+    if (sectionError || !section) return fallbackHomepageWatchStories;
+
+    const { data: items, error: itemsError } = await supabase
+      .from("cms_section_items")
+      .select(WATCH_STORY_ITEM_COLUMNS)
+      .eq("section_id", section.id)
+      .order("sort_order", { ascending: true })
+      .limit(8);
+
+    if (itemsError || !items) return fallbackHomepageWatchStories;
+
+    const mediaMap = await fetchMediaMap(supabase, collectMediaIds(items), false);
+    return toHomepageWatchStories(
+      section,
+      enrichWatchStoryItems(items, mediaMap)
+    );
+  } catch {
+    return fallbackHomepageWatchStories;
+  }
+}
+
+async function assertMediaAssetsAreStoryVideos(
+  supabase: ServerSupabaseClient,
+  ids: string[]
+) {
+  if (ids.length === 0) return;
+
+  const { data: assets, error } = await supabase
+    .from("media_assets")
+    .select("id,mime_type,size_bytes,is_public")
+    .in("id", ids);
+
+  if (error || !assets || assets.length !== ids.length) {
+    throw new Error("Invalid story video selected.");
+  }
+
+  for (const asset of assets) {
+    if (
+      !asset.is_public ||
+      !asset.mime_type?.startsWith("video/") ||
+      asset.size_bytes === null ||
+      asset.size_bytes > WATCH_STORY_MAX_VIDEO_BYTES
+    ) {
+      throw new Error("Story media must be a public video no larger than 30MB.");
+    }
+  }
+}
+
+export async function writeHomepageWatchStories(
+  input: HomepageWatchStoriesInput,
+  adminId: string
+) {
+  const supabase = createSupabaseServiceRoleClient();
+
+  if (!supabase) {
+    throw new Error("Supabase service client is not configured.");
+  }
+
+  const mediaIds = Array.from(
+    new Set(
+      input.items
+        .map((item) => item.videoMediaAssetId)
+        .filter((id): id is string => Boolean(id))
+    )
+  );
+  await assertMediaAssetsAreStoryVideos(supabase, mediaIds);
+
+  const { data: section, error: sectionError } = await supabase
+    .from("cms_sections")
+    .upsert(
+      {
+        section_key: WATCH_STORIES_SECTION_KEY,
+        section_type: "video_stories",
+        name: "Homepage Watch Stories",
+        is_enabled: input.isEnabled,
+        settings: {
+          eyebrow: input.eyebrow,
+          heading: input.heading,
+          accentHeading: input.accentHeading,
+        },
+        updated_by: adminId,
+      },
+      { onConflict: "section_key" }
+    )
+    .select("id")
+    .single();
+
+  if (sectionError || !section) {
+    throw new Error("Failed to save watch stories section.");
+  }
+
+  const { error: deleteError } = await supabase
+    .from("cms_section_items")
+    .delete()
+    .eq("section_id", section.id);
+
+  if (deleteError) {
+    throw new Error("Failed to replace watch story items.");
+  }
+
+  const rows = input.items.slice(0, 8).map((item, index) => ({
+    section_id: section.id,
+    item_key: `story-${index + 1}`,
+    title: item.title,
+    media_asset_id: item.videoMediaAssetId ?? null,
+    settings: { localVideoPath: item.video },
+    sort_order: (index + 1) * 10,
+    is_enabled: item.isEnabled,
+    updated_by: adminId,
+  }));
+
+  if (rows.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("cms_section_items")
+    .insert(rows);
+
+  if (insertError) {
+    throw new Error("Failed to save watch story items.");
   }
 }
 

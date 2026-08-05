@@ -6,6 +6,7 @@ import {
   readHomepageHeroCarousel,
   readHomepageCategoryCircles,
   readHomepageBentoGallery,
+  readHomepageWatchStories,
   readHomepageMerchandisingBanners,
   readSiteFooter,
 } from "@/server/repositories/homepage-repository";
@@ -48,6 +49,16 @@ export async function getHomepageBentoGallery() {
   cacheTag(HOMEPAGE_CACHE_TAG, HOMEPAGE_BENTO_GALLERY_CACHE_TAG);
 
   return readHomepageBentoGallery();
+}
+
+export const HOMEPAGE_WATCH_STORIES_CACHE_TAG = "homepage-watch-stories";
+
+export async function getHomepageWatchStories() {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(HOMEPAGE_CACHE_TAG, HOMEPAGE_WATCH_STORIES_CACHE_TAG);
+
+  return readHomepageWatchStories();
 }
 
 export const HOMEPAGE_MERCHANDISING_BANNERS_CACHE_TAG =
