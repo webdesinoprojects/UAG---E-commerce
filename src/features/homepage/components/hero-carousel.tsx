@@ -106,17 +106,16 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
     const timer = setInterval(() => {
       if (isPaused || isDragging || isTabHidden) return;
 
-      setProgress((prev) => {
-        if (prev >= 100) {
-          api.scrollNext();
-          return 0;
-        }
-        return prev + step;
-      });
+      setProgress((previous) => Math.min(100, previous + step));
     }, intervalTime);
 
     return () => clearInterval(timer);
   }, [api, isPaused, isDragging, isTabHidden, isReducedMotion, heroCarousel.autoplaySeconds]);
+
+  useEffect(() => {
+    if (!api || progress < 100) return;
+    api.scrollNext();
+  }, [api, progress]);
 
   const handleMouseEnter = useCallback(() => setIsPaused(true), []);
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);

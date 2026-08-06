@@ -102,13 +102,7 @@ export default function FullscreenBanner({
     const timer = setInterval(() => {
       if (isPaused || isDragging || isTabHidden) return;
 
-      setProgress((previous) => {
-        if (previous >= 100) {
-          api.scrollNext();
-          return 0;
-        }
-        return previous + step;
-      });
+      setProgress((previous) => Math.min(100, previous + step));
     }, intervalTime);
 
     return () => clearInterval(timer);
@@ -121,6 +115,11 @@ export default function FullscreenBanner({
     merchandisingBanners.autoplaySeconds,
     slides.length,
   ]);
+
+  useEffect(() => {
+    if (!api || progress < 100) return;
+    api.scrollNext();
+  }, [api, progress]);
 
   const handleMouseEnter = useCallback(() => setIsPaused(true), []);
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);

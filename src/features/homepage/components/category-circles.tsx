@@ -13,11 +13,111 @@ function getOriginalImageKitVideoUrl(url: string) {
   );
 }
 
+function CategoryVideo({ src }: { src: string }) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isVisible, setIsVisible] = React.useState(false);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { rootMargin: "100px" }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let frameRequest = 0;
+
+    const keepLoopSeamless: VideoFrameRequestCallback = () => {
+      if (
+        Number.isFinite(video.duration) &&
+        video.duration > 0 &&
+        video.duration - video.currentTime <= 0.08
+      ) {
+        video.currentTime = 0;
+        void video.play();
+      }
+      frameRequest = video.requestVideoFrameCallback(keepLoopSeamless);
+    };
+
+    if (isVisible) {
+      video.load();
+      void video.play();
+      if ("requestVideoFrameCallback" in video) {
+        frameRequest = video.requestVideoFrameCallback(keepLoopSeamless);
+      }
+    } else {
+      video.pause();
+    }
+
+    return () => {
+      if (frameRequest) video.cancelVideoFrameCallback(frameRequest);
+    };
+  }, [isVisible]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={isVisible ? getOriginalImageKitVideoUrl(src) : undefined}
+      autoPlay
+      muted
+      loop
+      playsInline
+      preload={isVisible ? "auto" : "none"}
+      disablePictureInPicture
+      onCanPlay={(event) => void event.currentTarget.play()}
+      onEnded={(event) => {
+        event.currentTarget.currentTime = 0;
+        void event.currentTarget.play();
+      }}
+      className="absolute inset-0 h-full w-full rounded-xl object-cover [transform:translateZ(0)]"
+    />
+  );
+}
+
 export default function CategoryCircles({
   categoryCircles,
 }: {
   categoryCircles: HomepageCategoryCircles;
 }) {
+  const scrollerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    let animationFrame = 0;
+    let previousTime = performance.now();
+    let pausedUntil = 0;
+
+    const scroll = (time: number) => {
+      const elapsed = Math.min(time - previousTime, 50);
+      previousTime = time;
+
+      if (time >= pausedUntil && scroller.scrollWidth > scroller.clientWidth) {
+        const end = scroller.scrollWidth - scroller.clientWidth;
+        if (scroller.scrollLeft >= end - 1) {
+          scroller.scrollLeft = 0;
+          pausedUntil = time + 900;
+        } else {
+          scroller.scrollLeft += elapsed * 0.035;
+        }
+      }
+
+      animationFrame = requestAnimationFrame(scroll);
+    };
+
+    animationFrame = requestAnimationFrame(scroll);
+    return () => cancelAnimationFrame(animationFrame);
+  }, []);
+
   if (!categoryCircles.isEnabled || categoryCircles.items.length === 0) {
     return null;
   }
@@ -26,8 +126,9 @@ export default function CategoryCircles({
     <section className="w-full bg-background py-8 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Scrollable Container */}
-        <div 
-          className="flex flex-nowrap gap-4 overflow-x-auto pb-4 scrollbar-none snap-x snap-mandatory md:gap-6 md:pb-0"
+        <div
+          ref={scrollerRef}
+          className="flex flex-nowrap gap-4 overflow-x-auto pb-4 scrollbar-none md:gap-6 md:pb-0"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {categoryCircles.items.map((category) => (
@@ -40,19 +141,7 @@ export default function CategoryCircles({
               <Card className="relative overflow-hidden aspect-square w-full rounded-2xl md:rounded-[2rem] border border-zinc-100 bg-white p-3 shadow-xs transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md group-hover:bg-white group-hover:border-primary/20 dark:border-zinc-800/40">
                 <div className="relative h-full w-full flex items-center justify-center">
                   {category.hoverMediaUrl && category.hoverMediaMimeType?.startsWith("video/") ? (
-                    <video
-                      src={getOriginalImageKitVideoUrl(category.hoverMediaUrl)}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      preload="auto"
-                      disablePictureInPicture
-                      onCanPlay={(event) => {
-                        void event.currentTarget.play();
-                      }}
-                      className="absolute inset-0 h-full w-full rounded-xl object-cover"
-                    />
+                    <CategoryVideo src={category.hoverMediaUrl} />
                   ) : category.hoverMediaUrl && category.hoverMediaMimeType === "image/gif" ? (
                     <Image
                       src={category.hoverMediaUrl}
