@@ -38,6 +38,8 @@ const featureIconMap = {
   check: Check,
 } satisfies Record<HeroFeatureIcon, typeof Sparkles>;
 
+const CONTENT_HIDDEN_MARKER = "#content-hidden";
+
 interface HeroCarouselProps {
   heroCarousel: HomepageHeroCarousel;
 }
@@ -126,9 +128,12 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
   }
 
   const activeAccent = slides[selectedIndex]?.accentColor ?? "#fbbf24";
+  const activeContentEnabled = !slides[selectedIndex]?.secondaryCtaHref.endsWith(
+    CONTENT_HIDDEN_MARKER
+  );
 
   return (
-    <section className="relative w-full bg-zinc-950 overflow-hidden font-sans border-b border-zinc-900">
+    <section className="relative mx-4 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:w-[calc(100%-2in)]">
       <Carousel
         setApi={setApi}
         opts={{
@@ -145,9 +150,12 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
         <CarouselContent className="ml-0">
           {slides.map((slide, index) => {
             const isLCP = index === 0;
+            const contentEnabled = !slide.secondaryCtaHref.endsWith(
+              CONTENT_HIDDEN_MARKER
+            );
 
             return (
-              <CarouselItem key={slide.id} className="pl-0 relative w-full h-[500px] md:h-[600px]">
+              <CarouselItem key={slide.id} className="relative h-[62vw] max-h-[320px] w-full pl-0 md:h-[75vh] md:min-h-[480px] md:max-h-[780px]">
                 {/* Background Image Container */}
                 <div className="absolute inset-0 z-0">
                   <Image
@@ -155,17 +163,21 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
                     alt={slide.title}
                     fill
                     sizes="100vw"
-                    className="object-cover object-right md:object-center select-none"
+                    className="object-cover object-center select-none md:object-contain md:object-bottom"
                     preload={isLCP ? true : undefined}
                     loading={isLCP ? undefined : "lazy"}
                   />
-                  {/* Premium Ambient Dark Gradients */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent z-10" />
-                  <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-zinc-950 to-transparent z-10" />
-                  <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-zinc-950/40 to-transparent z-10" />
+                  {contentEnabled ? (
+                    <>
+                      <div className="absolute inset-0 z-10 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+                      <div className="absolute inset-x-0 bottom-0 z-10 h-32 bg-gradient-to-t from-zinc-950 to-transparent" />
+                      <div className="absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-zinc-950/40 to-transparent" />
+                    </>
+                  ) : null}
                 </div>
 
                 {/* Content Overlay */}
+                {contentEnabled ? (
                 <div className="absolute inset-0 z-20 flex items-center pointer-events-none">
                   <div className="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 flex flex-col items-start gap-4 md:gap-6 pointer-events-auto">
 
@@ -224,18 +236,21 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
 
                   </div>
                 </div>
+                ) : null}
               </CarouselItem>
             );
           })}
         </CarouselContent>
 
         {/* Minimalist Status Index Indicator in Top Right */}
-        <div className="absolute top-6 right-6 md:right-10 z-30 bg-zinc-900/70 border border-zinc-800/80 backdrop-blur-xs text-white text-xs font-bold font-mono px-3.5 py-1.5 rounded-full select-none tracking-widest shadow-xs">
-          {selectedIndex + 1} / {slides.length}
-        </div>
+        {activeContentEnabled ? (
+          <div className="absolute top-6 right-6 z-30 rounded-full border border-zinc-800/80 bg-zinc-900/70 px-3.5 py-1.5 font-mono text-xs font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none md:right-10">
+            {selectedIndex + 1} / {slides.length}
+          </div>
+        ) : null}
 
         {/* Bottom Timer Progress Line */}
-        {!isReducedMotion && (
+        {!isReducedMotion && activeContentEnabled ? (
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-zinc-900 z-30">
             <div
               className="h-full transition-all duration-300 ease-out"
@@ -246,7 +261,7 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
               }}
             />
           </div>
-        )}
+        ) : null}
       </Carousel>
     </section>
   );

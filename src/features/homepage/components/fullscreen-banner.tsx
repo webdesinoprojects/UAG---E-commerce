@@ -36,6 +36,8 @@ const featureIconMap: Record<HeroFeatureIcon, typeof Sparkles> = {
   check: Check,
 };
 
+const CONTENT_HIDDEN_MARKER = "#content-hidden";
+
 export default function FullscreenBanner({
   merchandisingBanners,
 }: {
@@ -129,8 +131,12 @@ export default function FullscreenBanner({
     return null;
   }
 
+  const activeContentEnabled = !slides[selectedIndex]?.primaryCtaHref.endsWith(
+    CONTENT_HIDDEN_MARKER
+  );
+
   return (
-    <section className="relative mb-12 w-full overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mb-16">
+    <section className="relative mx-4 mb-12 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:mb-16 md:w-[calc(100%-2in)]">
       <Carousel
         setApi={setApi}
         opts={{
@@ -145,10 +151,15 @@ export default function FullscreenBanner({
         className="w-full font-sans"
       >
         <CarouselContent className="ml-0">
-          {slides.map((slide) => (
+          {slides.map((slide) => {
+            const contentEnabled = !slide.primaryCtaHref.endsWith(
+              CONTENT_HIDDEN_MARKER
+            );
+
+            return (
             <CarouselItem
               key={slide.id}
-              className="relative h-[calc(100vh-4.5rem)] min-h-[500px] w-full pl-0"
+              className="relative h-[62vw] max-h-[320px] w-full pl-0 md:h-[75vh] md:min-h-[480px] md:max-h-[780px]"
             >
               <div className="absolute inset-0 z-0 select-none">
                 <Image
@@ -156,14 +167,19 @@ export default function FullscreenBanner({
                   alt={slide.imageAlt}
                   fill
                   sizes="100vw"
-                  className="object-cover object-right select-none md:object-center"
+                  className="object-cover object-center select-none md:object-contain md:object-bottom"
                   loading="lazy"
                 />
-                <div className="absolute inset-0 z-10 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-zinc-950 to-transparent" />
-                <div className="absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-zinc-950/40 to-transparent" />
+                {contentEnabled ? (
+                  <>
+                    <div className="absolute inset-0 z-10 bg-gradient-to-r from-zinc-950 via-zinc-950/70 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 z-10 h-40 bg-gradient-to-t from-zinc-950 to-transparent" />
+                    <div className="absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-zinc-950/40 to-transparent" />
+                  </>
+                ) : null}
               </div>
 
+              {contentEnabled ? (
               <div className="pointer-events-none absolute inset-0 z-20 flex items-center">
                 <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
                   <div className="pointer-events-auto flex max-w-xl flex-col items-start gap-4 rounded-3xl border border-white/5 bg-zinc-950/40 p-6 shadow-2xl backdrop-blur-xs sm:p-8 md:max-w-2xl md:gap-6 md:p-10">
@@ -246,15 +262,19 @@ export default function FullscreenBanner({
                   </div>
                 </div>
               </div>
+              ) : null}
             </CarouselItem>
-          ))}
+            );
+          })}
         </CarouselContent>
 
-        <div className="absolute top-6 right-6 z-30 rounded-full border border-zinc-800/80 bg-zinc-900/70 px-3.5 py-1.5 font-mono text-xs font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none md:right-10">
-          {selectedIndex + 1} / {slides.length}
-        </div>
+        {activeContentEnabled ? (
+          <div className="absolute top-6 right-6 z-30 rounded-full border border-zinc-800/80 bg-zinc-900/70 px-3.5 py-1.5 font-mono text-xs font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none md:right-10">
+            {selectedIndex + 1} / {slides.length}
+          </div>
+        ) : null}
 
-        {!isReducedMotion && slides.length > 1 && (
+        {!isReducedMotion && slides.length > 1 && activeContentEnabled ? (
           <div className="absolute right-0 bottom-0 left-0 z-30 h-1 bg-zinc-950/80">
             <div
               className="h-full transition-all duration-300 ease-out"
@@ -265,7 +285,7 @@ export default function FullscreenBanner({
               }}
             />
           </div>
-        )}
+        ) : null}
       </Carousel>
     </section>
   );

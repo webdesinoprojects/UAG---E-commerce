@@ -187,7 +187,7 @@ export default function SiteHeader({
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background transition-shadow duration-300 hover:shadow-sm">
         
         {/* 1. Desktop Navigation Bar Layout (768px+) */}
-        <div className="hidden md:flex mx-auto h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="hidden md:flex mx-auto h-24 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           
           {/* Left: Brand Logo & Links */}
           <div className="flex items-center gap-6">
@@ -195,9 +195,9 @@ export default function SiteHeader({
 <Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
-                width={120}
-                height={40}
-                className="h-10 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+                width={240}
+                height={80}
+                className="h-20 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
                 priority
               />
             </Link>
@@ -328,7 +328,7 @@ export default function SiteHeader({
         </div>
 
         {/* 2. Mobile Navigation Bar Layout (<768px) */}
-        <div className="flex md:hidden h-16 w-full items-center justify-between px-4 select-none">
+        <div className="flex md:hidden h-20 w-full items-center justify-between px-4 select-none">
           
           {/* Left: Morphing Hamburger Trigger */}
           <button
@@ -359,9 +359,9 @@ export default function SiteHeader({
 <Image
                 src="/images/logo/logo.png"
                 alt="UAG Logo"
-                width={100}
-                height={32}
-                className="h-8 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
+                width={200}
+                height={64}
+                className="h-16 w-auto object-contain mix-blend-multiply dark:mix-blend-normal"
                 priority
               />
             </Link>

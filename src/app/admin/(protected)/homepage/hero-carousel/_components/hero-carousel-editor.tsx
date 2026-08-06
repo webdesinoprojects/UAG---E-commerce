@@ -65,6 +65,7 @@ const initialActionState: HomepageAnnouncementActionState = {
 // slide never drops data from the form.
 interface SlideForm {
   enabled: boolean;
+  contentEnabled: boolean;
   title: string;
   subtitle: string;
   description: string;
@@ -82,6 +83,8 @@ interface SlideForm {
   feature2: string;
   feature2Icon: HeroFeatureIcon;
 }
+
+const CONTENT_HIDDEN_MARKER = "#content-hidden";
 
 const FEATURE_ICON_MAP: Record<HeroFeatureIcon, LucideIcon> = {
   volume: Volume2,
@@ -132,6 +135,7 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
   const [slides, setSlides] = React.useState<SlideForm[]>(() =>
     heroCarousel.slides.map((slide) => ({
       enabled: slide.isEnabled,
+      contentEnabled: !slide.secondaryCtaHref.endsWith(CONTENT_HIDDEN_MARKER),
       title: slide.title,
       subtitle: slide.subtitle,
       description: slide.description,
@@ -143,7 +147,7 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
       primaryCtaLabel: slide.primaryCtaLabel,
       primaryCtaHref: slide.primaryCtaHref,
       secondaryCtaLabel: slide.secondaryCtaLabel,
-      secondaryCtaHref: slide.secondaryCtaHref,
+      secondaryCtaHref: slide.secondaryCtaHref.replace(CONTENT_HIDDEN_MARKER, ""),
       feature1: slide.features[0]?.text ?? "",
       feature1Icon: asFeatureIcon(slide.features[0]?.icon),
       feature2: slide.features[1]?.text ?? "",
@@ -339,6 +343,23 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
                   checked={current.enabled}
                   onCheckedChange={(value) =>
                     updateSlide(selectedIndex, { enabled: value })
+                  }
+                />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+                <div className="space-y-0.5">
+                  <Label htmlFor={`slide-${selectedIndex}-content`}>
+                    Show poster content
+                  </Label>
+                  <p className="text-xs text-zinc-500">
+                    Turn this off to show only the poster image.
+                  </p>
+                </div>
+                <Switch
+                  id={`slide-${selectedIndex}-content`}
+                  checked={current.contentEnabled}
+                  onCheckedChange={(value) =>
+                    updateSlide(selectedIndex, { contentEnabled: value })
                   }
                 />
               </div>
@@ -700,7 +721,15 @@ function HiddenSlideFields({
       <input type="hidden" name={`${prefix}primaryCtaLabel`} value={slide.primaryCtaLabel} />
       <input type="hidden" name={`${prefix}primaryCtaHref`} value={slide.primaryCtaHref} />
       <input type="hidden" name={`${prefix}secondaryCtaLabel`} value={slide.secondaryCtaLabel} />
-      <input type="hidden" name={`${prefix}secondaryCtaHref`} value={slide.secondaryCtaHref} />
+      <input
+        type="hidden"
+        name={`${prefix}secondaryCtaHref`}
+        value={
+          slide.contentEnabled
+            ? slide.secondaryCtaHref
+            : `${slide.secondaryCtaHref}${CONTENT_HIDDEN_MARKER}`
+        }
+      />
       <input type="hidden" name={`${prefix}feature1`} value={slide.feature1} />
       <input type="hidden" name={`${prefix}feature1Icon`} value={slide.feature1Icon} />
       <input type="hidden" name={`${prefix}feature2`} value={slide.feature2} />
@@ -734,8 +763,11 @@ function SlidePreview({ slide, dimmed }: { slide: SlideForm; dimmed: boolean }) 
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : null}
-      <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+      {slide.contentEnabled ? (
+        <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+      ) : null}
 
+      {slide.contentEnabled ? (
       <div className="absolute inset-0 flex flex-col items-start justify-center gap-2 p-4">
         {slide.badgeText ? (
           <span
@@ -787,6 +819,7 @@ function SlidePreview({ slide, dimmed }: { slide: SlideForm; dimmed: boolean }) 
           ) : null}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }

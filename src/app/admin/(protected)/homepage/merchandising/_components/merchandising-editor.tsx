@@ -30,6 +30,12 @@ interface MerchandisingEditorProps {
   initialData: HomepageMerchandisingBanners;
 }
 
+type EditableMerchandisingSlide = HomepageMerchandisingSlide & {
+  contentEnabled: boolean;
+};
+
+const CONTENT_HIDDEN_MARKER = "#content-hidden";
+
 const featureIcons: HeroFeatureIcon[] = [
   "volume",
   "sparkles",
@@ -62,8 +68,12 @@ export default function MerchandisingEditor({
   const [autoplaySeconds, setAutoplaySeconds] = useState(
     initialData.autoplaySeconds
   );
-  const [slides, setSlides] = useState<HomepageMerchandisingSlide[]>(
-    initialData.slides
+  const [slides, setSlides] = useState<EditableMerchandisingSlide[]>(() =>
+    initialData.slides.map((slide) => ({
+      ...slide,
+      contentEnabled: !slide.primaryCtaHref.endsWith(CONTENT_HIDDEN_MARKER),
+      primaryCtaHref: slide.primaryCtaHref.replace(CONTENT_HIDDEN_MARKER, ""),
+    }))
   );
   const [selectedIndex, setSelectedIndex] = useState(0);
 
@@ -71,7 +81,7 @@ export default function MerchandisingEditor({
 
   const updateSlide = (
     index: number,
-    updates: Partial<HomepageMerchandisingSlide>
+    updates: Partial<EditableMerchandisingSlide>
   ) => {
     setSlides((current) =>
       current.map((slide, slideIndex) =>
@@ -99,7 +109,7 @@ export default function MerchandisingEditor({
   const addSlide = () => {
     if (slides.length >= 8) return;
 
-    const nextSlide: HomepageMerchandisingSlide = {
+    const nextSlide: EditableMerchandisingSlide = {
       id: `slide-new-${Date.now()}`,
       title: "New Merchandising Banner",
       subtitle: "Launch subtitle",
@@ -120,6 +130,7 @@ export default function MerchandisingEditor({
       imageMediaAssetId: null,
       sortOrder: nextSortOrder(slides),
       isEnabled: true,
+      contentEnabled: true,
     };
 
     setSlides((current) => [...current, nextSlide]);
@@ -155,7 +166,11 @@ export default function MerchandisingEditor({
             />
             <input
               name={`${prefix}primaryCtaHref`}
-              value={slide.primaryCtaHref}
+              value={
+                slide.contentEnabled
+                  ? slide.primaryCtaHref
+                  : `${slide.primaryCtaHref}${CONTENT_HIDDEN_MARKER}`
+              }
               readOnly
             />
             <input
@@ -499,14 +514,25 @@ export default function MerchandisingEditor({
                 </div>
 
                 <div className="flex items-center justify-between gap-3 border-t pt-4">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={selectedSlide.isEnabled}
-                      onCheckedChange={(checked) =>
-                        updateSlide(selectedIndex, { isEnabled: checked })
-                      }
-                    />
-                    <Label>Slide visible</Label>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={selectedSlide.isEnabled}
+                        onCheckedChange={(checked) =>
+                          updateSlide(selectedIndex, { isEnabled: checked })
+                        }
+                      />
+                      <Label>Slide visible</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={selectedSlide.contentEnabled}
+                        onCheckedChange={(checked) =>
+                          updateSlide(selectedIndex, { contentEnabled: checked })
+                        }
+                      />
+                      <Label>Show poster content</Label>
+                    </div>
                   </div>
                   <Button
                     type="button"
@@ -535,11 +561,14 @@ export default function MerchandisingEditor({
                     src={selectedSlide.imageUrl}
                     alt={selectedSlide.title}
                     fill
-                    className="object-cover opacity-70"
+                    className={selectedSlide.contentEnabled ? "object-contain opacity-70" : "object-contain"}
                     sizes="380px"
                   />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/75 to-transparent" />
+                {selectedSlide.contentEnabled ? (
+                  <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/75 to-transparent" />
+                ) : null}
+                {selectedSlide.contentEnabled ? (
                 <div className="relative z-10 flex min-h-[410px] max-w-xs flex-col justify-center gap-4">
                   <span
                     className="w-fit rounded-full border px-3 py-1 text-[10px] font-bold uppercase"
@@ -567,6 +596,7 @@ export default function MerchandisingEditor({
                     {selectedSlide.primaryCtaLabel}
                   </Button>
                 </div>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-lg border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
