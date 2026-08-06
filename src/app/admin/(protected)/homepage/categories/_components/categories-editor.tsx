@@ -13,6 +13,13 @@ import { Plus, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+function getOriginalImageKitVideoUrl(url: string) {
+  return url.replace(
+    /^(https:\/\/ik\.imagekit\.io\/[^/]+\/)(?!tr:orig-true\/)/,
+    "$1tr:orig-true/"
+  );
+}
+
 interface CategoriesEditorProps {
   initialData: HomepageCategoryCircles;
 }
@@ -180,61 +187,22 @@ export default function CategoriesEditor({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4 mt-2">
+                  <div className="border-t pt-4 mt-2">
                     <div className="flex gap-4 items-start">
                       <div className="w-24 h-24 bg-white dark:bg-zinc-800 border rounded-lg flex items-center justify-center overflow-hidden relative shrink-0">
-                        {item.imageUrl ? (
-                          <Image src={item.imageUrl} alt={item.name} fill className="object-contain p-2" sizes="96px" />
+                        {item.hoverMediaUrl && item.hoverMediaMimeType?.startsWith("video/") ? (
+                          <video src={getOriginalImageKitVideoUrl(item.hoverMediaUrl)} className="object-cover w-full h-full" autoPlay muted loop playsInline />
+                        ) : item.hoverMediaUrl && item.hoverMediaMimeType === "image/gif" ? (
+                          <Image src={item.hoverMediaUrl} alt={item.name} fill unoptimized className="object-cover" sizes="96px" />
                         ) : (
-                          <span className="text-xs text-zinc-400 text-center px-1">No Image</span>
+                          <span className="text-xs text-zinc-400 text-center px-1">No GIF or Video</span>
                         )}
                       </div>
                       <div className="space-y-2 flex-1">
-                        <Label>Normal Image</Label>
+                        <Label>Category GIF or Video</Label>
                         <div className="flex flex-col items-start gap-2">
                           <MediaPickerModal
-                            allowedTypes="image"
-                            selectedAssetId={item.imageMediaAssetId}
-                            onSelect={(asset) => updateItem(index, { 
-                              imageMediaAssetId: asset?.id || null,
-                              imageUrl: asset?.url || item.fallbackImagePath, 
-                            })}
-                          />
-                          {!item.imageMediaAssetId && (
-                            <div className="w-full">
-                              <Label className="text-[10px] text-zinc-500">Fallback Path (no media selected)</Label>
-                              <Input 
-                                value={item.fallbackImagePath} 
-                                onChange={(e) => updateItem(index, {
-                                  fallbackImagePath: e.target.value,
-                                  imageUrl: e.target.value,
-                                })} 
-                                placeholder="/images/categories/..."
-                                className="h-7 text-xs mt-1"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-start">
-                      <div className="w-24 h-24 bg-white dark:bg-zinc-800 border rounded-lg flex items-center justify-center overflow-hidden relative shrink-0">
-                        {item.hoverMediaUrl ? (
-                          item.hoverMediaMimeType?.startsWith("video/") ? (
-                            <video src={item.hoverMediaUrl} className="object-cover w-full h-full" autoPlay muted loop playsInline />
-                          ) : (
-                            <Image src={item.hoverMediaUrl} alt="Hover" fill className="object-cover" sizes="96px" />
-                          )
-                        ) : (
-                          <span className="text-xs text-zinc-400 text-center px-1">No Hover Media</span>
-                        )}
-                      </div>
-                      <div className="space-y-2 flex-1">
-                        <Label>Hover Media (Optional)</Label>
-                        <div className="flex flex-col items-start gap-2">
-                          <MediaPickerModal
-                            allowedTypes="all"
+                            allowedTypes="gif-video"
                             selectedAssetId={item.hoverMediaAssetId}
                             onSelect={(asset) => updateItem(index, { 
                               hoverMediaAssetId: asset?.id || null,
@@ -243,7 +211,7 @@ export default function CategoriesEditor({
                             })}
                           />
                           <p className="text-[11px] text-zinc-500 leading-tight">
-                            Select an image, GIF, or short video to play on hover.
+                            Select an animated GIF or short video for the category card.
                           </p>
                         </div>
                       </div>

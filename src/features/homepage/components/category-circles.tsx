@@ -6,6 +6,13 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import type { HomepageCategoryCircles } from "@/features/homepage/types";
 
+function getOriginalImageKitVideoUrl(url: string) {
+  return url.replace(
+    /^(https:\/\/ik\.imagekit\.io\/[^/]+\/)(?!tr:orig-true\/)/,
+    "$1tr:orig-true/"
+  );
+}
+
 export default function CategoryCircles({
   categoryCircles,
 }: {
@@ -32,33 +39,29 @@ export default function CategoryCircles({
               {/* Card Container */}
               <Card className="relative overflow-hidden aspect-square w-full rounded-2xl md:rounded-[2rem] border border-zinc-100 bg-white p-3 shadow-xs transition-all duration-300 ease-out group-hover:scale-105 group-hover:shadow-md group-hover:bg-white group-hover:border-primary/20 dark:border-zinc-800/40">
                 <div className="relative h-full w-full flex items-center justify-center">
-                  <Image
-                    src={category.imageUrl}
-                    alt={category.imageAlt}
-                    width={200}
-                    height={200}
-                    className="object-contain h-full w-full rounded-xl mix-blend-multiply dark:mix-blend-normal transition-transform duration-500 ease-out group-hover:rotate-1"
-                    loading="lazy"
-                  />
-                  {category.hoverMediaUrl && category.hoverMediaMimeType?.startsWith("video/") && (
+                  {category.hoverMediaUrl && category.hoverMediaMimeType?.startsWith("video/") ? (
                     <video
-                      src={category.hoverMediaUrl}
+                      src={getOriginalImageKitVideoUrl(category.hoverMediaUrl)}
                       autoPlay
                       muted
                       loop
                       playsInline
-                      preload="metadata"
-                      className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-xl"
+                      preload="auto"
+                      disablePictureInPicture
+                      onCanPlay={(event) => {
+                        void event.currentTarget.play();
+                      }}
+                      className="absolute inset-0 h-full w-full rounded-xl object-cover"
                     />
-                  )}
-                  {category.hoverMediaUrl && !category.hoverMediaMimeType?.startsWith("video/") && (
+                  ) : category.hoverMediaUrl && category.hoverMediaMimeType === "image/gif" ? (
                     <Image
                       src={category.hoverMediaUrl}
-                      alt={`${category.imageAlt} Hover`}
+                      alt={category.imageAlt}
                       fill
-                      className="object-cover absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 rounded-xl"
+                      unoptimized
+                      className="rounded-xl object-cover"
                     />
-                  )}
+                  ) : null}
                 </div>
               </Card>
 

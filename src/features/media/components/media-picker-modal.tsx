@@ -36,7 +36,7 @@ import type { MediaAssetDto } from "@/features/media/types";
 interface MediaPickerModalProps {
   selectedAssetId?: string | null;
   onSelect: (asset: MediaAssetDto | null) => void;
-  allowedTypes?: "all" | "image" | "video";
+  allowedTypes?: "all" | "image" | "video" | "gif-video";
   trigger?: React.ReactNode;
 }
 
@@ -58,19 +58,25 @@ interface FilterState {
 
 const PAGE_SIZE = 24;
 
-function defaultType(allowedTypes: "all" | "image" | "video"): string {
+function defaultType(allowedTypes: "all" | "image" | "video" | "gif-video"): string {
   if (allowedTypes === "image") return "image";
   if (allowedTypes === "video") return "video";
+  if (allowedTypes === "gif-video") return "video";
   return "all";
 }
 
-function getTypeOptions(allowedTypes: "all" | "image" | "video") {
+function getTypeOptions(allowedTypes: "all" | "image" | "video" | "gif-video") {
   if (allowedTypes === "image")
     return [
       { value: "image", label: "All images" },
       { value: "gif", label: "GIFs only" },
     ];
   if (allowedTypes === "video") return [{ value: "video", label: "Videos" }];
+  if (allowedTypes === "gif-video")
+    return [
+      { value: "video", label: "Videos" },
+      { value: "gif", label: "GIFs" },
+    ];
   return [
     { value: "all", label: "All types" },
     { value: "image", label: "Images" },
