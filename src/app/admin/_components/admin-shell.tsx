@@ -5,18 +5,12 @@
 "use client";
 
 import * as React from "react";
-import {
-  Bell,
-  LogOut,
-  Moon,
-  Sun,
-} from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { signOutAdminAction } from "@/server/auth/actions";
 import { AdminSidebar } from "./admin-sidebar";
 import { AdminSearch } from "./admin-search";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { cn } from "@/lib/utils";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -24,25 +18,10 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ children, adminEmail }: AdminShellProps) {
-  const [isAdminDark, setIsAdminDark] = React.useState(() => {
-    try {
-      const stored = localStorage.getItem("admin-theme");
-      return stored === "dark";
-    } catch {
-      return false;
-    }
-  });
-
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    try {
-      localStorage.setItem("admin-theme", isAdminDark ? "dark" : "light");
-    } catch {}
-  }, [isAdminDark]);
-
   return (
-    <div className={cn("h-dvh", isAdminDark && "dark")}>
+    <div className="h-dvh">
       <SidebarProvider>
         <div className="flex h-full w-full overflow-hidden bg-zinc-50/30 dark:bg-zinc-950">
           <AdminSidebar />
@@ -69,18 +48,6 @@ export function AdminShell({ children, adminEmail }: AdminShellProps) {
                     onClick={() => setNotificationsOpen((open) => !open)}
                   >
                     <Bell className="h-5 w-5" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label="Toggle theme"
-                    onClick={() => setIsAdminDark((current) => !current)}
-                  >
-                    {isAdminDark ? (
-                      <Sun className="h-5 w-5" aria-hidden="true" />
-                    ) : (
-                      <Moon className="h-5 w-5" aria-hidden="true" />
-                    )}
                   </Button>
                   <form action={signOutAdminAction}>
                     <Button

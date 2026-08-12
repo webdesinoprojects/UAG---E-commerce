@@ -132,7 +132,7 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
   );
 
   return (
-    <section className="relative mx-4 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:w-[calc(100%-2in)]">
+    <section className="relative mx-auto w-[calc(100%-2rem)] max-w-7xl overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans">
       <Carousel
         setApi={setApi}
         opts={{

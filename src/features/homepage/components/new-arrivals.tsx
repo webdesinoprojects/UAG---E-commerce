@@ -22,15 +22,19 @@ export default function NewArrivals({ products }: { products: Product[] }) {
   );
 
   return (
-    <section className="w-full bg-white py-12 dark:bg-zinc-950 font-sans border-t border-zinc-150 dark:border-zinc-800/80">
+    <section className="w-full bg-white pt-2 pb-12 dark:bg-zinc-950 font-sans">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center text-center mb-8">
+                  <div className="mt-3 flex justify-center px-4 py-3 leading-none">
+          <Link href="/categories" className="text-xs font-medium text-blue-600 transition-colors hover:text-blue-500">Hurry up to buy</Link>
+        </div>
           <h2 className="text-3xl font-black font-heading text-zinc-900 dark:text-white">New Arrivals</h2>
+        
           <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2 font-medium">Explore the latest products from UAG</p>
         </div>
         <div className="flex justify-start md:justify-center items-center overflow-x-auto pb-4 mb-8 border-b border-zinc-100 dark:border-zinc-800/40 scrollbar-none gap-6 sm:gap-8 font-sans">
           {tabs.map((tab) => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`text-xs font-bold uppercase tracking-wider pb-2.5 transition-all outline-hidden shrink-0 border-b-2 ${activeTab === tab.id ? "border-zinc-900 text-zinc-900 font-extrabold dark:border-white dark:text-white" : "border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-650"}`}>
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`text-sm font-bold uppercase tracking-wider pb-2.5 transition-all outline-hidden shrink-0 border-b-2 sm:text-base ${activeTab === tab.id ? "border-zinc-900 text-zinc-900 font-extrabold dark:border-white dark:text-white" : "border-transparent text-zinc-400 dark:text-zinc-500 hover:text-zinc-650"}`}>
               {tab.label}
             </button>
           ))}

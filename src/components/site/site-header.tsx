@@ -9,13 +9,10 @@ import {
   ShoppingCart,
   ChevronDown,
   UserRound,
-  Moon,
-  Sun,
   X,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
 
 // Custom SVG Icons for categories to ensure compiler stability and crisp rendering
 const EarbudsSvg = () => (
@@ -131,38 +128,6 @@ interface SiteHeaderProps {
   cartItemCount?: number;
 }
 
-function ThemeToggleButton({ className }: { className?: string }) {
-  const { resolvedTheme, setTheme } = useTheme();
-  const mounted = React.useSyncExternalStore(
-    React.useCallback(() => () => undefined, []),
-    () => true,
-    () => false
-  );
-
-  const isDark = mounted && resolvedTheme === "dark";
-  const label = isDark ? "Switch to light mode" : "Switch to dark mode";
-
-  return (
-    <button
-      type="button"
-      aria-label={mounted ? label : "Toggle theme"}
-      aria-pressed={isDark}
-      disabled={!mounted}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className={cn(
-        "flex h-9 w-9 items-center justify-center rounded-md border border-border/70 bg-background/80 text-muted-foreground shadow-sm transition-colors hover:bg-accent/30 hover:text-foreground disabled:cursor-default disabled:opacity-70 dark:bg-white/10 dark:text-zinc-100 dark:hover:bg-white/15",
-        className
-      )}
-    >
-      {isDark ? (
-        <Sun className="h-4 w-4" aria-hidden="true" />
-      ) : (
-        <Moon className="h-4 w-4" aria-hidden="true" />
-      )}
-    </button>
-  );
-}
-
 export default function SiteHeader({
   isCustomerSignedIn = false,
   cartItemCount = 0,
@@ -203,35 +168,7 @@ export default function SiteHeader({
             </Link>
 
             {/* Desktop Nav links */}
-            <nav className="flex items-center gap-1 text-[17px] font-serif tracking-wide">
-              <Link
-                href="/"
-                className={cn(
-                  "px-3 py-2 rounded-md transition-colors hover:text-foreground hover:bg-accent/40",
-                  pathname === "/" ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                Home
-              </Link>
-              <Link
-                href="/categories"
-                className={cn(
-                  "px-3 py-2 rounded-md transition-colors hover:text-foreground hover:bg-accent/40",
-                  pathname.startsWith("/categories") ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                Categories
-              </Link>
-              <Link
-                href="/new-launches"
-                className={cn(
-                  "px-3 py-2 rounded-md transition-colors hover:text-foreground hover:bg-accent/40",
-                  pathname.startsWith("/new-launches") ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                New Launches
-              </Link>
-
+            <nav className="flex items-center gap-1 text-[17px] tracking-wide">
               {/* More hover drawer */}
               <div
                 className="relative"
@@ -240,8 +177,8 @@ export default function SiteHeader({
               >
                 <button
                   className={cn(
-                    "flex items-center gap-1 px-3 py-2 text-muted-foreground hover:text-blue-800 hover:bg-zinc-100 rounded-md transition-colors outline-hidden",
-                    isMoreOpen ? "bg-zinc-100 text-blue-800" : ""
+                    "flex items-center gap-1 rounded-md px-3 py-2 font-sans font-bold text-black outline-hidden transition-colors hover:bg-zinc-100 hover:text-black",
+                    isMoreOpen ? "bg-zinc-100 text-black" : ""
                   )}
                   aria-expanded={isMoreOpen}
                   aria-haspopup="true"
@@ -256,7 +193,7 @@ export default function SiteHeader({
                 </button>
 
                 {isMoreOpen ? (
-                  <div className="absolute left-0 top-full z-50 w-80 pt-9">
+                  <div className="absolute left-0 top-full z-50 w-80 pt-1">
                     <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white py-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
                       {dropdownLinks.map((link) => (
                         <Link
@@ -309,7 +246,6 @@ export default function SiteHeader({
               )}
             </Link>
 
-            <ThemeToggleButton />
 
             {/* Cart Icon indicator */}
             <Link
@@ -410,7 +346,6 @@ export default function SiteHeader({
               </svg>
             </a>
 
-            <ThemeToggleButton className="h-8 w-8 rounded-full" />
           </div>
 
         </div>

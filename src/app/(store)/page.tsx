@@ -6,10 +6,10 @@ import ProductCategoryGrid from "@/features/homepage/components/product-category
 import Milestones from "@/features/homepage/components/milestones";
 import FullscreenBanner from "@/features/homepage/components/fullscreen-banner";
 import NewArrivals from "@/features/homepage/components/new-arrivals";
+import QualityGoods from "@/features/homepage/components/quality-goods";
 import MostPopular from "@/features/homepage/components/most-popular";
 import BentoGrid from "@/features/homepage/components/bento-grid";
 import WatchStories from "@/features/homepage/components/watch-stories";
-import HomeInfoSection from "@/features/content-pages/components/home-info-section";
 import { getFeaturedCatalogCategories, getNewArrivalProducts, getPopularProducts } from "@/features/catalog/queries";
 import {
   getHomepageAnnouncement,
@@ -60,13 +60,14 @@ export default async function StoreHomePage() {
       {/* 5. Milestones & Statistics Banner */}
       <Milestones />
 
-      <HomeInfoSection />
-
       {/* 6. Premium Fullscreen Banner Carousel */}
       <FullscreenBanner merchandisingBanners={merchandisingBanners} />
 
       {/* 7. New Arrivals Filter Grid */}
       <NewArrivals products={newArrivalProducts} />
+
+      {/* 7. Quality Goods Benefits */}
+      <QualityGoods />
 
       {/* 8. Most Popular Product Carousel */}
       <MostPopular products={popularProducts} />

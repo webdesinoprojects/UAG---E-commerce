@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Activity,
-  ArrowUpRight,
   Check,
   Cpu,
   GalleryVerticalEnd,
@@ -14,8 +13,6 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
   Dialog,
   DialogClose,
@@ -25,7 +22,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type {
-  BentoTileLayout,
   BentoTileType,
   HomepageBentoGallery,
   HomepageBentoItem,
@@ -37,17 +33,6 @@ const tileIconMap: Record<BentoTileType, typeof ShieldCheck> = {
   story: GalleryVerticalEnd,
   category: Cpu,
 };
-
-const fallbackLayoutClass: Record<BentoTileLayout, string> = {
-  large: "col-span-2 row-span-2 md:col-span-2 md:row-span-2",
-  wide: "col-span-2 row-span-1 md:col-span-2 md:row-span-1",
-  tall: "col-span-1 row-span-2 md:col-span-1 md:row-span-2",
-  standard: "col-span-1 row-span-1 md:col-span-1 md:row-span-1",
-};
-
-function getLayoutClass(item: HomepageBentoItem) {
-  return fallbackLayoutClass[item.layout] ?? fallbackLayoutClass.standard;
-}
 
 export default function BentoGrid({
   bentoGallery,
@@ -61,84 +46,32 @@ export default function BentoGrid({
     return null;
   }
 
+  const emptySlotCount = Math.max(0, 12 - bentoGallery.items.length);
+
   return (
     <section className="mb-12 w-full border-t border-zinc-100 bg-white py-12 font-sans dark:border-zinc-800/80 dark:bg-zinc-950 md:mb-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 flex flex-col items-center text-center select-none">
-          <span className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-primary">
-            {bentoGallery.eyebrow}
-          </span>
-          <h2 className="mt-1.5 text-2xl font-black text-zinc-900 font-heading sm:text-3xl dark:text-white">
-            {bentoGallery.heading}
-          </h2>
-          {bentoGallery.description && (
-            <p className="mt-2 max-w-2xl text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              {bentoGallery.description}
-            </p>
-          )}
-          <Separator className="mt-3 h-1 w-12 rounded-full bg-primary" />
-        </div>
-
-        <div className="grid auto-rows-[160px] grid-cols-2 grid-flow-dense gap-3 sm:auto-rows-[220px] sm:gap-4 md:grid-cols-3 md:auto-rows-[280px] lg:gap-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           {bentoGallery.items.map((item) => {
-            const Icon = tileIconMap[item.tileType] ?? Zap;
-
             return (
-              <Card
+              <button
+                type="button"
                 key={item.id}
                 onClick={() => setSelectedItem(item)}
-                className={`group relative flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-zinc-800/80 bg-zinc-950 p-4 text-white transition-all duration-500 ease-out hover:scale-[1.01] hover:border-zinc-700 hover:shadow-xl active:scale-[0.995] sm:rounded-3xl sm:p-6 ${getLayoutClass(item)}`}
+                className="group relative block aspect-square w-full overflow-hidden rounded-md border border-zinc-100 bg-white text-left"
+                aria-label={`View ${item.title}`}
               >
-                <div className="absolute inset-0 z-0 select-none">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.imageAlt}
-                    fill
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                    className="object-cover object-center transition-transform duration-700 ease-out group-hover:scale-105"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-zinc-950/30" />
-                </div>
-
-                <div className="relative z-20 flex h-full w-full flex-col justify-between pointer-events-none">
-                  <div className="flex w-full items-center justify-between">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 bg-zinc-900/60 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wider text-zinc-300 sm:px-2.5 sm:text-[9px]">
-                      <Icon
-                        className="h-2.5 w-2.5 sm:h-3 sm:w-3"
-                        style={{ color: item.accentColor }}
-                      />
-                      <span>{item.badgeText}</span>
-                    </div>
-
-                    <Link
-                      href={item.href}
-                      onClick={(event) => event.stopPropagation()}
-                      className="pointer-events-auto flex h-6 w-6 scale-90 items-center justify-center rounded-full border border-white/10 bg-white/10 text-white opacity-0 backdrop-blur-xs transition-all duration-300 hover:border-transparent hover:text-zinc-950 group-hover:scale-100 group-hover:opacity-100 sm:h-7 sm:w-7"
-                      style={{ backgroundColor: item.accentColor }}
-                      aria-label={`Open ${item.title}`}
-                    >
-                      <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Link>
-                  </div>
-
-                  <div className="mt-auto">
-                    <h3 className="text-xs font-black leading-none tracking-wider uppercase sm:text-sm">
-                      {item.title}
-                    </h3>
-                    <p className="mt-1 text-[10px] font-bold leading-none text-zinc-300 font-heading sm:text-xs">
-                      {item.subtitle}
-                    </p>
-                    {item.body && (
-                      <p className="mt-2 hidden max-w-sm text-[9px] leading-relaxed text-zinc-400 sm:line-clamp-2 sm:block md:line-clamp-none">
-                        {item.body}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Card>
+                <Image src={item.imageUrl} alt={item.imageAlt} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-contain transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
+              </button>
             );
           })}
+          {Array.from({ length: emptySlotCount }, (_, index) => (
+            <div
+              key={`empty-gallery-slot-${index}`}
+              className="relative aspect-square w-full rounded-md border border-zinc-100 bg-white"
+              aria-hidden="true"
+            />
+          ))}
         </div>
       </div>
 

@@ -107,7 +107,7 @@ export default function MostPopular({ products }: { products: Product[] }) {
               {products.map((product) => (
                 <CarouselItem
                   key={product.id}
-                  className="pl-4 basis-1/2 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 select-none pointer-events-auto"
+                  className="flex pl-4 basis-1/2 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 select-none pointer-events-auto"
                 >
                   <ProductCard product={product} variant="transparent" />
                 </CarouselItem>

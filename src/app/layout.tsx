@@ -10,7 +10,6 @@ import {
 } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -73,16 +72,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSans.variable} ${instrumentSerif.variable} ${manrope.variable} ${plusJakarta.variable} ${sora.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          storageKey="uag-store-theme"
-          disableTransitionOnChange
-        >
-          <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
-          <Toaster richColors closeButton position="bottom-right" />
-        </ThemeProvider>
+        <TooltipProvider delayDuration={150}>{children}</TooltipProvider>
+        <Toaster richColors closeButton position="bottom-right" />
       </body>
     </html>
   );

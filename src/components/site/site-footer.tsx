@@ -22,7 +22,7 @@ function SocialPlatformIcon({
     return (
       <svg
         viewBox="0 0 24 24"
-        className="h-4.5 w-4.5"
+        className="h-6 w-6"
         fill="none"
         stroke="currentColor"
         strokeLinecap="round"
@@ -41,11 +41,19 @@ function SocialPlatformIcon({
     return (
       <svg
         viewBox="0 0 24 24"
-        className="h-4.5 w-4.5 fill-current"
+        className="h-6 w-6 fill-current"
         stroke="none"
         aria-hidden="true"
       >
         <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.6 15.6V8.4L15.8 12l-6.2 3.6z" />
+      </svg>
+    );
+  }
+
+  if (platform === "facebook") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current" aria-hidden="true">
+        <path d="M14.2 8.5V6.8c0-.8.5-1 1-1h2.6V1.9L14.2 2c-3.6 0-4.4 2.7-4.4 4.4v2.1H7.5V13h2.3v9h4.4v-9h3.2l.5-4.5h-3.7z" />
       </svg>
     );
   }
@@ -91,6 +99,30 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
     [footer.links]
   );
 
+  const requiredSocialLinks = [
+    {
+      id: "facebook",
+      label: "Facebook",
+      href: "https://www.facebook.com/people/URBN-ARMR-GEAR/61560946560115/",
+      platform: "facebook" as const,
+      background: "#3b5998",
+    },
+    {
+      id: "instagram",
+      label: "Instagram",
+      href: "https://www.instagram.com/uag_audio/",
+      platform: "instagram" as const,
+      background: "linear-gradient(135deg, #feda75 0%, #d62976 50%, #4f5bd5 100%)",
+    },
+    {
+      id: "youtube",
+      label: "YouTube",
+      href: "https://www.youtube.com/@Uag-Audio",
+      platform: "youtube" as const,
+      background: "#d71920",
+    },
+  ];
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -103,26 +135,26 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
   }
 
   return (
-    <footer className="w-full border-t border-zinc-950 bg-[#080808] px-4 py-12 font-sans text-white animate-fade-in sm:px-6 lg:px-8">
+    <footer className="w-full animate-fade-in border-t border-zinc-950 bg-[#0b0b0b] px-4 py-10 font-sans text-white sm:px-6 lg:px-8 lg:py-14">
       <div className="mx-auto max-w-7xl">
-        <div className="grid grid-cols-1 items-center justify-between gap-8 pb-8 md:grid-cols-3 md:gap-4">
+        <div className="grid grid-cols-1 items-center gap-9 md:grid-cols-[160px_minmax(0,1fr)_230px] md:gap-8">
           <div className="flex justify-center md:justify-start">
             <Link href="/" className="flex items-start select-none">
               <Image
                 src={footer.logoPath}
                 alt={footer.logoAlt}
-                width={120}
-                height={40}
-                className="h-10 w-auto object-contain invert mix-blend-screen"
+                width={100}
+                height={44}
+                className="h-11 w-auto object-contain invert mix-blend-screen"
                 style={{ width: "auto" }}
                 priority
               />
             </Link>
           </div>
 
-          <div className="flex flex-col items-center gap-6 text-center">
-            <div className="flex max-w-md flex-col gap-2.5">
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 sm:text-[10px]">
+          <div className="flex flex-col items-center gap-12 text-center">
+            <div className="flex max-w-4xl flex-col gap-7">
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-3 text-sm font-extrabold uppercase text-zinc-100">
                 {groupedLinks.primary.map((link) => (
                   <Link
                     key={link.id}
@@ -135,7 +167,7 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
               </div>
 
               {groupedLinks.secondary.length > 0 && (
-                <div className="flex justify-center gap-4 text-[9px] font-extrabold uppercase tracking-wider text-zinc-400 sm:text-[10px]">
+                <div className="flex justify-center gap-7 text-sm font-extrabold uppercase text-zinc-100">
                   {groupedLinks.secondary.map((link) => (
                     <Link
                       key={link.id}
@@ -149,27 +181,25 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
               )}
             </div>
 
-            {footer.socialLinks.length > 0 && (
-              <div className="flex items-center gap-3">
-                {footer.socialLinks.map((socialLink) => (
+            <div className="flex items-center gap-2">
+                {requiredSocialLinks.map((socialLink) => (
                   <a
                     key={socialLink.id}
                     href={socialLink.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={socialLink.label}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-white transition-transform duration-200 hover:brightness-110 active:scale-90"
-                    style={{ backgroundColor: socialLink.backgroundColor }}
+                    className="flex h-14 w-14 items-center justify-center rounded-md text-white transition-transform duration-200 hover:-translate-y-0.5 hover:brightness-110 active:scale-95"
+                    style={{ background: socialLink.background }}
                   >
                     <SocialPlatformIcon platform={socialLink.platform} />
                   </a>
                 ))}
-              </div>
-            )}
+            </div>
           </div>
 
           <div className="flex justify-center text-center md:justify-end md:text-right">
-            <p className="text-[9px] font-bold uppercase leading-relaxed tracking-widest text-zinc-500 sm:text-[10px]">
+            <p className="max-w-[230px] text-sm font-medium leading-6 text-zinc-300">
               {footer.copyrightText}
             </p>
           </div>

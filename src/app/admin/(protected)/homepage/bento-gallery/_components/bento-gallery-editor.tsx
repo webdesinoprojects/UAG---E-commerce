@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useState } from "react";
-import { AlertCircle, ArrowLeft, CheckCircle2, Plus, Trash2 } from "lucide-react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Grip, Plus, Trash2 } from "lucide-react";
 import { updateHomepageBentoGalleryAction } from "@/features/homepage/actions";
 import type {
   BentoTileLayout,
@@ -51,8 +51,17 @@ export default function BentoGalleryEditor({
   const [description, setDescription] = useState(initialData.description);
   const [items, setItems] = useState<HomepageBentoItem[]>(initialData.items);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const pendingDropSaveRef = useRef(false);
 
   const selectedItem = items[selectedIndex] ?? items[0] ?? null;
+
+  useEffect(() => {
+    if (!pendingDropSaveRef.current) return;
+    pendingDropSaveRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [items]);
 
   const updateItem = (index: number, updates: Partial<HomepageBentoItem>) => {
     setItems((current) =>
@@ -93,8 +102,26 @@ export default function BentoGalleryEditor({
     setSelectedIndex((current) => Math.max(0, Math.min(current, items.length - 2)));
   };
 
+  const movePreviewItem = (targetItemId: string) => {
+    if (!draggedItemId || draggedItemId === targetItemId) return;
+
+    pendingDropSaveRef.current = true;
+    setItems((current) => {
+      const fromIndex = current.findIndex((item) => item.id === draggedItemId);
+      const toIndex = current.findIndex((item) => item.id === targetItemId);
+      if (fromIndex < 0 || toIndex < 0) return current;
+
+      const reordered = [...current];
+      const [movedItem] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, movedItem);
+      return reordered.map((item, index) => ({ ...item, sortOrder: (index + 1) * 10 }));
+    });
+
+    setDraggedItemId(null);
+  };
+
   return (
-    <form action={action} className="flex flex-col gap-6 pb-20">
+    <form ref={formRef} action={action} className="flex flex-col gap-6 pb-20">
       <input type="hidden" name="isEnabled" value={isEnabled.toString()} />
       <input type="hidden" name="eyebrow" value={eyebrow} />
       <input type="hidden" name="heading" value={heading} />
@@ -431,38 +458,56 @@ export default function BentoGalleryEditor({
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Preview</CardTitle>
+            <CardTitle className="text-base">Storefront Preview</CardTitle>
+            <p className="text-xs text-muted-foreground">Drag tiles to reorder. Dropping saves immediately.</p>
           </CardHeader>
           <CardContent>
-            {selectedItem ? (
-              <div className="relative min-h-[360px] overflow-hidden rounded-2xl bg-zinc-950 p-5 text-white">
-                {selectedItem.imageUrl && (
-                  <Image
-                    src={selectedItem.imageUrl}
-                    alt={selectedItem.title}
-                    fill
-                    className="object-cover opacity-70"
-                    sizes="360px"
-                  />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/70 to-transparent" />
-                <div className="relative z-10 flex min-h-[320px] flex-col justify-between">
-                  <span
-                    className="w-fit rounded-full border px-3 py-1 text-xs font-bold uppercase"
-                    style={{ color: selectedItem.accentColor }}
+            {items.length > 0 ? (
+              <div className="grid grid-cols-3 gap-2 rounded-xl border bg-white p-2 dark:bg-zinc-950">
+                {items.filter((item) => item.isEnabled).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    draggable
+                    onDragStart={(event) => {
+                      setDraggedItemId(item.id);
+                      event.dataTransfer.effectAllowed = "move";
+                      event.dataTransfer.setData("text/plain", item.id);
+                    }}
+                    onDragEnd={() => setDraggedItemId(null)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = "move";
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      movePreviewItem(item.id);
+                    }}
+                    onClick={() => setSelectedIndex(items.findIndex((candidate) => candidate.id === item.id))}
+                    className={`group relative block aspect-square w-full cursor-grab overflow-hidden rounded-md border border-zinc-100 bg-white ring-offset-2 active:cursor-grabbing ${selectedItem?.id === item.id ? "ring-2 ring-primary" : ""} ${draggedItemId === item.id ? "opacity-50" : ""}`}
                   >
-                    {selectedItem.badgeText}
-                  </span>
-                  <div>
-                    <h3 className="text-2xl font-black uppercase text-zinc-900 dark:text-white">{selectedItem.title}</h3>
-                    <p className="mt-1 text-sm font-bold text-zinc-300">{selectedItem.subtitle}</p>
-                    <p className="mt-3 text-xs text-zinc-400">{selectedItem.body}</p>
-                  </div>
-                </div>
+                    {item.imageUrl ? (
+                      <Image src={item.imageUrl} alt={item.imageAlt} fill className="object-contain" sizes="110px" />
+                    ) : null}
+                    <span className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-md bg-white/90 text-zinc-700 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                      <Grip className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                  </button>
+                ))}
+                {Array.from(
+                  { length: Math.max(0, 12 - items.filter((item) => item.isEnabled).length) },
+                  (_, index) => (
+                    <div
+                      key={`empty-preview-slot-${index}`}
+                      className="relative aspect-square w-full rounded-md border border-zinc-100 bg-white"
+                      aria-hidden="true"
+                    />
+                  ),
+                )}
               </div>
             ) : (
               <div className="rounded-lg border bg-muted/30 p-8 text-center text-sm text-muted-foreground">
-                No tile selected.
+                No gallery items.
               </div>
             )}
           </CardContent>

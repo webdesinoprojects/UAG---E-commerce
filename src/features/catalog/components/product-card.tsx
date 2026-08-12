@@ -39,25 +39,25 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
 
   return (
     <div className={cn(
-      "group relative flex flex-col overflow-hidden transition-all duration-300 ease-out cursor-pointer",
+      "group relative flex h-full flex-col overflow-hidden transition-all duration-300 ease-out cursor-pointer",
       variant === "default"
-        ? "rounded-2xl border border-zinc-150 bg-white p-3 shadow-xs hover:shadow-md hover:border-zinc-200 dark:bg-zinc-950 dark:border-zinc-800/80"
-        : "rounded-2xl border-0 bg-transparent p-1.5 shadow-none"
+        ? "rounded-lg border-0 bg-white p-0 shadow-none"
+        : "rounded-lg border-0 bg-transparent p-0 shadow-none"
     )}>
       
       {/* 1. Discount Percentage Badge (Top-Left) */}
       {hasDiscount && (
-        <div className="absolute top-2.5 left-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-orange-600 font-sans text-[9px] font-black text-white shadow-md shadow-orange-600/10">
+        <div className="absolute top-2 left-2 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-orange-600 font-sans text-sm font-black text-white shadow-sm sm:h-14 sm:w-14 sm:text-base">
           -{product.discount}%
         </div>
       )}
 
       {/* 2. Product Image Container (Slightly wider, full bleed for transparent) */}
       <Link href={productHref} className={cn(
-        "relative w-full overflow-hidden rounded-2xl flex items-center justify-center border transition-all duration-300",
+        "relative w-full overflow-hidden rounded-lg flex items-center justify-center border-0 transition-all duration-300",
         variant === "default"
-          ? "aspect-[6/5] bg-zinc-50/50 border-zinc-100 dark:bg-zinc-900/40 dark:border-zinc-850 p-3"
-          : "aspect-[1.1/1] bg-zinc-100/60 border-zinc-200/40 dark:bg-zinc-900/60 dark:border-zinc-800/60 group-hover:border-zinc-300 dark:group-hover:border-zinc-700 p-0 shadow-sm"
+          ? "aspect-square bg-white p-0"
+          : "aspect-square bg-white p-0"
       )}>
         <Image
           src={product.image}
@@ -67,37 +67,37 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
           className={cn(
             "transition-transform duration-500 ease-out group-hover:scale-108",
             variant === "default"
-              ? "object-contain p-2"
-              : "object-cover rounded-2xl"
+              ? "object-contain"
+              : "object-contain rounded-lg"
           )}
           loading="lazy"
         />
       </Link>
 
       {/* 3. Product Info Block */}
-      <div className="flex-1 flex flex-col justify-between mt-2.5 text-center">
+      <div className="mt-3 flex flex-1 flex-col justify-between text-center">
         <div>
           {/* Product Title */}
           <Link href={productHref}>
-            <h4 className="text-[10px] sm:text-xs font-bold leading-snug text-zinc-900 dark:text-zinc-100 group-hover:text-primary transition-colors line-clamp-2 min-h-[30px] flex items-center justify-center px-0.5">
+            <h4 className="flex min-h-[4.5rem] items-start justify-center px-1 font-sans text-sm font-medium leading-snug text-zinc-800 transition-colors line-clamp-3 group-hover:text-primary sm:min-h-[4.75rem] sm:text-base">
               {product.name}
             </h4>
           </Link>
 
           {/* Category Tag */}
-          <span className="block text-[8px] sm:text-[9px] font-semibold text-zinc-400 dark:text-zinc-500 mt-0.5">
+          <span className="mt-2 block text-xs font-normal text-zinc-400 sm:text-sm">
             {product.category}
           </span>
         </div>
 
         {/* Pricing Block */}
-        <div className="mt-1.5 flex items-center justify-center gap-1.5">
+        <div className="mt-2 flex items-center justify-center gap-1.5">
           {hasDiscount && (
-            <span className="text-[9px] sm:text-[11px] font-medium text-zinc-400 line-through dark:text-zinc-500">
+            <span className="text-xs font-normal text-zinc-400 line-through sm:text-sm">
               {formatPrice(product.originalPrice)}
             </span>
           )}
-          <span className="text-[11px] sm:text-xs font-black text-blue-600 dark:text-blue-400">
+          <span className="text-sm font-bold text-blue-600 sm:text-base">
             {formatPrice(product.price)}
           </span>
         </div>
@@ -105,7 +105,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
 
       {/* 4. Action Button "BUY NOW" */}
       <Button
-        className="w-full bg-orange-600 hover:bg-orange-500 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider rounded-xl py-2 h-auto mt-3 transition-all duration-200 active:scale-[0.98] border-0 shadow-sm"
+        className="mt-5 h-12 w-full rounded-md border-0 bg-orange-600 py-2 text-sm font-black tracking-wide text-white uppercase shadow-none transition-all duration-200 hover:bg-orange-500 active:scale-[0.98]"
         asChild
       >
         <Link
