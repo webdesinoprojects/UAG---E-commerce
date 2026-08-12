@@ -71,7 +71,7 @@ export default function MarqueeBanner({ announcement }: MarqueeBannerProps) {
 
   return (
     <div
-      className="relative mx-auto mt-[25px] w-[calc(100%-2rem)] max-w-7xl overflow-hidden border-y border-white/10 py-3 font-heading select-none"
+      className="relative mx-auto mt-[25px] w-[calc(100%-2rem)] max-w-7xl overflow-hidden rounded-lg border-y border-white/10 py-3 font-heading select-none"
       style={{
         backgroundColor: announcement.backgroundColor,
         color: announcement.textColor,

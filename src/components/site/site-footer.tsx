@@ -143,9 +143,9 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
               <Image
                 src={footer.logoPath}
                 alt={footer.logoAlt}
-                width={100}
-                height={44}
-                className="h-11 w-auto object-contain invert mix-blend-screen"
+                width={140}
+                height={56}
+                className="h-14 w-auto object-contain invert mix-blend-screen"
                 style={{ width: "auto" }}
                 priority
               />

@@ -1,6 +1,7 @@
 import React, { Suspense } from "react";
 import SiteHeader from "@/components/site/site-header";
 import SiteFooter from "@/components/site/site-footer";
+import SocialRail from "@/components/site/social-rail";
 import { getCartSummary } from "@/features/cart/queries";
 import { getSiteFooter } from "@/features/homepage/queries";
 import { getCurrentCustomer } from "@/server/auth/customer";
@@ -18,6 +19,7 @@ export default async function StoreLayout({
         <StoreHeader />
       </Suspense>
       <main className="flex-1 pb-16 md:pb-0">{children}</main>
+      <SocialRail />
       <SiteFooter footer={footer} />
     </div>
   );
