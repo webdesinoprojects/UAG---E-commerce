@@ -1367,6 +1367,27 @@ export async function readPublicProductBySlug(
   }
 }
 
+export async function readPublicProductPurchaseDestination(
+  productId: string
+): Promise<{ productUrl: string | null; slug: string } | null> {
+  const client = createSupabaseAnonServerClient();
+  if (!client) return null;
+
+  const { data, error } = await client
+    .from("catalog_products")
+    .select("product_url,slug")
+    .eq("id", productId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (error || !data) return null;
+
+  return {
+    productUrl: data.product_url,
+    slug: data.slug,
+  };
+}
+
 export async function readPublicAllProducts(): Promise<Product[]> {
   const client = createSupabaseAnonServerClient();
   if (!client) return [];

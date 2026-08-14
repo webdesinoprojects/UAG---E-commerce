@@ -12,7 +12,7 @@ const socialLinks = [
   {
     label: "Instagram",
     href: "https://www.instagram.com/uag_audio/",
-    background: "#8b4933",
+    background: "linear-gradient(135deg, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%)",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -44,7 +44,7 @@ export default function SocialRail() {
           rel="noopener noreferrer"
           aria-label={link.label}
           className="flex h-11 w-11 items-center justify-center text-white transition-[filter] hover:brightness-110"
-          style={{ backgroundColor: link.background }}
+          style={{ background: link.background }}
         >
           {link.icon}
         </a>

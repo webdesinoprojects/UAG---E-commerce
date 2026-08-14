@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { ProductDetail } from "../types";
 import { Repeat } from "lucide-react";
-import { addToCartAction } from "@/features/cart/actions";
+import { buyNowAction } from "@/features/cart/actions";
 
 interface ProductInfoProps {
   product: ProductDetail;
@@ -40,10 +40,9 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
 
       {/* Quantity & Cart Actions */}
-      <form action={addToCartAction} className="flex gap-4 mb-8">
+      <form action={buyNowAction} className="flex gap-4 mb-8">
         <input type="hidden" name="productId" value={product.id} />
         <input type="hidden" name="quantity" value={quantity} />
-        <input type="hidden" name="redirectTo" value="/cart" />
         {/* Quantity Selector */}
         <div className="flex items-center border border-zinc-200 dark:border-zinc-800 rounded h-11">
           <button 
@@ -69,7 +68,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           type="submit"
           className="flex-1 bg-[#222222] text-white font-bold text-[11px] tracking-[0.1em] uppercase rounded h-11 hover:bg-black transition-colors"
         >
-          ADD TO CART
+          BUY NOW
         </button>
       </form>
 

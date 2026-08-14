@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { CART_COOKIE_NAME, getCartCookieOptions } from "@/lib/cart-cookies";
 import { encodeCartCookie, readCartCookieItems } from "./queries";
+import { readPublicProductPurchaseDestination } from "@/server/repositories/catalog-repository";
 
 const productIdSchema = z.string().uuid();
 const quantitySchema = z.coerce.number().int().min(1);
@@ -27,28 +28,61 @@ async function writeCart(items: { productId: string; quantity: number }[]) {
   );
 }
 
-export async function addToCartAction(formData: FormData) {
-  const productId = productIdSchema.parse(formData.get("productId"));
-  const quantity = quantitySchema.parse(formData.get("quantity") ?? 1);
-  const redirectTo = formData.get("redirectTo")?.toString();
+async function addProductToCart(productId: string, quantity: number) {
   const items = await readCartCookieItems();
   const existing = items.find((item) => item.productId === productId);
-  const oldQty = existing?.quantity ?? 0;
-  const newQty = oldQty + quantity;
+  const newQuantity = (existing?.quantity ?? 0) + quantity;
 
   if (existing) {
-    existing.quantity = newQty;
+    existing.quantity = newQuantity;
   } else {
-    items.push({ productId, quantity: newQty });
+    items.push({ productId, quantity: newQuantity });
   }
 
   await writeCart(items);
   revalidatePath("/cart");
   revalidatePath("/");
+}
+
+export async function addToCartAction(formData: FormData) {
+  const productId = productIdSchema.parse(formData.get("productId"));
+  const quantity = quantitySchema.parse(formData.get("quantity") ?? 1);
+  const redirectTo = formData.get("redirectTo")?.toString();
+  await addProductToCart(productId, quantity);
 
   if (redirectTo) {
     redirect(redirectTo);
   }
+}
+
+export async function buyNowAction(formData: FormData) {
+  const productId = productIdSchema.parse(formData.get("productId"));
+  const quantity = quantitySchema.parse(formData.get("quantity") ?? 1);
+  const destination = await readPublicProductPurchaseDestination(productId);
+
+  if (!destination) {
+    redirect("/cart");
+  }
+
+  await addProductToCart(productId, quantity);
+
+  const fallbackPath = `/products/${destination.slug}`;
+  const configuredUrl = destination.productUrl;
+  if (!configuredUrl) redirect(fallbackPath);
+
+  if (/^\/(?!\/)/.test(configuredUrl)) {
+    redirect(configuredUrl);
+  }
+
+  let externalDestination = fallbackPath;
+  try {
+    const parsedUrl = new URL(configuredUrl);
+    if (parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:") {
+      externalDestination = parsedUrl.toString();
+    }
+  } catch {}
+
+  redirect(externalDestination);
 }
 
 export async function updateCartQuantityAction(formData: FormData) {

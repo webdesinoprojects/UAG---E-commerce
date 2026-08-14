@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { buyNowAction } from "@/features/cart/actions";
 
 export interface Product {
   id: string;
@@ -104,18 +105,16 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
       </div>
 
       {/* 4. Action Button "BUY NOW" */}
-      <Button
-        className="mt-5 h-12 w-full rounded-md border-0 bg-orange-600 py-2 text-sm font-black tracking-wide text-white uppercase shadow-none transition-all duration-200 hover:bg-orange-500 active:scale-[0.98]"
-        asChild
-      >
-        <Link
-          href={productHref}
-          target={product.productUrl ? "_blank" : undefined}
-          rel={product.productUrl ? "noopener noreferrer" : undefined}
+      <form action={buyNowAction} className="mt-5">
+        <input type="hidden" name="productId" value={product.id} />
+        <input type="hidden" name="quantity" value="1" />
+        <Button
+          type="submit"
+          className="h-12 w-full rounded-md border-0 bg-orange-600 py-2 text-sm font-black tracking-wide text-white uppercase shadow-none transition-all duration-200 hover:bg-orange-500 active:scale-[0.98]"
         >
           Buy Now
-        </Link>
-      </Button>
+        </Button>
+      </form>
 
     </div>
   );
