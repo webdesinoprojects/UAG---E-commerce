@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -45,11 +45,14 @@ export default function FullscreenBanner({
 }) {
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [progress, setProgress] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isTabHidden, setIsTabHidden] = useState(false);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
+  const progressRef = useRef<HTMLDivElement>(null);
+  const playbackPausedRef = useRef(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInViewportRef = useRef(false);
 
   const slides = merchandisingBanners.slides;
 
@@ -75,7 +78,6 @@ export default function FullscreenBanner({
 
     const onSelect = () => {
       setSelectedIndex(api.selectedScrollSnap());
-      setProgress(0);
     };
 
     const onPointerDown = () => setIsDragging(true);
@@ -93,35 +95,57 @@ export default function FullscreenBanner({
   }, [api]);
 
   useEffect(() => {
-    if (isReducedMotion || !api || slides.length <= 1) return;
-
-    const intervalTime = 30;
-    const duration = merchandisingBanners.autoplaySeconds * 1000;
-    const step = (intervalTime / duration) * 100;
-
-    const timer = setInterval(() => {
-      if (isPaused || isDragging || isTabHidden) return;
-
-      setProgress((previous) => Math.min(100, previous + step));
-    }, intervalTime);
-
-    return () => clearInterval(timer);
-  }, [
-    api,
-    isPaused,
-    isDragging,
-    isTabHidden,
-    isReducedMotion,
-    merchandisingBanners.autoplaySeconds,
-    slides.length,
-  ]);
+    playbackPausedRef.current = isPaused || isDragging || isTabHidden;
+  }, [isPaused, isDragging, isTabHidden]);
 
   useEffect(() => {
-    if (!api || progress < 100) return;
-    api.scrollNext();
-  }, [api, progress]);
+    const section = sectionRef.current;
+    if (!section) return;
 
-  const handleMouseEnter = useCallback(() => setIsPaused(true), []);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isInViewportRef.current = entry.isIntersecting;
+      },
+      { rootMargin: "150px" }
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const progressElement = progressRef.current;
+    if (isReducedMotion || !api || slides.length <= 1 || !progressElement) return;
+
+    const duration = merchandisingBanners.autoplaySeconds * 1000;
+    let animationFrame = 0;
+    let elapsed = 0;
+    let previousTime = performance.now();
+
+    progressElement.style.transform = "scaleX(0)";
+
+    const animate = (time: number) => {
+      if (!playbackPausedRef.current && isInViewportRef.current) {
+        elapsed += Math.min(time - previousTime, 100);
+        progressElement.style.transform = `scaleX(${Math.min(elapsed / duration, 1)})`;
+
+        if (elapsed >= duration) {
+          elapsed = 0;
+          progressElement.style.transform = "scaleX(0)";
+          api.scrollNext();
+        }
+      }
+
+      previousTime = time;
+      animationFrame = requestAnimationFrame(animate);
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [api, isReducedMotion, merchandisingBanners.autoplaySeconds, selectedIndex, slides.length]);
+
+  const handleMouseEnter = useCallback(() => {
+    if (window.matchMedia("(hover: hover)").matches) setIsPaused(true);
+  }, []);
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);
   const handleFocus = useCallback(() => setIsPaused(true), []);
   const handleBlur = useCallback(() => setIsPaused(false), []);
@@ -131,7 +155,7 @@ export default function FullscreenBanner({
   }
 
   return (
-    <section className="relative mx-4 mb-12 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:mb-16 md:w-[calc(100%-2in)]">
+    <section ref={sectionRef} className="relative mx-4 mb-12 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:mb-16 md:w-[calc(100%-2in)]">
       <Carousel
         setApi={setApi}
         opts={{
@@ -270,12 +294,8 @@ export default function FullscreenBanner({
         {!isReducedMotion && slides.length > 1 ? (
           <div className="absolute right-0 bottom-0 left-0 z-40 h-1 bg-orange-500/30">
             <div
-              className="h-full transition-all duration-300 ease-out"
-              style={{
-                width: `${progress}%`,
-                backgroundColor: "#f97316",
-                transitionProperty: progress === 0 ? "none" : "width",
-              }}
+              ref={progressRef}
+              className="h-full origin-left bg-orange-500 will-change-transform"
             />
           </div>
         ) : null}

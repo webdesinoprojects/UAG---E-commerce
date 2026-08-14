@@ -90,12 +90,20 @@ export default function CategoryCircles({
     let previousTime = performance.now();
     let pausedUntil = 0;
     let scrollEnd = scroller.scrollWidth - scroller.clientWidth;
+    let isScrollerVisible = false;
 
     const updateScrollEnd = () => {
       scrollEnd = scroller.scrollWidth - scroller.clientWidth;
     };
     const resizeObserver = new ResizeObserver(updateScrollEnd);
     resizeObserver.observe(scroller);
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        isScrollerVisible = entry.isIntersecting;
+      },
+      { rootMargin: "100px" }
+    );
+    intersectionObserver.observe(scroller);
 
     const scroll = (time: number) => {
       const elapsed = Math.min(time - previousTime, 50);
@@ -103,6 +111,7 @@ export default function CategoryCircles({
 
       if (
         document.visibilityState === "visible" &&
+        isScrollerVisible &&
         time >= pausedUntil &&
         scrollEnd > 0
       ) {
@@ -121,6 +130,7 @@ export default function CategoryCircles({
     return () => {
       cancelAnimationFrame(animationFrame);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
     };
   }, []);
 

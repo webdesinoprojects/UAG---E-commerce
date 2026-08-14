@@ -23,6 +23,56 @@ function getOriginalImageKitVideoUrl(url: string) {
   );
 }
 
+function StoryPreviewVideo({ story }: { story: HomepageStory }) {
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [isNearViewport, setIsNearViewport] = React.useState(false);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsNearViewport(entry.isIntersecting),
+      { rootMargin: "300px" }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isNearViewport && document.visibilityState === "visible") {
+      void video.play().catch(() => undefined);
+    } else {
+      video.pause();
+    }
+  }, [isNearViewport]);
+
+  return (
+    <video
+      ref={videoRef}
+      src={
+        isNearViewport
+          ? getOriginalImageKitVideoUrl(story.videoUrl)
+          : undefined
+      }
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload={isNearViewport ? "auto" : "none"}
+      onCanPlay={(event) => {
+        if (isNearViewport) {
+          void event.currentTarget.play().catch(() => undefined);
+        }
+      }}
+      className="absolute inset-0 z-0 h-full w-full object-cover"
+    />
+  );
+}
+
 function StoryViewer({ story }: { story: HomepageStory }) {
   return (
     <DialogContent
@@ -114,18 +164,7 @@ export default function WatchStories({
                   >
                 {/* Video container */}
                 <div className="relative w-full aspect-[9/16]">
-                  <video
-                    src={getOriginalImageKitVideoUrl(story.videoUrl)}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="auto"
-                    onCanPlay={(event) => {
-                      void event.currentTarget.play().catch(() => undefined);
-                    }}
-                    className="absolute inset-0 w-full h-full object-cover z-0"
-                  />
+                  <StoryPreviewVideo story={story} />
                   {/* Subtle top gradient for cinematic look */}
                   <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black/50 to-transparent z-10 pointer-events-none" />
                   
