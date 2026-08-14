@@ -130,10 +130,6 @@ export default function FullscreenBanner({
     return null;
   }
 
-  const activeContentEnabled = !slides[selectedIndex]?.primaryCtaHref.endsWith(
-    CONTENT_HIDDEN_MARKER
-  );
-
   return (
     <section className="relative mx-4 mb-12 w-[calc(100%-2rem)] overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans md:mx-[1in] md:mb-16 md:w-[calc(100%-2in)]">
       <Carousel
@@ -267,19 +263,17 @@ export default function FullscreenBanner({
           })}
         </CarouselContent>
 
-        {activeContentEnabled ? (
-          <div className="absolute top-6 right-6 z-30 rounded-full border border-zinc-800/80 bg-zinc-900/70 px-3.5 py-1.5 font-mono text-xs font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none md:right-10">
+        <div className="absolute top-3 right-3 z-40 rounded-full border border-zinc-600 bg-black/85 px-2.5 py-1 font-mono text-[10px] font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none sm:text-xs">
             {selectedIndex + 1} / {slides.length}
-          </div>
-        ) : null}
+        </div>
 
-        {!isReducedMotion && slides.length > 1 && activeContentEnabled ? (
-          <div className="absolute right-0 bottom-0 left-0 z-30 h-1 bg-zinc-950/80">
+        {!isReducedMotion && slides.length > 1 ? (
+          <div className="absolute right-0 bottom-0 left-0 z-40 h-1 bg-orange-500/30">
             <div
               className="h-full transition-all duration-300 ease-out"
               style={{
                 width: `${progress}%`,
-                backgroundColor: slides[selectedIndex]?.accentColor ?? "#fbbf24",
+                backgroundColor: "#f97316",
                 transitionProperty: progress === 0 ? "none" : "width",
               }}
             />

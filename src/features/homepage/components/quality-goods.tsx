@@ -39,11 +39,11 @@ export default function QualityGoods() {
         <h2 className="mt-5 text-3xl font-medium tracking-wide text-zinc-900 dark:text-white sm:text-4xl">We Provide High Quality Goods</h2>
         <p className="mx-auto mt-5 max-w-4xl text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">A client that’s unhappy for a reason is a problem, a client that’s unhappy though he or her can’t</p>
 
-        <div ref={scrollerRef} className="mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 pr-12 scrollbar-hide md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:pr-0">
+        <div ref={scrollerRef} className="mt-12 flex snap-x snap-mandatory overflow-x-auto pb-3 pr-12 scrollbar-hide md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:pr-0">
           {benefits.map((benefit) => {
             const Icon = benefit.icon;
             return (
-              <article key={benefit.title} className="flex w-[78vw] max-w-[20rem] shrink-0 snap-start flex-col items-center rounded-xl bg-white px-5 py-7 shadow-sm ring-1 ring-zinc-100 dark:bg-zinc-900 dark:ring-zinc-800 md:w-auto md:max-w-none md:rounded-none md:bg-transparent md:px-0 md:py-0 md:shadow-none md:ring-0 dark:md:bg-transparent">
+              <article key={benefit.title} className="flex w-[78vw] max-w-[20rem] shrink-0 snap-start flex-col items-center bg-transparent px-5 py-7 md:w-auto md:max-w-none md:px-0 md:py-0">
                 {benefit.image ? (
                   <Image src={benefit.image} alt="" width={64} height={64} aria-hidden="true" className="h-14 w-14 object-contain" />
                 ) : Icon ? (

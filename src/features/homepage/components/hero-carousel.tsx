@@ -126,11 +126,6 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
     return null;
   }
 
-  const activeAccent = slides[selectedIndex]?.accentColor ?? "#fbbf24";
-  const activeContentEnabled = !slides[selectedIndex]?.secondaryCtaHref.endsWith(
-    CONTENT_HIDDEN_MARKER
-  );
-
   return (
     <section className="relative mx-auto w-[calc(100%-2rem)] max-w-7xl overflow-hidden border-b border-zinc-900 bg-zinc-950 font-sans">
       <Carousel
@@ -242,20 +237,18 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
         </CarouselContent>
 
         {/* Minimalist Status Index Indicator in Top Right */}
-        {activeContentEnabled ? (
-          <div className="absolute top-6 right-6 z-30 rounded-full border border-zinc-800/80 bg-zinc-900/70 px-3.5 py-1.5 font-mono text-xs font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none md:right-10">
+        <div className="absolute top-3 right-3 z-40 rounded-full border border-zinc-600 bg-black/85 px-2.5 py-1 font-mono text-[10px] font-bold tracking-widest text-white shadow-xs backdrop-blur-xs select-none sm:text-xs">
             {selectedIndex + 1} / {slides.length}
-          </div>
-        ) : null}
+        </div>
 
         {/* Bottom Timer Progress Line */}
-        {!isReducedMotion && activeContentEnabled ? (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-zinc-900 z-30">
+        {!isReducedMotion && slides.length > 1 ? (
+          <div className="absolute right-0 bottom-0 left-0 z-40 h-1 bg-orange-500/30">
             <div
               className="h-full transition-all duration-300 ease-out"
               style={{
                 width: `${progress}%`,
-                backgroundColor: activeAccent,
+                backgroundColor: "#f97316",
                 transitionProperty: progress === 0 ? "none" : "width",
               }}
             />

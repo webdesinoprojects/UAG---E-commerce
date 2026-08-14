@@ -135,7 +135,7 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
   }
 
   return (
-    <footer className="w-full animate-fade-in border-t border-zinc-950 bg-[#0b0b0b] px-4 py-10 font-sans text-white sm:px-6 lg:px-8 lg:py-14">
+    <footer className="w-full animate-fade-in border-t border-zinc-950 bg-[#0b0b0b] px-4 pt-10 pb-24 font-sans text-white sm:px-6 md:pb-10 lg:px-8 lg:py-14">
       <div className="mx-auto max-w-7xl">
         <div className="grid grid-cols-1 items-center gap-9 md:grid-cols-[160px_minmax(0,1fr)_230px] md:gap-8">
           <div className="flex justify-center md:justify-start">
@@ -198,9 +198,9 @@ export default function SiteFooter({ footer }: SiteFooterProps) {
             </div>
           </div>
 
-          <div className="flex justify-center text-center md:justify-end md:text-right">
-            <p className="max-w-[230px] text-sm font-medium leading-6 text-zinc-300">
-              {footer.copyrightText}
+          <div className="flex min-w-0 justify-center px-2 text-center md:justify-end md:px-0 md:text-right">
+            <p className="max-w-full text-sm font-medium leading-6 text-wrap text-zinc-300 md:max-w-[230px]">
+              UAG URBN ARMOUR GEAR Copyright © 2026
             </p>
           </div>
         </div>

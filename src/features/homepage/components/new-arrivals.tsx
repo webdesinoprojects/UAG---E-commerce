@@ -30,7 +30,7 @@ export default function NewArrivals({ products }: { products: Product[] }) {
         </div>
           <h2 className="text-3xl font-black font-heading text-zinc-900 dark:text-white">New Arrivals</h2>
         
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2 font-medium">Explore the latest products from UAG</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2 font-medium">How can you evaluate content without design</p>
         </div>
         <div className="flex justify-start md:justify-center items-center overflow-x-auto pb-4 mb-8 border-b border-zinc-100 dark:border-zinc-800/40 scrollbar-none gap-6 sm:gap-8 font-sans">
           {tabs.map((tab) => (

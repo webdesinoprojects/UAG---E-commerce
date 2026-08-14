@@ -15,67 +15,60 @@ function getOriginalImageKitVideoUrl(url: string) {
 
 function CategoryVideo({ src }: { src: string }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [isVisible, setIsVisible] = React.useState(false);
+  const isIntersectingRef = React.useRef(false);
+  const [isNearViewport, setIsNearViewport] = React.useState(false);
+  const [isPlaying, setIsPlaying] = React.useState(false);
 
   React.useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { rootMargin: "100px" }
+      ([entry]) => {
+        isIntersectingRef.current = entry.isIntersecting;
+        setIsNearViewport(entry.isIntersecting);
+        setIsPlaying(entry.isIntersecting && document.visibilityState === "visible");
+      },
+      { rootMargin: "200px" }
     );
     observer.observe(video);
-    return () => observer.disconnect();
+
+    const handleVisibilityChange = () => {
+      setIsPlaying(
+        document.visibilityState === "visible" &&
+          isIntersectingRef.current
+      );
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   React.useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    let frameRequest = 0;
-
-    const keepLoopSeamless: VideoFrameRequestCallback = () => {
-      if (
-        Number.isFinite(video.duration) &&
-        video.duration > 0 &&
-        video.duration - video.currentTime <= 0.08
-      ) {
-        video.currentTime = 0;
-        void video.play();
-      }
-      frameRequest = video.requestVideoFrameCallback(keepLoopSeamless);
-    };
-
-    if (isVisible) {
-      video.load();
-      void video.play();
-      if ("requestVideoFrameCallback" in video) {
-        frameRequest = video.requestVideoFrameCallback(keepLoopSeamless);
-      }
+    if (isPlaying) {
+      void video.play().catch(() => undefined);
     } else {
       video.pause();
     }
-
-    return () => {
-      if (frameRequest) video.cancelVideoFrameCallback(frameRequest);
-    };
-  }, [isVisible]);
+  }, [isPlaying]);
 
   return (
     <video
       ref={videoRef}
-      src={isVisible ? getOriginalImageKitVideoUrl(src) : undefined}
-      autoPlay
+      src={isNearViewport ? getOriginalImageKitVideoUrl(src) : undefined}
       muted
       loop
       playsInline
-      preload={isVisible ? "auto" : "none"}
+      preload={isNearViewport ? "auto" : "none"}
       disablePictureInPicture
-      onCanPlay={(event) => void event.currentTarget.play()}
-      onEnded={(event) => {
-        event.currentTarget.currentTime = 0;
-        void event.currentTarget.play();
+      onCanPlay={(event) => {
+        if (isPlaying) void event.currentTarget.play().catch(() => undefined);
       }}
       className="absolute inset-0 h-full w-full rounded-xl object-cover [transform:translateZ(0)]"
     />
@@ -96,14 +89,24 @@ export default function CategoryCircles({
     let animationFrame = 0;
     let previousTime = performance.now();
     let pausedUntil = 0;
+    let scrollEnd = scroller.scrollWidth - scroller.clientWidth;
+
+    const updateScrollEnd = () => {
+      scrollEnd = scroller.scrollWidth - scroller.clientWidth;
+    };
+    const resizeObserver = new ResizeObserver(updateScrollEnd);
+    resizeObserver.observe(scroller);
 
     const scroll = (time: number) => {
       const elapsed = Math.min(time - previousTime, 50);
       previousTime = time;
 
-      if (time >= pausedUntil && scroller.scrollWidth > scroller.clientWidth) {
-        const end = scroller.scrollWidth - scroller.clientWidth;
-        if (scroller.scrollLeft >= end - 1) {
+      if (
+        document.visibilityState === "visible" &&
+        time >= pausedUntil &&
+        scrollEnd > 0
+      ) {
+        if (scroller.scrollLeft >= scrollEnd - 1) {
           scroller.scrollLeft = 0;
           pausedUntil = time + 900;
         } else {
@@ -115,7 +118,10 @@ export default function CategoryCircles({
     };
 
     animationFrame = requestAnimationFrame(scroll);
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+    };
   }, []);
 
   if (!categoryCircles.isEnabled || categoryCircles.items.length === 0) {

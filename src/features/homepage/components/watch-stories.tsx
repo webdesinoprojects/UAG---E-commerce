@@ -16,6 +16,13 @@ import type {
   HomepageWatchStories,
 } from "@/features/homepage/types";
 
+function getOriginalImageKitVideoUrl(url: string) {
+  return url.replace(
+    /^(https:\/\/ik\.imagekit\.io\/[^/]+\/)(?!tr:orig-true\/)/,
+    "$1tr:orig-true/"
+  );
+}
+
 function StoryViewer({ story }: { story: HomepageStory }) {
   return (
     <DialogContent
@@ -30,7 +37,7 @@ function StoryViewer({ story }: { story: HomepageStory }) {
 
       <div className="relative flex h-full w-full items-center justify-center">
         <video
-          src={story.videoUrl}
+          src={getOriginalImageKitVideoUrl(story.videoUrl)}
           controls
           autoPlay
           playsInline
@@ -70,7 +77,7 @@ export default function WatchStories({
   const duplicateStories = [...stories, ...stories];
 
   return (
-    <section className="w-full py-4 select-none mb-12 md:mb-20 px-4 sm:px-6 lg:px-8">
+    <section className="mb-12 w-full px-4 pt-0 pb-4 select-none sm:px-6 md:mb-20 lg:px-8">
       
 
 
@@ -108,11 +115,15 @@ export default function WatchStories({
                 {/* Video container */}
                 <div className="relative w-full aspect-[9/16]">
                   <video
-                    src={story.videoUrl}
+                    src={getOriginalImageKitVideoUrl(story.videoUrl)}
                     autoPlay
                     loop
                     muted
                     playsInline
+                    preload="auto"
+                    onCanPlay={(event) => {
+                      void event.currentTarget.play().catch(() => undefined);
+                    }}
                     className="absolute inset-0 w-full h-full object-cover z-0"
                   />
                   {/* Subtle top gradient for cinematic look */}

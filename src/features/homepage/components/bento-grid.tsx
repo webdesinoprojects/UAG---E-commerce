@@ -49,7 +49,7 @@ export default function BentoGrid({
   const emptySlotCount = Math.max(0, 12 - bentoGallery.items.length);
 
   return (
-    <section className="mb-12 w-full border-t border-zinc-100 bg-white py-12 font-sans dark:border-zinc-800/80 dark:bg-zinc-950 md:mb-16">
+    <section className="mb-1 w-full border-t border-zinc-100 bg-white pt-12 pb-0 font-sans dark:border-zinc-800/80 dark:bg-zinc-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
           {bentoGallery.items.map((item) => {
@@ -58,7 +58,7 @@ export default function BentoGrid({
                 type="button"
                 key={item.id}
                 onClick={() => setSelectedItem(item)}
-                className="group relative block aspect-square w-full overflow-hidden rounded-md border border-zinc-100 bg-white text-left"
+                className="group relative block aspect-square w-full overflow-hidden bg-transparent text-left"
                 aria-label={`View ${item.title}`}
               >
                 <Image src={item.imageUrl} alt={item.imageAlt} fill sizes="(max-width: 768px) 50vw, 33vw" className="object-contain transition-transform duration-500 group-hover:scale-[1.02]" loading="lazy" />
@@ -68,7 +68,7 @@ export default function BentoGrid({
           {Array.from({ length: emptySlotCount }, (_, index) => (
             <div
               key={`empty-gallery-slot-${index}`}
-              className="relative aspect-square w-full rounded-md border border-zinc-100 bg-white"
+              className="relative aspect-square w-full bg-transparent"
               aria-hidden="true"
             />
           ))}

@@ -264,7 +264,7 @@ export default function SiteHeader({
         </div>
 
         {/* 2. Mobile Navigation Bar Layout (<768px) */}
-        <div className="flex md:hidden h-20 w-full items-center justify-between px-4 select-none">
+        <div className="relative flex md:hidden h-20 w-full items-center justify-between px-4 select-none">
           
           {/* Left: Morphing Hamburger Trigger */}
           <button
@@ -275,22 +275,22 @@ export default function SiteHeader({
             {/* Smooth morphing Hamburger to X */}
             <div className="w-5 h-4 flex flex-col justify-between relative">
               <span className={cn(
-                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-300 origin-left",
+                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-150 origin-left",
                 isOpen ? "rotate-45 translate-x-[3px] -translate-y-[1px]" : ""
               )} />
               <span className={cn(
-                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-300",
+                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-150",
                 isOpen ? "opacity-0" : ""
               )} />
               <span className={cn(
-                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-300 origin-left",
+                "w-full h-0.5 bg-zinc-800 dark:bg-zinc-200 transition-all duration-150 origin-left",
                 isOpen ? "-rotate-45 translate-x-[3px] translate-y-[1px]" : ""
               )} />
             </div>
           </button>
 
           {/* Center: Brand Logo */}
-          <div className="flex justify-center flex-1">
+          <div className="absolute left-1/2 flex -translate-x-1/2 justify-center">
             <Link href="/" className="flex items-center rounded-md px-2 py-1 transition-colors select-none dark:bg-white dark:shadow-sm">
 <Image
                 src="/images/logo/logo.png"
@@ -479,24 +479,6 @@ export default function SiteHeader({
             </span>
           </div>
           <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Cart</span>
-        </Link>
-
-        {/* Track Order Tab */}
-        <Link 
-          href="/track-order" 
-          className={cn(
-            "flex flex-col items-center justify-center transition-colors py-1 flex-1 min-w-0",
-            pathname === "/track-order" ? "text-primary" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-          )}
-        >
-          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M10 17h4V5H2v12h3" />
-            <path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5" />
-            <path d="M14 17h1" />
-            <circle cx="7.5" cy="17.5" r="2.5" />
-            <circle cx="17.5" cy="17.5" r="2.5" />
-          </svg>
-          <span className="text-[9px] font-bold mt-1 uppercase tracking-wider font-sans whitespace-nowrap">Track</span>
         </Link>
 
         {/* My Account Tab */}
