@@ -95,10 +95,10 @@ export default function ProductCategoryGrid({
                 </div>
 
                 <div className="mt-3 flex min-w-0 flex-col items-center px-1">
-                  <h3 className="flex min-h-14 items-start justify-center text-center font-sans text-lg font-normal leading-snug text-zinc-800 transition-colors group-hover:text-primary sm:text-xl">
+                  <h3 className="flex min-h-14 items-start justify-center text-center font-sans text-sm font-semibold leading-snug text-black transition-colors group-hover:text-primary sm:text-base">
                     {CATEGORY_DISPLAY_NAMES[category.slug] ?? category.name}
                   </h3>
-                  <span className="mt-1 text-sm font-normal text-zinc-500">
+                  <span className="mt-1 text-xs font-normal text-zinc-500">
                     {category.productCount}{" "}
                     {category.productCount === 1 ? "product" : "products"}
                   </span>

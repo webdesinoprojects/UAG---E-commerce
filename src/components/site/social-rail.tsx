@@ -12,7 +12,7 @@ const socialLinks = [
   {
     label: "Instagram",
     href: "https://www.instagram.com/uag_audio/",
-    background: "linear-gradient(135deg, #feda75 0%, #fa7e1e 25%, #d62976 50%, #962fbf 75%, #4f5bd5 100%)",
+    background: "#8b4a35",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="5" />
@@ -35,7 +35,7 @@ const socialLinks = [
 
 export default function SocialRail() {
   return (
-    <aside className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col overflow-hidden shadow-md md:flex" aria-label="Social media links">
+    <aside className="fixed right-0 top-1/2 z-40 hidden -translate-y-1/2 flex-col items-end md:flex" aria-label="Social media links">
       {socialLinks.map((link) => (
         <a
           key={link.label}
@@ -43,10 +43,15 @@ export default function SocialRail() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={link.label}
-          className="flex h-11 w-11 items-center justify-center text-white transition-[filter] hover:brightness-110"
+          className="group relative flex h-11 w-11 items-center overflow-hidden text-white transition-[width,filter] duration-300 hover:w-36 hover:brightness-110 focus-visible:w-36 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           style={{ background: link.background }}
         >
-          {link.icon}
+          <span className="flex h-full w-25 items-center pl-4 text-sm font-bold opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100">
+            {link.label}
+          </span>
+          <span className="absolute right-0 flex h-11 w-11 items-center justify-center">
+            {link.icon}
+          </span>
         </a>
       ))}
     </aside>

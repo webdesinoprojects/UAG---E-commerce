@@ -80,7 +80,7 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
         <div>
           {/* Product Title */}
           <Link href={productHref}>
-            <h4 className="flex min-h-[4.5rem] items-start justify-center px-1 font-sans text-sm font-medium leading-snug text-zinc-800 transition-colors line-clamp-3 group-hover:text-primary sm:min-h-[4.75rem] sm:text-base">
+            <h4 className="flex min-h-[4.5rem] items-start justify-center px-1 font-sans text-xs font-medium leading-snug text-zinc-800 transition-colors line-clamp-3 group-hover:text-primary sm:min-h-[4.75rem] sm:text-sm">
               {product.name}
             </h4>
           </Link>

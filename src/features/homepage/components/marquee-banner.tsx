@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Sparkles, Star, Truck } from "lucide-react";
 import type {
   AnnouncementIcon,
   HomepageAnnouncement,
@@ -7,10 +6,10 @@ import type {
 } from "@/features/homepage/types";
 
 const iconMap = {
-  sparkles: Sparkles,
-  star: Star,
-  truck: Truck,
-} satisfies Record<AnnouncementIcon, typeof Sparkles>;
+  sparkles: "★",
+  star: "★",
+  truck: "🚚🚚",
+} satisfies Record<AnnouncementIcon, string>;
 
 interface MarqueeBannerProps {
   announcement: HomepageAnnouncement;
@@ -23,16 +22,18 @@ function MarqueeItem({
   accentColor: string;
   item: HomepageAnnouncementItem;
 }) {
-  const Icon = iconMap[item.icon];
+  const icon = iconMap[item.icon];
   const className =
     "flex items-center gap-4 mx-6 text-xs sm:text-sm font-extrabold tracking-wider text-current uppercase";
   const content = (
     <>
-      <Icon
-        className="h-4.5 w-4.5 shrink-0"
+      <span
+        className="shrink-0 leading-none"
         style={{ color: accentColor }}
         aria-hidden="true"
-      />
+      >
+        {icon}
+      </span>
       <span>{item.text}</span>
       <span className="ml-4 font-normal opacity-30" aria-hidden="true">
         |

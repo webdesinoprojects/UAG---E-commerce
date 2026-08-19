@@ -14,10 +14,25 @@ const tabs = [
 
 function normalized(value: string) { return value.toLowerCase().replace(/[^a-z0-9]/g, ""); }
 
+function productCategoryLabel(category: string) {
+  const normalizedCategory = normalized(category);
+
+  if (normalizedCategory.includes("earbuds")) return "Earbuds Or Airdopes ENC";
+  if (normalizedCategory.includes("neckband")) return "Neckband with Magnetic Sensor or ENC";
+
+  return category;
+}
+
 export default function NewArrivals({ products }: { products: Product[] }) {
   const [activeTab, setActiveTab] = useState("earbuds");
   const filteredProducts = useMemo(
-    () => products.filter((product) => normalized(product.category).includes(activeTab)).slice(0, 10),
+    () => products
+      .filter((product) => normalized(product.category).includes(activeTab))
+      .slice(0, 10)
+      .map((product) => ({
+        ...product,
+        category: productCategoryLabel(product.category),
+      })),
     [activeTab, products]
   );
 
@@ -30,7 +45,7 @@ export default function NewArrivals({ products }: { products: Product[] }) {
         </div>
           <h2 className="text-3xl font-black font-heading text-zinc-900 dark:text-white">New Arrivals</h2>
         
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2 font-medium">How can you evaluate content without design</p>
+          <p className="text-14px text-zinc-400 dark:text-zinc-500 mt-2 font-medium">How can you evaluate content without design</p>
         </div>
         <div className="flex justify-start md:justify-center items-center overflow-x-auto pb-4 mb-8 border-b border-zinc-100 dark:border-zinc-800/40 scrollbar-none gap-6 sm:gap-8 font-sans">
           {tabs.map((tab) => (
