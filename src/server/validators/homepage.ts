@@ -284,7 +284,7 @@ export function parseHomepageHeroCarouselForm(formData: FormData) {
 
 export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
   isEnabled: true,
-  autoplaySeconds: 5,
+  autoplaySeconds: 3,
   slides: [
     {
       id: "slide-1",
@@ -295,6 +295,7 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       image: "/images/carousel/banner1.png",
       fallbackImagePath: "/images/carousel/banner1.png",
       imageMediaAssetId: null,
+      mediaMimeType: null,
       accentColor: "#fbbf24",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -317,6 +318,7 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       image: "/images/carousel/banner2.png",
       fallbackImagePath: "/images/carousel/banner2.png",
       imageMediaAssetId: null,
+      mediaMimeType: null,
       accentColor: "#ef4444",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -339,6 +341,7 @@ export const fallbackHomepageHeroCarousel: HomepageHeroCarousel = {
       image: "/images/carousel/banner1.png",
       fallbackImagePath: "/images/carousel/banner1.png",
       imageMediaAssetId: null,
+      mediaMimeType: null,
       accentColor: "#34d399",
       badgeText: "Product Launch",
       primaryCtaLabel: "Explore Now",
@@ -360,6 +363,7 @@ export type HeroCmsSectionItemRow = CmsSectionItemRow & {
   body: string | null;
   media_asset_id: string | null;
   mediaUrl?: string | null;
+  mediaMimeType?: string | null;
 };
 
 const heroSectionSettingsSchema = z.object({
@@ -408,6 +412,7 @@ function parseHeroSlide(item: HeroCmsSectionItemRow): HomepageHeroSlide | null {
     image: item.mediaUrl ?? parsed.data.image,
     fallbackImagePath: parsed.data.image,
     imageMediaAssetId: parsed.data.imageMediaAssetId ?? null,
+    mediaMimeType: item.mediaUrl ? item.mediaMimeType ?? null : null,
   };
 }
 

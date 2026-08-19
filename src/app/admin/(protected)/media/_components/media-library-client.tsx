@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { getOriginalImageKitVideoUrl } from "@/features/media/imagekit-url";
 import type { MediaAssetDto } from "@/features/media/types";
 import {
   ALLOWED_MIME_TYPES,
@@ -861,11 +862,12 @@ export function MediaLibraryClient({
                         )}
                         {isVideo(asset.mimeType) && (
                           <video
-                            src={asset.url}
+                            src={getOriginalImageKitVideoUrl(asset.url)}
                             className="h-full w-full object-cover"
                             muted
                             loop
                             playsInline
+                            preload="metadata"
                           />
                         )}
                         {!isImage(asset.mimeType) && !isVideo(asset.mimeType) && (
@@ -928,7 +930,7 @@ export function MediaLibraryClient({
                       )}
                       {isVideo(selectedAsset.mimeType) && (
                         <video
-                          src={selectedAsset.url}
+                          src={getOriginalImageKitVideoUrl(selectedAsset.url)}
                           className="h-full w-full object-contain"
                           controls
                           muted

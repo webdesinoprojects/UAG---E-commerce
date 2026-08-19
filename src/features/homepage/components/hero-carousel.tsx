@@ -20,6 +20,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
+import { getOriginalImageKitVideoUrl } from "@/features/media/imagekit-url";
 import type {
   HeroFeatureIcon,
   HomepageHeroCarousel,
@@ -183,15 +184,29 @@ export default function HeroCarousel({ heroCarousel }: HeroCarouselProps) {
               <CarouselItem key={slide.id} className="relative h-[62vw] max-h-[320px] w-full pl-0 md:h-[75vh] md:min-h-[480px] md:max-h-[780px]">
                 {/* Background Image Container */}
                 <div className="absolute inset-0 z-0">
-                  <Image
-                    src={slide.image}
-                    alt={slide.title}
-                    fill
-                    sizes="100vw"
-                    className="object-cover object-center select-none md:object-contain md:object-bottom"
-                    preload={isLCP ? true : undefined}
-                    loading={isLCP ? undefined : "lazy"}
-                  />
+                  {slide.mediaMimeType?.startsWith("video/") ? (
+                    <video
+                      src={getOriginalImageKitVideoUrl(slide.image)}
+                      poster={slide.fallbackImagePath}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="auto"
+                      aria-hidden="true"
+                      className="h-full w-full object-cover object-center select-none md:object-contain md:object-bottom"
+                    />
+                  ) : (
+                    <Image
+                      src={slide.image}
+                      alt={slide.title}
+                      fill
+                      sizes="100vw"
+                      className="object-cover object-center select-none md:object-contain md:object-bottom"
+                      preload={isLCP ? true : undefined}
+                      loading={isLCP ? undefined : "lazy"}
+                    />
+                  )}
                   {contentEnabled ? (
                     <>
                       <div className="absolute inset-0 z-10 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />

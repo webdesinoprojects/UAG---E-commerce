@@ -31,6 +31,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { getOriginalImageKitVideoUrl } from "@/features/media/imagekit-url";
 import type { MediaAssetDto } from "@/features/media/types";
 
 interface MediaPickerModalProps {
@@ -116,7 +117,12 @@ function AssetCard({
       )}
     >
       {isVid ? (
-        <video src={asset.url} className="w-full h-full object-cover" muted />
+        <video
+          src={getOriginalImageKitVideoUrl(asset.url)}
+          className="w-full h-full object-cover"
+          muted
+          preload="metadata"
+        />
       ) : (
         <Image
           src={asset.url}
@@ -177,7 +183,7 @@ function AssetPreview({ asset }: { asset: MediaAssetDto }) {
       <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted/50">
         {isVid ? (
           <video
-            src={asset.url}
+            src={getOriginalImageKitVideoUrl(asset.url)}
             controls
             muted
             playsInline

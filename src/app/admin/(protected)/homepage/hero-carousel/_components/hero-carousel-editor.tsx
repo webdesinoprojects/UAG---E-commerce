@@ -15,6 +15,7 @@ import {
   Save,
   ShieldCheck,
   Sparkles,
+  Video,
   Volume2,
   Zap,
   type LucideIcon,
@@ -28,6 +29,7 @@ import type {
   HomepageHeroCarousel,
 } from "@/features/homepage/types";
 import { MediaPickerModal } from "@/features/media/components/media-picker-modal";
+import { getOriginalImageKitVideoUrl } from "@/features/media/imagekit-url";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,6 +74,7 @@ interface SlideForm {
   image: string;
   imageUrl: string;
   imageMediaAssetId: string | null;
+  mediaMimeType: string | null;
   accentColor: string;
   badgeText: string;
   primaryCtaLabel: string;
@@ -142,6 +145,7 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
       image: slide.fallbackImagePath,
       imageUrl: slide.image,
       imageMediaAssetId: slide.imageMediaAssetId,
+      mediaMimeType: slide.mediaMimeType,
       accentColor: slide.accentColor,
       badgeText: slide.badgeText,
       primaryCtaLabel: slide.primaryCtaLabel,
@@ -462,7 +466,17 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
               <GroupLabel>Media &amp; Design</GroupLabel>
               <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)]">
                 <div className="relative aspect-video overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
-                  {current.imageUrl ? (
+                  {current.imageUrl && current.mediaMimeType?.startsWith("video/") ? (
+                    <video
+                      src={getOriginalImageKitVideoUrl(current.imageUrl)}
+                      muted
+                      loop
+                      autoPlay
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : current.imageUrl ? (
                     // Admin-only preview; the selected ImageKit URL is already
                     // validated when the media asset is persisted.
                     // eslint-disable-next-line @next/next/no-img-element
@@ -478,19 +492,20 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Hero image</Label>
+                  <Label>Hero image or video</Label>
                   <MediaPickerModal
-                    allowedTypes="image"
+                    allowedTypes="all"
                     selectedAssetId={current.imageMediaAssetId}
                     onSelect={(asset) =>
                       updateSlide(selectedIndex, {
                         imageMediaAssetId: asset?.id ?? null,
                         imageUrl: asset?.url ?? current.image,
+                        mediaMimeType: asset?.mimeType ?? null,
                       })
                     }
                     trigger={
                       <Button type="button" variant="outline">
-                        <ImageIcon className="h-4 w-4" />
+                        <Video className="h-4 w-4" />
                         {current.imageMediaAssetId
                           ? "Change media"
                           : "Select from Media Library"}
@@ -498,8 +513,8 @@ export function HeroCarouselEditor({ heroCarousel }: HeroCarouselEditorProps) {
                     }
                   />
                   <p className="text-xs text-zinc-500">
-                    Select an existing image or use the upload shortcut inside
-                    the Media Library drawer.
+                    Select an existing image, MP4, or WebM video. Videos play
+                    muted and loop automatically on the storefront.
                   </p>
                 </div>
               </div>
@@ -753,7 +768,17 @@ function SlidePreview({ slide, dimmed }: { slide: SlideForm; dimmed: boolean }) 
         (dimmed ? " opacity-50" : "")
       }
     >
-      {slide.imageUrl ? (
+      {slide.imageUrl && slide.mediaMimeType?.startsWith("video/") ? (
+        <video
+          src={getOriginalImageKitVideoUrl(slide.imageUrl)}
+          muted
+          loop
+          autoPlay
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      ) : slide.imageUrl ? (
         // Admin-only preview of a validated managed URL or local fallback;
         // next/image optimization adds no value for this live form preview.
         // eslint-disable-next-line @next/next/no-img-element

@@ -276,6 +276,9 @@ export async function readHomepageHeroCarousel(): Promise<HomepageHeroCarousel> 
       mediaUrl: item.media_asset_id
         ? mediaMap.get(item.media_asset_id)?.url ?? null
         : null,
+      mediaMimeType: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.mime_type ?? null
+        : null,
     }));
 
     return toHomepageHeroCarousel(section, enrichedItems);
@@ -324,6 +327,9 @@ export async function readAdminHomepageHeroCarousel(): Promise<HomepageHeroCarou
       mediaUrl: item.media_asset_id
         ? mediaMap.get(item.media_asset_id)?.url ?? null
         : null,
+      mediaMimeType: item.media_asset_id
+        ? mediaMap.get(item.media_asset_id)?.mime_type ?? null
+        : null,
     }));
 
     return toHomepageHeroCarousel(section, enrichedItems);
@@ -351,7 +357,7 @@ export async function writeHomepageHeroCarousel(
         .filter((id): id is string => Boolean(id))
     )
   );
-  await assertMediaAssetsAreImages(supabase, mediaIds);
+  await assertHeroMediaAssets(supabase, mediaIds);
 
   const { data: section, error: sectionError } = await supabase
     .from("cms_sections")
@@ -910,6 +916,38 @@ export async function writeHomepageBentoGallery(
 
   if (insertError) {
     throw new Error("Failed to save bento gallery items.");
+  }
+}
+
+async function assertHeroMediaAssets(
+  supabase: ServerSupabaseClient,
+  ids: string[]
+) {
+  if (ids.length === 0) return;
+
+  const { data: assets, error } = await supabase
+    .from("media_assets")
+    .select("id, mime_type")
+    .in("id", ids);
+
+  if (error || !assets || assets.length !== ids.length) {
+    throw new Error("Invalid hero media asset selected.");
+  }
+
+  const allowedMimeTypes = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/avif",
+    "image/gif",
+    "video/mp4",
+    "video/webm",
+  ]);
+
+  for (const asset of assets) {
+    if (!asset.mime_type || !allowedMimeTypes.has(asset.mime_type)) {
+      throw new Error("Hero media must be a supported image, MP4, or WebM video.");
+    }
   }
 }
 

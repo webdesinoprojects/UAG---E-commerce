@@ -42,17 +42,7 @@ async function AccountContent() {
   return (
     <AccountPageFrame active="dashboard">
       <div className="space-y-7">
-        <div className="flex items-start gap-5 rounded-[8px] bg-[#e2b349] px-7 py-6 text-white shadow-sm">
-          <CircleAlert
-            className="mt-0.5 size-6 shrink-0"
-            strokeWidth={2}
-            aria-hidden="true"
-          />
-          <p className="text-[15px] font-semibold leading-7 sm:text-base">
-            Your account with UAG URBN ARMOUR GEAR is using a temporary
-            password. We emailed you a link to change your password.
-          </p>
-        </div>
+
 
         <div className="space-y-6 text-[15px] leading-8 text-zinc-500 sm:text-base dark:text-zinc-400">
           <p>

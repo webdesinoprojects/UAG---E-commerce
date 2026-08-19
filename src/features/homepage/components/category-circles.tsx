@@ -172,7 +172,7 @@ export default function CategoryCircles({
 
               {/* Text Information */}
               <div className="mt-3 flex flex-col items-center">
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors">
+                <span className="font-sans text-[11px] font-extrabold uppercase tracking-wider text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-50">
                   {category.name}
                 </span>
                 <span className="mt-1 text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
