@@ -77,15 +77,15 @@ export default function MostPopular({ products }: { products: Product[] }) {
   const handleBlur = useCallback(() => setIsPaused(false), []);
 
   return (
-    <section className="w-full bg-white py-12 dark:bg-zinc-950 font-sans border-t border-zinc-150 dark:border-zinc-800/80 mb-12 md:mb-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mb-12 flex flex-col items-center text-center select-none">
-        <span className="text-[11px] sm:text-xs font-bold text-blue-600 dark:text-blue-400 tracking-wide uppercase">
+    <section className="mb-8 w-full border-t border-zinc-150 bg-white pt-8 pb-10 font-sans dark:border-zinc-800/80 dark:bg-zinc-950 md:mb-10">
+      <div className="mx-auto mb-8 flex max-w-7xl flex-col items-center px-4 text-center select-none sm:px-6 lg:px-8">
+        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
           Learn how to get a discount
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-zinc-900 dark:text-white font-heading mt-2.5 mb-3 leading-[1.15]">
+        <h2 className="mt-3 text-3xl font-medium tracking-wide text-zinc-900 dark:text-white sm:text-4xl">
           Most Popular Products
         </h2>
-        <p className="text-[11px] sm:text-xs text-zinc-400 dark:text-zinc-500 font-medium max-w-md">
+        <p className="mt-3 max-w-xl text-sm leading-7 font-medium text-zinc-400 dark:text-zinc-500 sm:text-base">
           Proponents of content strategy may shun of dummy copy designers
         </p>
       </div>

@@ -22,9 +22,11 @@ export interface Product {
 interface ProductCardProps {
   product: Product;
   variant?: "default" | "transparent";
+  compactInfo?: boolean;
+  tallMedia?: boolean;
 }
 
-export default function ProductCard({ product, variant = "default" }: ProductCardProps) {
+export default function ProductCard({ product, variant = "default", compactInfo = false, tallMedia = false }: ProductCardProps) {
   const productHref = product.productUrl || `/products/${product.slug}`;
   const hasDiscount =
     product.discount > 0 && product.originalPrice > product.price;
@@ -56,9 +58,10 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
       {/* 2. Product Image Container (Slightly wider, full bleed for transparent) */}
       <Link href={productHref} className={cn(
         "relative w-full overflow-hidden rounded-lg flex items-center justify-center border-0 transition-all duration-300",
+        tallMedia ? "aspect-[5/6]" : "aspect-square",
         variant === "default"
-          ? "aspect-square bg-white p-0"
-          : "aspect-square bg-white p-0"
+          ? "bg-white p-0"
+          : "bg-white p-0"
       )}>
         <Image
           src={product.image}
@@ -80,13 +83,19 @@ export default function ProductCard({ product, variant = "default" }: ProductCar
         <div>
           {/* Product Title */}
           <Link href={productHref}>
-            <h4 className="flex min-h-[4.5rem] items-start justify-center px-1 font-sans text-xs font-medium leading-snug text-zinc-800 transition-colors line-clamp-3 group-hover:text-primary sm:min-h-[4.75rem] sm:text-sm">
+            <h4 className={cn(
+              "flex items-start justify-center px-1 font-sans text-xs font-medium leading-snug text-zinc-800 transition-colors line-clamp-3 group-hover:text-primary sm:text-sm",
+              compactInfo ? "min-h-10 sm:min-h-12" : "min-h-[4.5rem] sm:min-h-[4.75rem]"
+            )}>
               {product.name}
             </h4>
           </Link>
 
           {/* Category Tag */}
-          <span className="mt-2 block text-xs font-normal text-zinc-400 sm:text-sm">
+          <span className={cn(
+            "block text-xs font-normal text-zinc-400 sm:text-sm",
+            compactInfo ? "mt-1" : "mt-2"
+          )}>
             {product.category}
           </span>
         </div>

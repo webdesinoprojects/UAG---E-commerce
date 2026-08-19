@@ -33,13 +33,13 @@ export default function QualityGoods() {
   };
 
   return (
-    <section className="w-full border-t border-zinc-100 bg-white px-4 py-16 font-sans dark:border-zinc-800 dark:bg-zinc-950 sm:px-6 lg:px-8 lg:py-20">
+    <section className="w-full border-t border-zinc-100 bg-white px-4 pt-10 pb-8 font-sans dark:border-zinc-800 dark:bg-zinc-950 sm:px-6 lg:px-8 lg:pt-12 lg:pb-10">
       <div className="relative mx-auto max-w-7xl text-center">
         <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">There are some redeeming factors</p>
-        <h2 className="mt-5 text-3xl font-medium tracking-wide text-zinc-900 dark:text-white sm:text-4xl">We Provide High Quality Goods</h2>
-        <p className="mx-auto mt-5 max-w-4xl text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">A client that’s unhappy for a reason is a problem, a client that’s unhappy though he or her can’t</p>
+        <h2 className="mt-3 text-3xl font-medium tracking-wide text-zinc-900 dark:text-white sm:text-4xl">We Provide High Quality Goods</h2>
+        <p className="mx-auto mt-3 max-w-4xl text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">A client that’s unhappy for a reason is a problem, a client that’s unhappy though he or her can’t</p>
 
-        <div ref={scrollerRef} className="mt-12 flex snap-x snap-mandatory overflow-x-auto pb-3 pr-12 scrollbar-hide md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:pr-0">
+        <div ref={scrollerRef} className="mt-8 flex snap-x snap-mandatory overflow-x-auto pb-3 pr-12 scrollbar-hide md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:pb-0 md:pr-0">
           {benefits.map((benefit) => {
             const Icon = benefit.icon;
             return (
@@ -49,8 +49,8 @@ export default function QualityGoods() {
                 ) : Icon ? (
                   <Icon aria-hidden="true" className="h-14 w-14 stroke-[1.8] text-[#2868c7]" />
                 ) : null}
-                <h3 className="mt-7 text-2xl font-medium text-zinc-900 dark:text-white">{benefit.title}</h3>
-                <p className="mt-4 max-w-sm text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">{benefit.description}</p>
+                <h3 className="mt-4 text-2xl font-medium text-zinc-900 dark:text-white">{benefit.title}</h3>
+                <p className="mt-2 max-w-sm text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">{benefit.description}</p>
               </article>
             );
           })}

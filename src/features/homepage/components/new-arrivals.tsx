@@ -54,14 +54,14 @@ export default function NewArrivals({ products }: { products: Product[] }) {
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
-          {filteredProducts.map((product) => <ProductCard key={product.id} product={product} />)}
-        </div>
-        <div className="flex justify-center mt-12">
-          <Button variant="outline" className="font-bold tracking-widest text-xs uppercase px-8 h-12 border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/60 dark:hover:text-white text-zinc-800 dark:text-zinc-200 rounded-xl transition-all active:scale-95" asChild>
-            <Link href="/new-launches">Explore Products</Link>
-          </Button>
-        </div>
+      </div>
+      <div className="mx-auto grid max-w-[80rem] grid-cols-2 gap-4 px-4 md:grid-cols-3 md:gap-5 md:px-6 lg:grid-cols-4 lg:px-8 xl:grid-cols-5">
+        {filteredProducts.map((product) => <ProductCard key={product.id} product={product} compactInfo tallMedia />)}
+      </div>
+      <div className="flex justify-center mt-12">
+        <Button variant="outline" className="font-bold tracking-widest text-xs uppercase px-8 h-12 border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/60 dark:hover:text-white text-zinc-800 dark:text-zinc-200 rounded-xl transition-all active:scale-95" asChild>
+          <Link href="/new-launches">Explore Products</Link>
+        </Button>
       </div>
     </section>
   );
